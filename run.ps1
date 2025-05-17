@@ -1,31 +1,60 @@
+# # run.ps1
 
-# Check if there is a external folder
+# # ----------------------------
+# # 1) Clone or Update PortAudio
+# # ----------------------------
 if (Test-Path -Path "./external/portaudio") {
-    # Update the portaudio library
+    Write-Host "Updating portaudio (git pull)..."
     Set-Location -Path "./external/portaudio"
     git pull
     Set-Location -Path "../.."
 } else {
-    # Clone the portaudio library
+    Write-Host "Cloning portaudio..."
     git clone https://github.com/PortAudio/portaudio.git external/portaudio
 }
 
-# Check if there is a bulid folder
-if (-not (Test-Path -Path "./build")) {
-    New-Item -ItemType Directory -Path "./build"
+# # --------------------------------
+# # 2) Clone or Update whisper.cpp
+# # --------------------------------
+if (Test-Path -Path "./external/whisper.cpp") {
+    Write-Host "Updating whisper.cpp (git pull)..."
+    Set-Location -Path "./external/whisper.cpp"
+    git pull
+    Set-Location -Path "../.."
+} else {
+    Write-Host "Cloning whisper.cpp..."
+    git clone https://github.com/ggerganov/whisper.cpp.git external/whisper.cpp
 }
 
-# Navigate to the build directory
+# ----------------------------------
+# 3) Create / Enter Build Directory
+# ----------------------------------
+if (-not (Test-Path -Path "./build")) {
+    New-Item -ItemType Directory -Path "./build" | Out-Null
+}
+
 Set-Location -Path "./build"
 
-# Generate the build files
-cmake ..
+# --------------------------------
+# 4) Generate the Build Files
+#    - Force BUILD_SHARED_LIBS=ON
+#    - Choose Release configuration
+# --------------------------------
+Write-Host "Configuring CMake..."
+cmake -D BUILD_SHARED_LIBS=ON -D CMAKE_BUILD_TYPE=Release ..
 
-# Compile the project
+# -------------------------------------------------
+# 5) Build the Project (Release mode on Windows)
+# -------------------------------------------------
+Write-Host "Building project..."
 cmake --build . --config Release
 
-# Back to the root directory
+# ------------------------------------------
+# 6) Return to root and run the .exe
+# ------------------------------------------
 Set-Location -Path ".."
 
-# Run the resulting executable
-./build/Release/AudioCapturePlayback.exe
+# Write-Host "Running executable..."
+./build/Release/AudioCapturePlayback.exe fixed
+
+./build/Release/AudioCapturePlayback.exe vad 0.6
