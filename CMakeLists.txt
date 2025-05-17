@@ -1,21 +1,74 @@
-cmake_minimum_required(VERSION 3.5)
-project(AudioCapture)
+cmake_minimum_required(VERSION 3.10)
+project(AudioCapturePlayback)
 
 # Set C++ standard
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Set consistent runtime library
-set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreadedDLL") # or "MultiThreaded" for static
+# Default to Release build if not specified
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release)
+endif()
 
-# Add include directory for PortAudio headers
-include_directories("${CMAKE_SOURCE_DIR}/include")
+# Include directories for common headers
+include_directories(${PROJECT_SOURCE_DIR}/include)
 
-# Add executable
-add_executable(audio_capture "${CMAKE_SOURCE_DIR}/sources/main.cpp")
+# Collect common source files
+set(SOURCES
+    main.cpp
+)
 
-# Link PortAudio library
-target_link_libraries(audio_capture PRIVATE "${CMAKE_SOURCE_DIR}/lib/portaudio_static_x64.lib")
+# Combine all source files
+set(ALL_SOURCES ${SOURCES})
 
-# Link additional system libraries required by PortAudio
-target_link_libraries(audio_capture PRIVATE winmm ole32 oleaut32 uuid setupapi)
+# Add executable target
+add_executable(AudioCapturePlayback ${ALL_SOURCES})
+
+# Add PortAudio as a subdirectory
+set(PORTAUDIO_DIR "${CMAKE_SOURCE_DIR}/external/portaudio")
+add_subdirectory(${PORTAUDIO_DIR} ${CMAKE_BINARY_DIR}/portaudio_build EXCLUDE_FROM_ALL)
+
+# Configure PortAudio options (Windows-specific settings)
+if(WIN32)
+    set(PA_USE_WASAPI ON CACHE BOOL "" FORCE)
+    set(PA_USE_ASIO ON CACHE BOOL "" FORCE)
+    set(PA_USE_DS ON CACHE BOOL "" FORCE)
+    set(PA_USE_WDMKS ON CACHE BOOL "" FORCE)
+    set(PA_USE_WMME ON CACHE BOOL "" FORCE)
+endif()
+
+# PortAudio build options
+set(PA_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(PA_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(PA_BUILD_STATIC OFF CACHE BOOL "" FORCE)
+set(PA_BUILD_SHARED ON CACHE BOOL "" FORCE)
+
+# Include PortAudio headers
+include_directories(${PORTAUDIO_DIR}/include)
+
+# Link PortAudio shared library
+target_link_libraries(AudioCapturePlayback PRIVATE portaudio)
+
+# Add preprocessor definitions
+if(WIN32)
+    target_compile_definitions(AudioCapturePlayback PRIVATE PA_USE_WASAPI)
+endif()
+
+# Windows-specific post-build steps
+if(WIN32)
+    # Copy the PortAudio DLL to the executable directory
+    add_custom_command(TARGET AudioCapturePlayback POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        $<TARGET_FILE:portaudio>
+        $<TARGET_FILE_DIR:AudioCapturePlayback>
+    )
+
+    # Copy PDB files if building in Debug mode
+    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+        add_custom_command(TARGET AudioCapturePlayback POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            $<TARGET_PDB_FILE:portaudio>
+            $<TARGET_FILE_DIR:AudioCapturePlayback>
+        )
+    endif()
+endif()
