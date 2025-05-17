@@ -1,27 +1,48 @@
 cmake_minimum_required(VERSION 3.10)
 project(AudioCapturePlayback)
 
-# ------------------------------------------------------------------
-# 1) Configure Project Settings
-# ------------------------------------------------------------------
-
-# Use C++17
+# Set C++ standard
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Default build type to "Release" if not specified
+# Default to Release build if not specified
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 endif()
 
-# Force building all sub-libraries as shared (DLLs on Windows)
-set(BUILD_SHARED_LIBS ON CACHE BOOL "Build all libs as shared libraries" FORCE)
+# Include directories for common headers
+include_directories(${PROJECT_SOURCE_DIR}/include)
 
-# ------------------------------------------------------------------
-# 2) Configure PortAudio
-# ------------------------------------------------------------------
+# Collect common source files
+set(SOURCES
+    src/main.cpp
+    src/AudioCapture.cpp
+    src/AudioPlayback.cpp
+    src/AAudioDevice.cpp
+    src/AudioDeviceManager.cpp
+)
 
-# Windows-specific options for PortAudio host APIs
+# Platform-specific source files
+if(WIN32)
+    set(PLATFORM_SOURCES
+        platform/windows/src/WindowsAudioCapture.cpp
+        platform/windows/src/WindowsAudioDevice.cpp
+        platform/windows/src/WindowsAudioPlayback.cpp
+    )
+    include_directories(${PROJECT_SOURCE_DIR}/platform/windows/include)
+endif()
+
+# Combine all source files
+set(ALL_SOURCES ${SOURCES} ${PLATFORM_SOURCES})
+
+# Add executable target
+add_executable(AudioCapturePlayback ${ALL_SOURCES})
+
+# Add PortAudio as a subdirectory
+set(PORTAUDIO_DIR "${CMAKE_SOURCE_DIR}/external/portaudio")
+add_subdirectory(${PORTAUDIO_DIR} ${CMAKE_BINARY_DIR}/portaudio_build EXCLUDE_FROM_ALL)
+
+# Configure PortAudio options (Windows-specific settings)
 if(WIN32)
     set(PA_USE_WASAPI ON CACHE BOOL "" FORCE)
     set(PA_USE_ASIO ON CACHE BOOL "" FORCE)
@@ -30,119 +51,38 @@ if(WIN32)
     set(PA_USE_WMME ON CACHE BOOL "" FORCE)
 endif()
 
-# Disable PortAudio's examples/tests (optional, to reduce clutter)
+# PortAudio build options
 set(PA_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(PA_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(PA_BUILD_STATIC OFF CACHE BOOL "" FORCE)
+set(PA_BUILD_SHARED ON CACHE BOOL "" FORCE)
 
-# ------------------------------------------------------------------
-# 3) Add Subdirectories for Dependencies
-#    (Adjust paths to where you cloned them)
-# ------------------------------------------------------------------
-add_subdirectory(external/whisper.cpp external/whisper.cpp/build)
-add_subdirectory(external/portaudio external/portaudio/build)
+# Include PortAudio headers
+include_directories(${PORTAUDIO_DIR}/include)
 
-# ------------------------------------------------------------------
-# 4) Define Your Executable
-# ------------------------------------------------------------------
-set(MY_SOURCES
-    main.cpp
-    # Add other .cpp/.h if needed
-)
+# Link PortAudio shared library
+target_link_libraries(AudioCapturePlayback PRIVATE portaudio)
 
-add_executable(AudioCapturePlayback ${MY_SOURCES})
-
-# ------------------------------------------------------------------
-# 5) Link Against PortAudio + Whisper
-# ------------------------------------------------------------------
-target_link_libraries(AudioCapturePlayback
-    PRIVATE
-        portaudio
-        whisper
-)
-
-# ------------------------------------------------------------------
-# 6) Copy all necessary DLLs (and optional PDBs in Debug) on Windows
-# ------------------------------------------------------------------
+# Add preprocessor definitions
 if(WIN32)
+    target_compile_definitions(AudioCapturePlayback PRIVATE PA_USE_WASAPI)
+endif()
 
-    # --- PortAudio ---
+# Windows-specific post-build steps
+if(WIN32)
+    # Copy the PortAudio DLL to the executable directory
     add_custom_command(TARGET AudioCapturePlayback POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            $<TARGET_FILE:portaudio>                # e.g. portaudio.dll
-            $<TARGET_FILE_DIR:AudioCapturePlayback> # e.g. build/Release/
+        $<TARGET_FILE:portaudio>
+        $<TARGET_FILE_DIR:AudioCapturePlayback>
     )
 
-    # --- Whisper ---
-    add_custom_command(TARGET AudioCapturePlayback POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            $<TARGET_FILE:whisper>                 
-            $<TARGET_FILE_DIR:AudioCapturePlayback>
-    )
-
-    # --- ggml (core) ---
-    if(TARGET ggml)
-        add_custom_command(TARGET AudioCapturePlayback POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                $<TARGET_FILE:ggml>
-                $<TARGET_FILE_DIR:AudioCapturePlayback>
-        )
-    endif()
-
-    # --- ggml-base ---
-    if(TARGET ggml-base)
-        add_custom_command(TARGET AudioCapturePlayback POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                $<TARGET_FILE:ggml-base>
-                $<TARGET_FILE_DIR:AudioCapturePlayback>
-        )
-    endif()
-
-    # --- ggml-cpu ---
-    if(TARGET ggml-cpu)
-        add_custom_command(TARGET AudioCapturePlayback POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                $<TARGET_FILE:ggml-cpu>
-                $<TARGET_FILE_DIR:AudioCapturePlayback>
-        )
-    endif()
-
-    # --- Copy PDB files if building in Debug mode ---
+    # Copy PDB files if building in Debug mode
     if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-        # PortAudio PDB
         add_custom_command(TARGET AudioCapturePlayback POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                $<TARGET_PDB_FILE:portaudio>
-                $<TARGET_FILE_DIR:AudioCapturePlayback>
+            $<TARGET_PDB_FILE:portaudio>
+            $<TARGET_FILE_DIR:AudioCapturePlayback>
         )
-        # Whisper PDB
-        add_custom_command(TARGET AudioCapturePlayback POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                $<TARGET_PDB_FILE:whisper>
-                $<TARGET_FILE_DIR:AudioCapturePlayback>
-        )
-        # ggml PDB
-        if(TARGET ggml)
-            add_custom_command(TARGET AudioCapturePlayback POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                    $<TARGET_PDB_FILE:ggml>
-                    $<TARGET_FILE_DIR:AudioCapturePlayback>
-            )
-        endif()
-        # ggml-base PDB
-        if(TARGET ggml-base)
-            add_custom_command(TARGET AudioCapturePlayback POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                    $<TARGET_PDB_FILE:ggml-base>
-                    $<TARGET_FILE_DIR:AudioCapturePlayback>
-            )
-        endif()
-        # ggml-cpu PDB
-        if(TARGET ggml-cpu)
-            add_custom_command(TARGET AudioCapturePlayback POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                    $<TARGET_PDB_FILE:ggml-cpu>
-                    $<TARGET_FILE_DIR:AudioCapturePlayback>
-            )
-        endif()
     endif()
 endif()
