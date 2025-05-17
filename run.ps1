@@ -3,28 +3,28 @@
 # # ----------------------------
 # # 1) Clone or Update PortAudio
 # # ----------------------------
-# if (Test-Path -Path "./external/portaudio") {
-#     Write-Host "Updating portaudio (git pull)..."
-#     Set-Location -Path "./external/portaudio"
-#     git pull
-#     Set-Location -Path "../.."
-# } else {
-#     Write-Host "Cloning portaudio..."
-#     git clone https://github.com/PortAudio/portaudio.git external/portaudio
-# }
+if (Test-Path -Path "./external/portaudio") {
+    Write-Host "Updating portaudio (git pull)..."
+    Set-Location -Path "./external/portaudio"
+    git pull
+    Set-Location -Path "../.."
+} else {
+    Write-Host "Cloning portaudio..."
+    git clone https://github.com/PortAudio/portaudio.git external/portaudio
+}
 
 # # --------------------------------
 # # 2) Clone or Update whisper.cpp
 # # --------------------------------
-# if (Test-Path -Path "./external/whisper.cpp") {
-#     Write-Host "Updating whisper.cpp (git pull)..."
-#     Set-Location -Path "./external/whisper.cpp"
-#     git pull
-#     Set-Location -Path "../.."
-# } else {
-#     Write-Host "Cloning whisper.cpp..."
-#     git clone https://github.com/ggerganov/whisper.cpp.git external/whisper.cpp
-# }
+if (Test-Path -Path "./external/whisper.cpp") {
+    Write-Host "Updating whisper.cpp (git pull)..."
+    Set-Location -Path "./external/whisper.cpp"
+    git pull
+    Set-Location -Path "../.."
+} else {
+    Write-Host "Cloning whisper.cpp..."
+    git clone https://github.com/ggerganov/whisper.cpp.git external/whisper.cpp
+}
 
 # ----------------------------------
 # 3) Create / Enter Build Directory
@@ -55,4 +55,6 @@ cmake --build . --config Release
 Set-Location -Path ".."
 
 # Write-Host "Running executable..."
-./build/Release/AudioCapturePlayback.exe
+./build/Release/AudioCapturePlayback.exe fixed
+
+./build/Release/AudioCapturePlayback.exe vad 0.6
