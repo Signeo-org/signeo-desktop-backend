@@ -44,12 +44,12 @@ add_subdirectory(external/portaudio external/portaudio/build)
 # ------------------------------------------------------------------
 # 4) Define Your Executable
 # ------------------------------------------------------------------
-set(MY_SOURCES
-    main.cpp
+set(SOURCES
+    src/main.cpp
     # Add other .cpp/.h if needed
 )
 
-add_executable(AudioCapturePlayback ${MY_SOURCES})
+add_executable(AudioCapturePlayback ${SOURCES})
 
 # ------------------------------------------------------------------
 # 5) Link Against PortAudio + Whisper

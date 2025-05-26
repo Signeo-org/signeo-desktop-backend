@@ -26,7 +26,7 @@
 //---------------------------------------------------------------------------
 // Constants for chunk-based approach
 //--------------------------------------------------------------------------- 
-static const int   FRAMES_PER_BUFFER = 1024; // typical WASAPI buffer size
+static const int   FRAMES_PER_BUFFER = 256; // typical WASAPI buffer size
 static const int   CHUNK_MS         = 100;    // used for callback block duration estimation
 static const int   WHISPER_RATE     = 16000;  // Whisper expects 16 kHz input
 static const float RECORD_SECONDS   = 2.0f;   // chunk duration in seconds
@@ -283,8 +283,6 @@ int main(int argc, char* argv[]) {
             wasapiInputDevices.push_back(i);
             size_t idx = wasapiInputDevices.size() - 1;
             std::cout << "[" << idx << "] " << di->name;
-            if (isLoop == 1)
-                std::cout << " [Loopback]";
             std::cout << "\n";
         }
     }
@@ -365,7 +363,7 @@ int main(int argc, char* argv[]) {
               << " at " << dInf->defaultSampleRate << " Hz, " << channels << " channels.\n";
 
     // Initialize Whisper.
-    const char* modelPath = "models/ggml-base.bin";
+    const char* modelPath = "models/ggml-base.en.bin";
     whisper_context_params cparams = whisper_context_default_params();
     struct whisper_context* wctx = whisper_init_from_file_with_params(modelPath, cparams);
     if (!wctx) {
@@ -433,14 +431,14 @@ int main(int argc, char* argv[]) {
         );
 
         // (Optional) Save WAV for debugging.
-        {
-            std::string fname = "chunk_" + std::to_string(chunkCounter++) + ".wav";
-            if (!save_wav_16bit(fname, mono16k.data(), static_cast<int>(mono16k.size()), WHISPER_RATE)) {
-                std::cerr << "Failed to save WAV: " << fname << "\n";
-            } else {
-                std::cout << "[Debug] Wrote " << fname << " (" << mono16k.size() << " samples)\n";
-            }
-        }
+        // {
+        //     std::string fname = "chunk_" + std::to_string(chunkCounter++) + ".wav";
+        //     if (!save_wav_16bit(fname, mono16k.data(), static_cast<int>(mono16k.size()), WHISPER_RATE)) {
+        //         std::cerr << "Failed to save WAV: " << fname << "\n";
+        //     } else {
+        //         std::cout << "[Debug] Wrote " << fname << " (" << mono16k.size() << " samples)\n";
+        //     }
+        // }
 
         // Transcribe with Whisper.
         whisper_full_params wparams = whisper_full_default_params(WHISPER_SAMPLING_GREEDY);
@@ -448,8 +446,8 @@ int main(int argc, char* argv[]) {
         wparams.print_special    = false;
         wparams.print_realtime   = false;
         wparams.print_timestamps = false;
-        wparams.translate        = false;  // change to true if translation is desired
-        wparams.language         = "auto";
+        wparams.translate        = false; 
+        wparams.language         = "en";
         wparams.n_threads        = std::min(4, static_cast<int>(std::thread::hardware_concurrency()));
 
         int ret = whisper_full(wctx, wparams, mono16k.data(), static_cast<int>(mono16k.size()));
