@@ -15,6 +15,7 @@
 #include <mutex>
 #include <atomic>
 #include <cctype>
+#include <fstream>
 
 // PortAudio
 #include "portaudio.h"
@@ -465,7 +466,18 @@ int main(int argc, char* argv[]) {
             // Deduplicate with the previous transcript.
             std::string deduped = deduplicateTranscription(previousTranscript, currentTranscript);
             std::cout << "\n[Transcription] " << deduped << "\n";
+            // Save the deduplicated transcription to a file.
+            // This will overwrite the file each time.
+            std::ofstream outFile("transcription.txt", std::ios::out | std::ios::trunc);
+            if (outFile.is_open()) {
+                outFile << deduped << "\n";
+            } else {
+                std::cerr << "Failed to open transcription.txt for writing.\n";
+            }
             previousTranscript = currentTranscript; // update for future deduplication
+
+            // Write latest transcription to the first line of "transcription.txt"
+
         }
 
         // Update the overlap buffer to keep the last keepSamples of the full chunk.
