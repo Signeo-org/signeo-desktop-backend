@@ -16,6 +16,7 @@
 #include <atomic>
 #include <cctype>
 #include <fstream>
+#include <sstream>
 
 // PortAudio
 #include "portaudio.h"
@@ -23,6 +24,10 @@
 
 // Whisper
 #include "whisper.h"
+
+//TEST
+#include <filesystem>
+
 
 //---------------------------------------------------------------------------
 // Constants for chunk-based approach
@@ -41,7 +46,13 @@ static bool save_wav_16bit(const std::string &filename,
                            int numSamples,
                            int sampleRate)
 {
-    FILE *fp = std::fopen(filename.c_str(), "wb");
+    //safe wav into debug folder
+    std::filesystem::path debugDir = "debug";
+    if (!std::filesystem::exists(debugDir)) {
+        std::filesystem::create_directory(debugDir);
+    }
+    std::filesystem::path filePath = debugDir / filename;
+    FILE *fp = std::fopen(filePath.string().c_str(), "wb");
     if (!fp) {
         std::perror("Failed to open file for WAV");
         return false;
@@ -214,7 +225,10 @@ std::string deduplicateTranscription(const std::string &prev, const std::string 
             break;
         }
     }
-    return (overlap > 0) ? curr.substr(overlap) : curr;
+    if (overlap > 0) {
+        return curr;
+    }
+    return curr.substr(overlap);
 }
 
 //---------------------------------------------------------------------------
@@ -224,54 +238,95 @@ int main(int argc, char* argv[]) {
 #ifdef _WIN32
     SetConsoleOutputCP(CP_UTF8);
 #endif
-
-    // Command-line: usage: program [mode] [vadThreshold]
-    // Mode: "fixed" (default) or "vad"
+    std::string arg = "";
+    std::string modelPath = "models/ggml-base.en.bin";
     std::string mode = "fixed";
-    float vadThreshold = 0.6f; // Default VAD threshold.
-    if (argc >= 2) {
-        mode = argv[1];
-        // Convert mode to lowercase for reliability.
-        std::transform(mode.begin(), mode.end(), mode.begin(), ::tolower);
+    float vadThreshold = 0.6f;
+    bool debug = false;
+
+    std::cout << std::endl << "+--------------------------+" << std::endl;
+    std::cout << "|Audio Transcription Tool|" << std::endl;
+    std::cout << "+--------------------------+" << std::endl;
+    for (int i = 1; i < argc; ++i) {
+        arg = argv[i];
+        if (arg == "-h" || arg == "--help") {
+            std::cout << "Usage: " << argv[0] << " [options]" << std::endl
+            << "Options:" << std::endl
+            << "  -h, --help           Show this help message" << std::endl
+            << "  -f, --fixed          Use fixed mode without VAD processing (default)" << std::endl
+            << "  -v, --vad            Enable Voice Activity Detection mode" << std::endl
+            << "  -m, --model <path>   Path to the Whisper model file (default: models/ggml-base.en.bin)" << std::endl
+            << "  -d, --debug          Enable debug mode (saves WAV files for each chunk)" << std::endl;
+            return 0;
+        }
+        if (arg == "-d" || arg == "--debug") {
+            debug = true;
+            std::cout << "Debug mode enabled: WAV files will be saved." << std::endl;
+        }
+        if (arg == "-f" || arg == "--fixed")
+            mode = "fixed";
+        if (arg == "-v" || arg == "--vad")
+            mode = "vad";
+        if (arg == "-m" || arg == "--model") {
+            i++;
+            if (i >= argc) {
+                std::cerr << "Error: No model path provided after -m/--model option." << std::endl;
+                return 1;
+            }
+            modelPath = argv[i];
+        }
     }
-    if (argc >= 3) {
-        vadThreshold = std::stof(argv[2]);
-    }
-    std::cout << "Transcription mode: " << mode << "\n";
-    if(mode == "vad") {
-        std::cout << "VAD threshold set to " << vadThreshold << "\n";
+    std::cout << "Transcription mode: " << mode << std::endl;
+    std::cout << "Using Whisper model: " << modelPath << std::endl;
+
+    //check if model file exists
+    if (!std::filesystem::exists(modelPath)) {
+        std::cerr << "Error: Model file does not exist at " << modelPath << std::endl;
+        return 1;
     }
 
     // Initialize PortAudio.
     PaError err = Pa_Initialize();
     if (err != paNoError) {
-        std::cerr << "Pa_Initialize error: " << Pa_GetErrorText(err) << "\n";
+        std::cerr << "Pa_Initialize error: " << Pa_GetErrorText(err) << std::endl;
         return 1;
     }
 
     // List available devices.
     int numDevices = Pa_GetDeviceCount();
     if (numDevices < 0) {
-        std::cerr << "Pa_GetDeviceCount() error: " << Pa_GetErrorText(numDevices) << "\n";
+        std::cerr << "Pa_GetDeviceCount() error: " << Pa_GetErrorText(numDevices) << std::endl;
         Pa_Terminate();
         return 1;
     }
-    std::cout << "Available Devices Across All Host APIs:\n";
-    for (int i = 0; i < numDevices; i++) {
-        const PaDeviceInfo* di = Pa_GetDeviceInfo(i);
-        if (!di) continue;
-        const PaHostApiInfo* hai = Pa_GetHostApiInfo(di->hostApi);
-        std::cout << "Device [" << i << "]: " << di->name
-                  << " (Host API: " << (hai ? hai->name : "unknown") << ")";
-        if (di->maxInputChannels > 0)
-            std::cout << " [Input]";
-        if (di->maxOutputChannels > 0)
-            std::cout << " [Output]";
-        std::cout << "\n";
+    
+    const PaDeviceIndex defCapture = paNoDevice;
+    const PaDeviceIndex defLoopback = paNoDevice;
+    if (debug == true) {
+        std::cout << "Available Devices Across All Host APIs:" << std::endl;
+        for (int i = 0; i < numDevices; i++) {
+            const PaDeviceInfo* di = Pa_GetDeviceInfo(i);
+            if (!di) continue;
+            const PaHostApiInfo* hai = Pa_GetHostApiInfo(di->hostApi);
+            if (!hai) continue;
+            if (di->maxInputChannels > 0) {
+                std::cout << "Device [" << i << "]: " << di->name
+                          << " (Host API: " << (hai ? hai->name : "unknown") << ")";
+                if (di->maxInputChannels > 0)
+                    std::cout << " [Input]";
+                if (di->maxOutputChannels > 0)
+                    std::cout << " [Output]";
+                if (hai->defaultInputDevice == i || hai->defaultOutputDevice == i)
+                    std::cout << " (Default)";
+                std::cout << std::endl;
+            }
+        }
     }
 
     // Filter for WASAPI devices.
-    std::cout << "\nWASAPI Devices (Input or Loopback):\n";
+    std::cout << "Audio Api: WASAPI" << std::endl;
+    std::cout << "--------------------------------------------------" << std::endl;
+    std::cout << "Devices (Input or Loopback):" << std::endl;
     std::vector<PaDeviceIndex> wasapiInputDevices;
     for (int i = 0; i < numDevices; i++) {
         const PaDeviceInfo* di = Pa_GetDeviceInfo(i);
@@ -284,35 +339,61 @@ int main(int argc, char* argv[]) {
             wasapiInputDevices.push_back(i);
             size_t idx = wasapiInputDevices.size() - 1;
             std::cout << "[" << idx << "] " << di->name;
-            std::cout << "\n";
+            if (di->maxInputChannels > 0)
+                std::cout << " [Input]";
+            if (di->maxOutputChannels > 0)
+                std::cout << " [Output]";
+            if (hai->defaultInputDevice == i || hai->defaultOutputDevice == i)
+                std::cout << " (Default)";
+            std::cout << std::endl;
         }
     }
     if (wasapiInputDevices.empty()) {
-        std::cerr << "No WASAPI input/loopback devices found!\n";
+        std::cerr << "No WASAPI input/loopback devices found!" << std::endl;
         Pa_Terminate();
         return 1;
     }
 
     // Let user pick a device.
-    std::cout << "\nEnter the index of the WASAPI device you want: ";
+    bool selectionMade = false;
+    std::cout << std::endl << "Enter the index of the device you want or Press ENTER to stop..." << std::endl;
     int userIndex = 0;
-    std::cin >> userIndex;
-    if (userIndex < 0 || userIndex >= static_cast<int>(wasapiInputDevices.size())) {
-        std::cerr << "Invalid choice!\n";
-        Pa_Terminate();
-        return 1;
+    std::string line = "";
+    while (selectionMade == false) {
+        if (!std::getline(std::cin, line)) {      // EOF / stream error
+            std::cerr << "Input error - exiting..." << std::endl;
+            Pa_Terminate();
+            return 1;
+        }
+        if (line.empty()) {
+            std::cout << "No selection made - exiting..." << std::endl;
+            Pa_Terminate();
+            return 0;
+        }
+        std::istringstream iss(line);
+        if (!(iss >> userIndex)) {                // text wasn’t a number
+            std::cerr << "That wasn’t a valid number - exiting..." << std::endl;
+            Pa_Terminate();
+            return 1;
+        }
+        if (userIndex > 0 && userIndex < static_cast<int>(wasapiInputDevices.size())) {
+            selectionMade = true;
+        } else {
+            std::cerr << "Invalid choice try again!" << std::endl;
+        }
     }
+
     PaDeviceIndex devIndex = wasapiInputDevices[userIndex];
     const PaDeviceInfo* dInf = Pa_GetDeviceInfo(devIndex);
     if (!dInf) {
-        std::cerr << "Failed to get device info!\n";
+        std::cerr << "Failed to get device info!" << std::endl;
         Pa_Terminate();
         return 1;
     }
     bool inputCapable = (dInf->maxInputChannels > 0);
     int isLoop = PaWasapi_IsLoopback(devIndex);
     if (!inputCapable && (isLoop != 1)) {
-        std::cerr << "Selected device is neither input nor loopback.\n";
+        std::cerr << "Selected device is neither input nor loopback." << std::endl;
         Pa_Terminate();
         return 1;
     }
@@ -348,27 +429,26 @@ int main(int argc, char* argv[]) {
                         audioCallback,
                         &audioData);
     if (err != paNoError) {
-        std::cerr << "Pa_OpenStream error: " << Pa_GetErrorText(err) << "\n";
+        std::cerr << "Pa_OpenStream error: " << Pa_GetErrorText(err) << std::endl;
         Pa_Terminate();
         return 1;
     }
     err = Pa_StartStream(stream);
     if (err != paNoError) {
-        std::cerr << "Pa_StartStream error: " << Pa_GetErrorText(err) << "\n";
+        std::cerr << "Pa_StartStream error: " << Pa_GetErrorText(err) << std::endl;
         Pa_CloseStream(stream);
         Pa_Terminate();
         return 1;
     }
-    std::cout << "\nRecording from: " << dInf->name
-              << (isLoop == 1 ? " (Loopback)" : " (Mic/Input)")
-              << " at " << dInf->defaultSampleRate << " Hz, " << channels << " channels.\n";
-
+    std::cout << "Selected device: " << dInf->name
+              << " at " << dInf->defaultSampleRate << " Hz, " << channels << " channels." << std::endl;;
+    std::cout << "--------------------------------------------------" << std::endl;
     // Initialize Whisper.
-    const char* modelPath = "models/ggml-base.en.bin";
+    const char *modelFile = "models/ggml-base.en.bin";
     whisper_context_params cparams = whisper_context_default_params();
-    struct whisper_context* wctx = whisper_init_from_file_with_params(modelPath, cparams);
+    struct whisper_context* wctx = whisper_init_from_file_with_params(modelFile, cparams);
     if (!wctx) {
-        std::cerr << "Failed to init Whisper model\n";
+        std::cerr << "Failed to init Whisper model" << std::endl;
         Pa_StopStream(stream);
         Pa_CloseStream(stream);
         Pa_Terminate();
@@ -376,21 +456,21 @@ int main(int argc, char* argv[]) {
     }
 
     // Overlap buffer to hold the last part of the previous chunk.
-    std::vector<int16_t> overlapBuffer;
+    std::vector<int16_t> overlapBuffer = std::vector<int16_t>(keepSamples, 0);
 
     int chunkCounter = 0;
-    std::string previousTranscript;  // for deduplication
+    std::string previousTranscript = "";
 
     // Termination flag and input thread.
     std::atomic<bool> running(true);
     std::thread inputThread([&running]() {
-        std::cout << "Press ENTER to stop...\n";
+        std::cout << "Press ENTER to stop..." << std::endl;
         std::cin.ignore(); // clear leftover newline
         std::cin.get();
         running = false;
     });
 
-    std::cout << "Audio callback running asynchronously. Processing chunks...\n";
+    std::cout << "Audio callback running asynchronously. Processing chunks..." << std::endl;
 
     // Main processing loop.
     while (running) {
@@ -431,16 +511,15 @@ int main(int argc, char* argv[]) {
             dInf->defaultSampleRate
         );
 
-        // (Optional) Save WAV for debugging.
-        // {
-        //     std::string fname = "chunk_" + std::to_string(chunkCounter++) + ".wav";
-        //     if (!save_wav_16bit(fname, mono16k.data(), static_cast<int>(mono16k.size()), WHISPER_RATE)) {
-        //         std::cerr << "Failed to save WAV: " << fname << "\n";
-        //     } else {
-        //         std::cout << "[Debug] Wrote " << fname << " (" << mono16k.size() << " samples)\n";
-        //     }
-        // }
-
+        
+        if (debug == true) {
+            std::string fname = "chunk_" + std::to_string(chunkCounter++) + ".wav";
+            if (!save_wav_16bit(fname, mono16k.data(), static_cast<int>(mono16k.size()), WHISPER_RATE)) {
+                std::cerr << "Failed to save WAV: " << fname << std::endl;
+            } else {
+                std::cout << "[Debug] Wrote " << fname << " (" << mono16k.size() << " samples)";
+            }
+        }
         // Transcribe with Whisper.
         whisper_full_params wparams = whisper_full_default_params(WHISPER_SAMPLING_GREEDY);
         wparams.print_progress   = false;
@@ -453,9 +532,9 @@ int main(int argc, char* argv[]) {
 
         int ret = whisper_full(wctx, wparams, mono16k.data(), static_cast<int>(mono16k.size()));
         if (ret != 0) {
-            std::cerr << "whisper_full() failed!\n";
+            std::cerr << "whisper_full() failed!" << std::endl;
         } else {
-            std::string currentTranscript;
+            std::string currentTranscript = "";
             int n_segments = whisper_full_n_segments(wctx);
             for (int i = 0; i < n_segments; i++) {
                 const char* text = whisper_full_get_segment_text(wctx, i);
@@ -465,31 +544,33 @@ int main(int argc, char* argv[]) {
 
             // Deduplicate with the previous transcript.
             std::string deduped = deduplicateTranscription(previousTranscript, currentTranscript);
-            std::cout << "\n[Transcription] " << deduped << "\n";
-            // Save the deduplicated transcription to a file.
-            // This will overwrite the file each time.
-            std::ofstream outFile("transcription.txt", std::ios::out | std::ios::trunc);
-            if (outFile.is_open()) {
-                outFile << deduped << "\n";
-            } else {
-                std::cerr << "Failed to open transcription.txt for writing.\n";
+            if (debug == true) {
+                std::cout << "[Debug] Previous: " << previousTranscript << std::endl;
+                std::cout << "[Debug] Current: " << currentTranscript << std::endl;
+                std::cout << "[Debug] Deduped: " << deduped << std::endl;
+                // Save the deduplicated transcription to a file.
+                // This will overwrite the file each time.
+                std::ofstream outFile("transcription.txt", std::ios::out | std::ios::trunc);
+                if (outFile.is_open()) {
+                    outFile << deduped << std::endl;
+                } else {
+                    std::cerr << "Failed to open transcription.txt for writing." << std::endl;
+                }
             }
+            std::cout << "[Transcription] " << deduped << std::endl;
             previousTranscript = currentTranscript; // update for future deduplication
-
-            // Write latest transcription to the first line of "transcription.txt"
-
         }
 
         // Update the overlap buffer to keep the last keepSamples of the full chunk.
         if (fullChunk.size() >= static_cast<size_t>(keepSamples))
             overlapBuffer.assign(fullChunk.end() - keepSamples, fullChunk.end());
-    } // end main loop
+    }
 
     running = false;
     if (inputThread.joinable())
         inputThread.join();
 
-    std::cout << "Terminating... cleaning up resources.\n";
+    std::cout << "Terminating... cleaning up resources." << std::endl;
     whisper_free(wctx);
     Pa_StopStream(stream);
     Pa_CloseStream(stream);

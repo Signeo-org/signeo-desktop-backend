@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(AudioCapturePlayback)
+project(AudioTranscriptionTool)
 
 # ------------------------------------------------------------------
 # 1) Configure Project Settings
@@ -49,12 +49,12 @@ set(SOURCES
     # Add other .cpp/.h if needed
 )
 
-add_executable(AudioCapturePlayback ${SOURCES})
+add_executable(AudioTranscriptionTool ${SOURCES})
 
 # ------------------------------------------------------------------
 # 5) Link Against PortAudio + Whisper
 # ------------------------------------------------------------------
-target_link_libraries(AudioCapturePlayback
+target_link_libraries(AudioTranscriptionTool
     PRIVATE
         portaudio
         whisper
@@ -66,82 +66,89 @@ target_link_libraries(AudioCapturePlayback
 if(WIN32)
 
     # --- PortAudio ---
-    add_custom_command(TARGET AudioCapturePlayback POST_BUILD
+    add_custom_command(TARGET AudioTranscriptionTool POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
             $<TARGET_FILE:portaudio>                # e.g. portaudio.dll
-            $<TARGET_FILE_DIR:AudioCapturePlayback> # e.g. build/Release/
+            $<TARGET_FILE_DIR:AudioTranscriptionTool> # e.g. build/Release/
     )
 
     # --- Whisper ---
-    add_custom_command(TARGET AudioCapturePlayback POST_BUILD
+    add_custom_command(TARGET AudioTranscriptionTool POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
             $<TARGET_FILE:whisper>                 
-            $<TARGET_FILE_DIR:AudioCapturePlayback>
+            $<TARGET_FILE_DIR:AudioTranscriptionTool>
     )
 
     # --- ggml (core) ---
     if(TARGET ggml)
-        add_custom_command(TARGET AudioCapturePlayback POST_BUILD
+        add_custom_command(TARGET AudioTranscriptionTool POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
                 $<TARGET_FILE:ggml>
-                $<TARGET_FILE_DIR:AudioCapturePlayback>
+                $<TARGET_FILE_DIR:AudioTranscriptionTool>
         )
     endif()
 
     # --- ggml-base ---
     if(TARGET ggml-base)
-        add_custom_command(TARGET AudioCapturePlayback POST_BUILD
+        add_custom_command(TARGET AudioTranscriptionTool POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
                 $<TARGET_FILE:ggml-base>
-                $<TARGET_FILE_DIR:AudioCapturePlayback>
+                $<TARGET_FILE_DIR:AudioTranscriptionTool>
         )
     endif()
 
     # --- ggml-cpu ---
     if(TARGET ggml-cpu)
-        add_custom_command(TARGET AudioCapturePlayback POST_BUILD
+        add_custom_command(TARGET AudioTranscriptionTool POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
                 $<TARGET_FILE:ggml-cpu>
-                $<TARGET_FILE_DIR:AudioCapturePlayback>
+                $<TARGET_FILE_DIR:AudioTranscriptionTool>
         )
     endif()
+
+    # --- Copy models directory ---
+    add_custom_command(TARGET AudioTranscriptionTool POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+                "${CMAKE_SOURCE_DIR}/models"          # <- source (next to CMakeLists.txt)
+                "$<TARGET_FILE_DIR:AudioTranscriptionTool>/models"  # <- destination
+    )
 
     # --- Copy PDB files if building in Debug mode ---
     if(CMAKE_BUILD_TYPE STREQUAL "Debug")
         # PortAudio PDB
-        add_custom_command(TARGET AudioCapturePlayback POST_BUILD
+        add_custom_command(TARGET AudioTranscriptionTool POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
                 $<TARGET_PDB_FILE:portaudio>
-                $<TARGET_FILE_DIR:AudioCapturePlayback>
+                $<TARGET_FILE_DIR:AudioTranscriptionTool>
         )
         # Whisper PDB
-        add_custom_command(TARGET AudioCapturePlayback POST_BUILD
+        add_custom_command(TARGET AudioTranscriptionTool POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
                 $<TARGET_PDB_FILE:whisper>
-                $<TARGET_FILE_DIR:AudioCapturePlayback>
+                $<TARGET_FILE_DIR:AudioTranscriptionTool>
         )
         # ggml PDB
         if(TARGET ggml)
-            add_custom_command(TARGET AudioCapturePlayback POST_BUILD
+            add_custom_command(TARGET AudioTranscriptionTool POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E copy_if_different
                     $<TARGET_PDB_FILE:ggml>
-                    $<TARGET_FILE_DIR:AudioCapturePlayback>
+                    $<TARGET_FILE_DIR:AudioTranscriptionTool>
             )
         endif()
         # ggml-base PDB
         if(TARGET ggml-base)
-            add_custom_command(TARGET AudioCapturePlayback POST_BUILD
+            add_custom_command(TARGET AudioTranscriptionTool POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E copy_if_different
                     $<TARGET_PDB_FILE:ggml-base>
-                    $<TARGET_FILE_DIR:AudioCapturePlayback>
+                    $<TARGET_FILE_DIR:AudioTranscriptionTool>
             )
         endif()
         # ggml-cpu PDB
         if(TARGET ggml-cpu)
-            add_custom_command(TARGET AudioCapturePlayback POST_BUILD
+            add_custom_command(TARGET AudioTranscriptionTool POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E copy_if_different
                     $<TARGET_PDB_FILE:ggml-cpu>
-                    $<TARGET_FILE_DIR:AudioCapturePlayback>
+                    $<TARGET_FILE_DIR:AudioTranscriptionTool>
             )
         endif()
     endif()

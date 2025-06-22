@@ -31,5 +31,25 @@ cmake --build . --config Release
 # 5) Return to root and run the .exe
 # ------------------------------------------
 Set-Location -Path ".."
-# Write-Host "Running executable..."
-./build/Release/AudioCapturePlayback.exe
+
+# ------------------------------------------
+# 6) Download the model if it doesn't exist
+# ------------------------------------------
+if (-not (Test-Path -Path "./models/ggml-base.en.bin")) {
+    $url = "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.en.bin?download=true"
+    try {
+        Start-BitsTransfer -Source $url -Destination "./models/ggml-base.en.bin"
+    }
+    catch {
+        Write-Warning "Failed to download the model. Please check your internet connection or the URL."
+        exit 1
+    }
+}
+else {
+    Write-Host "Model already exists, skipping download."
+}
+
+# ------------------------------------------
+# 7) Run the executable with the model
+# ------------------------------------------
+./build/Release/AudioTranscriptionTool.exe --model "models/ggml-base.en.bin"
