@@ -19,7 +19,7 @@ Set-Location -Path "./build"
 #    - Choose Release configuration
 # --------------------------------
 Write-Host "Configuring CMake..."
-cmake -D BUILD_SHARED_LIBS=ON -D CMAKE_BUILD_TYPE=Release ..
+cmake -D BUILD_SHARED_LIBS=OFF -D CMAKE_BUILD_TYPE=Release ..
 
 # -------------------------------------------------
 # 4) Build the Project (Release mode on Windows)
@@ -52,4 +52,6 @@ else {
 # ------------------------------------------
 # 7) Run the executable with the model
 # ------------------------------------------
-./build/Release/AudioTranscriptionTool.exe --model "models/ggml-base.en.bin"
+Set-Location -Path "./build/Release"
+./AudioTranscriptionTool.exe --model "models/ggml-base.en.bin"
+Set-Location -Path "../.."

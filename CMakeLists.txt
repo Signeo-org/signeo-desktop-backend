@@ -15,11 +15,15 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 # Force building all sub-libraries as shared (DLLs on Windows)
-set(BUILD_SHARED_LIBS ON CACHE BOOL "Build all libs as shared libraries" FORCE)
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build all libs as shared libraries" FORCE)
 
 # ------------------------------------------------------------------
 # 2) Configure PortAudio
 # ------------------------------------------------------------------
+
+# Make lib static
+set(PA_BUILD_SHARED OFF CACHE BOOL "" FORCE)
+set(PA_BUILD_STATIC ON  CACHE BOOL "" FORCE)
 
 # Windows-specific options for PortAudio host APIs
 if(WIN32)
@@ -35,8 +39,13 @@ set(PA_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(PA_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 
 # ------------------------------------------------------------------
+# 2) Configure Whisper.cpp
+# ------------------------------------------------------------------
+
+set(WHISPER_BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+
+# ------------------------------------------------------------------
 # 3) Add Subdirectories for Dependencies
-#    (Adjust paths to where you cloned them)
 # ------------------------------------------------------------------
 add_subdirectory(external/whisper.cpp external/whisper.cpp/build)
 add_subdirectory(external/portaudio external/portaudio/build)
@@ -60,96 +69,13 @@ target_link_libraries(AudioTranscriptionTool
         whisper
 )
 
-# ------------------------------------------------------------------
-# 6) Copy all necessary DLLs (and optional PDBs in Debug) on Windows
-# ------------------------------------------------------------------
-if(WIN32)
-
-    # --- PortAudio ---
-    add_custom_command(TARGET AudioTranscriptionTool POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            $<TARGET_FILE:portaudio>                # e.g. portaudio.dll
-            $<TARGET_FILE_DIR:AudioTranscriptionTool> # e.g. build/Release/
-    )
-
-    # --- Whisper ---
-    add_custom_command(TARGET AudioTranscriptionTool POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            $<TARGET_FILE:whisper>                 
-            $<TARGET_FILE_DIR:AudioTranscriptionTool>
-    )
-
-    # --- ggml (core) ---
-    if(TARGET ggml)
-        add_custom_command(TARGET AudioTranscriptionTool POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                $<TARGET_FILE:ggml>
-                $<TARGET_FILE_DIR:AudioTranscriptionTool>
-        )
-    endif()
-
-    # --- ggml-base ---
-    if(TARGET ggml-base)
-        add_custom_command(TARGET AudioTranscriptionTool POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                $<TARGET_FILE:ggml-base>
-                $<TARGET_FILE_DIR:AudioTranscriptionTool>
-        )
-    endif()
-
-    # --- ggml-cpu ---
-    if(TARGET ggml-cpu)
-        add_custom_command(TARGET AudioTranscriptionTool POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                $<TARGET_FILE:ggml-cpu>
-                $<TARGET_FILE_DIR:AudioTranscriptionTool>
-        )
-    endif()
-
-    # --- Copy models directory ---
-    add_custom_command(TARGET AudioTranscriptionTool POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-                "${CMAKE_SOURCE_DIR}/models"          # <- source (next to CMakeLists.txt)
-                "$<TARGET_FILE_DIR:AudioTranscriptionTool>/models"  # <- destination
-    )
-
-    # --- Copy PDB files if building in Debug mode ---
-    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-        # PortAudio PDB
-        add_custom_command(TARGET AudioTranscriptionTool POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                $<TARGET_PDB_FILE:portaudio>
-                $<TARGET_FILE_DIR:AudioTranscriptionTool>
-        )
-        # Whisper PDB
-        add_custom_command(TARGET AudioTranscriptionTool POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                $<TARGET_PDB_FILE:whisper>
-                $<TARGET_FILE_DIR:AudioTranscriptionTool>
-        )
-        # ggml PDB
-        if(TARGET ggml)
-            add_custom_command(TARGET AudioTranscriptionTool POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                    $<TARGET_PDB_FILE:ggml>
-                    $<TARGET_FILE_DIR:AudioTranscriptionTool>
-            )
-        endif()
-        # ggml-base PDB
-        if(TARGET ggml-base)
-            add_custom_command(TARGET AudioTranscriptionTool POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                    $<TARGET_PDB_FILE:ggml-base>
-                    $<TARGET_FILE_DIR:AudioTranscriptionTool>
-            )
-        endif()
-        # ggml-cpu PDB
-        if(TARGET ggml-cpu)
-            add_custom_command(TARGET AudioTranscriptionTool POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                    $<TARGET_PDB_FILE:ggml-cpu>
-                    $<TARGET_FILE_DIR:AudioTranscriptionTool>
-            )
-        endif()
-    endif()
-endif()
+# --- Copy model files (*.bin) ---
+file(GLOB MODEL_FILES "${CMAKE_SOURCE_DIR}/models/*.bin")
+add_custom_command(TARGET AudioTranscriptionTool POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory
+            "$<TARGET_FILE_DIR:AudioTranscriptionTool>/models"
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            ${MODEL_FILES}
+            "$<TARGET_FILE_DIR:AudioTranscriptionTool>/models"
+    COMMENT "Copying model files"
+)
