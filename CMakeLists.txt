@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.15)
 project(AudioTranscriptionTool)
 
 # ------------------------------------------------------------------
@@ -56,6 +56,10 @@ add_subdirectory(external/portaudio external/portaudio/build)
 set(SOURCES
     src/main.cpp
     # Add other .cpp/.h if needed
+)
+
+include_directories(
+    includes/
 )
 
 add_executable(AudioTranscriptionTool ${SOURCES})

@@ -35,10 +35,10 @@ Set-Location -Path ".."
 # ------------------------------------------
 # 6) Download the model if it doesn't exist
 # ------------------------------------------
-if (-not (Test-Path -Path "./models/ggml-base.en.bin")) {
-    $url = "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.en.bin?download=true"
+if (-not (Test-Path -Path "./models/ggml-base.bin")) {
+    $url = "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin?download=true"
     try {
-        Start-BitsTransfer -Source $url -Destination "./models/ggml-base.en.bin"
+        Start-BitsTransfer -Source $url -Destination "./models/ggml-base.bin"
     }
     catch {
         Write-Warning "Failed to download the model. Please check your internet connection or the URL."
@@ -48,10 +48,3 @@ if (-not (Test-Path -Path "./models/ggml-base.en.bin")) {
 else {
     Write-Host "Model already exists, skipping download."
 }
-
-# ------------------------------------------
-# 7) Run the executable with the model
-# ------------------------------------------
-Set-Location -Path "./build/Release"
-./AudioTranscriptionTool.exe --model "models/ggml-base.en.bin"
-Set-Location -Path "../.."

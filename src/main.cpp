@@ -28,33 +28,25 @@
 //TEST
 #include <filesystem>
 
-
-//---------------------------------------------------------------------------
-// Constants for chunk-based approach
-//--------------------------------------------------------------------------- 
-static const int   FRAMES_PER_BUFFER = 256; // typical WASAPI buffer size
-static const int   CHUNK_MS         = 100;    // used for callback block duration estimation
-static const int   WHISPER_RATE     = 16000;  // Whisper expects 16 kHz input
-static const float RECORD_SECONDS   = 2.0f;   // chunk duration in seconds
-static const int   KEEP_MS          = 200;    // overlap duration (milliseconds)
-
 //---------------------------------------------------------------------------
 // 1) Save 16-bit mono WAV for debugging (unchanged)
 //--------------------------------------------------------------------------- 
 static bool save_wav_16bit(const std::string &filename,
                            const float *samples,
                            int numSamples,
-                           int sampleRate)
-{
+                           int sampleRate) {
     //safe wav into debug folder
     std::filesystem::path debugDir = "debug";
     if (!std::filesystem::exists(debugDir)) {
         std::filesystem::create_directory(debugDir);
     }
     std::filesystem::path filePath = debugDir / filename;
-    FILE *fp = std::fopen(filePath.string().c_str(), "wb");
-    if (!fp) {
-        std::perror("Failed to open file for WAV");
+    FILE* fp = nullptr;
+    errno_t err = fopen_s(&fp, filePath.string().c_str(), "wb");
+    if (err != 0 || !fp) {
+        char errMsg[256];
+        strerror_s(errMsg, sizeof(errMsg), err);
+        std::cerr << "Failed to open file for WAV: " << errMsg << std::endl;
         return false;
     }
     uint32_t chunkSize      = 36 + (numSamples * 2);
@@ -96,9 +88,10 @@ static bool save_wav_16bit(const std::string &filename,
 static std::vector<float> downsample_mono_16k(const int16_t* inData,
                                               size_t inFrames,
                                               int inChannels,
-                                              double deviceSampleRate)
+                                              double deviceSampleRate,
+                                              int whisperRate)
 {
-    float ratio = static_cast<float>(deviceSampleRate) / static_cast<float>(WHISPER_RATE);
+    float ratio = static_cast<float>(deviceSampleRate) / static_cast<float>(whisperRate);
     size_t outFrames = static_cast<size_t>(std::floor(static_cast<float>(inFrames) / ratio));
     std::vector<float> outData(outFrames);
     for (size_t i = 0; i < outFrames; i++) {
@@ -187,8 +180,7 @@ static int audioCallback(const void *inputBuffer,
                          unsigned long framesPerBuffer,
                          const PaStreamCallbackTimeInfo* /*timeInfo*/,
                          PaStreamCallbackFlags /*statusFlags*/,
-                         void *userData)
-{
+                         void *userData) {
     AudioData* audioData = reinterpret_cast<AudioData*>(userData);
     if (!inputBuffer) return paContinue;
     const int16_t* in = static_cast<const int16_t*>(inputBuffer);
@@ -239,10 +231,15 @@ int main(int argc, char* argv[]) {
     SetConsoleOutputCP(CP_UTF8);
 #endif
     std::string arg = "";
-    std::string modelPath = "models/ggml-base.en.bin";
+    std::string modelPath = "models/ggml-base.bin";
     std::string mode = "fixed";
     float vadThreshold = 0.6f;
+    float recordSeconds = 2.0f;
     bool debug = false;
+    int framesPerBuffer = 256;
+    int chunkMs = 100;
+    int keepMs = 200;
+    int whisperRate = 16000;
 
     std::cout << std::endl << "+--------------------------+" << std::endl;
     std::cout << "|Audio Transcription Tool|" << std::endl;
@@ -255,7 +252,7 @@ int main(int argc, char* argv[]) {
             << "  -h, --help           Show this help message" << std::endl
             << "  -f, --fixed          Use fixed mode without VAD processing (default)" << std::endl
             << "  -v, --vad            Enable Voice Activity Detection mode" << std::endl
-            << "  -m, --model <path>   Path to the Whisper model file (default: models/ggml-base.en.bin)" << std::endl
+            << "  -m, --model <path>   Path to the Whisper model file" << std::endl
             << "  -d, --debug          Enable debug mode (saves WAV files for each chunk)" << std::endl;
             return 0;
         }
@@ -402,9 +399,9 @@ int main(int argc, char* argv[]) {
     int channels = dInf->maxInputChannels;
 
     // Calculate chunk sizes.
-    int chunkFrames  = static_cast<int>(dInf->defaultSampleRate * RECORD_SECONDS);
+    int chunkFrames  = static_cast<int>(dInf->defaultSampleRate * recordSeconds);
     int chunkSamples = chunkFrames * channels;
-    int keepSamples  = static_cast<int>(dInf->defaultSampleRate * (KEEP_MS / 1000.0f) * channels);
+    int keepSamples  = static_cast<int>(dInf->defaultSampleRate * (keepMs / 1000.0f) * channels);
 
     // Preallocate ring buffer with capacity for 10 chunks.
     size_t ringCapacity = static_cast<size_t>(chunkSamples * 10);
@@ -424,7 +421,7 @@ int main(int argc, char* argv[]) {
                         &inParams,
                         nullptr, // no output
                         dInf->defaultSampleRate,
-                        FRAMES_PER_BUFFER,
+                        framesPerBuffer,
                         paClipOff,
                         audioCallback,
                         &audioData);
@@ -444,9 +441,8 @@ int main(int argc, char* argv[]) {
               << " at " << dInf->defaultSampleRate << " Hz, " << channels << " channels." << std::endl;;
     std::cout << "--------------------------------------------------" << std::endl;
     // Initialize Whisper.
-    const char *modelFile = "models/ggml-base.en.bin";
     whisper_context_params cparams = whisper_context_default_params();
-    struct whisper_context* wctx = whisper_init_from_file_with_params(modelFile, cparams);
+    struct whisper_context* wctx = whisper_init_from_file_with_params(modelPath.c_str(), cparams);
     if (!wctx) {
         std::cerr << "Failed to init Whisper model" << std::endl;
         Pa_StopStream(stream);
@@ -508,13 +504,14 @@ int main(int argc, char* argv[]) {
             fullChunk.data(),
             fullChunk.size() / channels,
             channels,
-            dInf->defaultSampleRate
+            dInf->defaultSampleRate,
+            whisperRate
         );
 
         
         if (debug == true) {
             std::string fname = "chunk_" + std::to_string(chunkCounter++) + ".wav";
-            if (!save_wav_16bit(fname, mono16k.data(), static_cast<int>(mono16k.size()), WHISPER_RATE)) {
+            if (!save_wav_16bit(fname, mono16k.data(), static_cast<int>(mono16k.size()), whisperRate)) {
                 std::cerr << "Failed to save WAV: " << fname << std::endl;
             } else {
                 std::cout << "[Debug] Wrote " << fname << " (" << mono16k.size() << " samples)";
