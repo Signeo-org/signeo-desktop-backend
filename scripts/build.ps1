@@ -18,8 +18,8 @@ Set-Location -Path "./build"
 #    - Force BUILD_SHARED_LIBS=ON
 #    - Choose Release configuration
 # --------------------------------
-Write-Host "Configuring CMake..."
-cmake -D BUILD_SHARED_LIBS=OFF -D CMAKE_BUILD_TYPE=Release ..
+Write-Host "Configuring CMake with CUDA support..."
+cmake -D BUILD_SHARED_LIBS=OFF -D CMAKE_BUILD_TYPE=Release -D WHISPER_CUDA=ON -D GGML_CUDA=ON ..
 
 # -------------------------------------------------
 # 4) Build the Project (Release mode on Windows)

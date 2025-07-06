@@ -7,5 +7,5 @@
 # 2) Run the executable with the model
 #-------------------------------------------
 Set-Location -Path "./build/Release"
-./AudioTranscriptionTool.exe --model "models/ggml-base.bin"
+./AudioTranscriptionTool.exe --model "models/ggml-base.bin" -v
 Set-Location -Path "../.."
