@@ -55,14 +55,31 @@ add_subdirectory(external/portaudio external/portaudio/build)
 # ------------------------------------------------------------------
 set(SOURCES
     src/main.cpp
+    # src/AudioCapture.cpp
+    # src/AudioPlayback.cpp
+    # src/AAudioDevice.cpp
+    # src/AudioDeviceManager.cpp
     # Add other .cpp/.h if needed
 )
 
-include_directories(
-    includes/
-)
+# Platform-specific source files
+# if(WIN32)
+#     set(PLATFORM_SOURCES
+#         platform/windows/src/WindowsAudioCapture.cpp
+#         platform/windows/src/WindowsAudioDevice.cpp
+#         platform/windows/src/WindowsAudioPlayback.cpp
+#     )
+#     include_directories(${PROJECT_SOURCE_DIR}/platform/windows/include)
+# endif()
 
-add_executable(AudioTranscriptionTool ${SOURCES})
+# Combine all source files
+set(ALL_SOURCES ${SOURCES} ${PLATFORM_SOURCES})
+
+# include_directories(
+#     ${PROJECT_SOURCE_DIR}/include/
+# )
+
+add_executable(AudioTranscriptionTool ${ALL_SOURCES})
 
 # ------------------------------------------------------------------
 # 5) Link Against PortAudio + Whisper
