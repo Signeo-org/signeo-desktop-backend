@@ -66,11 +66,14 @@ if [ ! -d "Release" ]; then
     mkdir Release
 
     # Copy binary
-    if ls AudioTranscriptionTool* 1> /dev/null 2>&1; then
-        cp AudioTranscriptionTool* Release/
+    if [ -f "AudioTranscriptionTool.exe" ]; then
+        cp AudioTranscriptionTool.exe Release/
+    elif [ -f "AudioTranscriptionTool" ]; then
+        cp AudioTranscriptionTool Release/
     else
         echo "[WARNING] No AudioTranscriptionTool binary found!"
     fi
+
 
     # Copy models
     if [ -d "../models" ]; then
