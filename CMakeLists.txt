@@ -14,10 +14,8 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
 endif()
 
-# MSVC runtime (fixes LNK4098 warning)
+# MSVC runtime
 if(MSVC)
-    # Choisir "MultiThreaded" (/MT) ou "MultiThreadedDLL" (/MD)
-    # Ici on force /MD (runtime dynamique, recommandé pour éviter les soucis avec des libs externes)
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreadedDLL")
 endif()
 
