@@ -79,6 +79,10 @@ set(SOURCES
 
 set(ALL_SOURCES ${SOURCES} ${PLATFORM_SOURCES})
 
+# include_directories(
+#     ${PROJECT_SOURCE_DIR}/include/
+# )
+
 # ------------------------------------------------------------------
 # 5) Executable
 # ------------------------------------------------------------------
