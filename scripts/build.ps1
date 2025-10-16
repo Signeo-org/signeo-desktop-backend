@@ -1,8 +1,8 @@
 # --------------------------------------
 # 1) Initialize and Update Submodules
 # --------------------------------------
-Write-Host "Updating git submodules..."
-git submodule update --init --recursive
+# Write-Host "Updating git submodules..."
+# git submodule update --init --recursive
 
 # ----------------------------------
 # 2) Create / Enter Build Directory
