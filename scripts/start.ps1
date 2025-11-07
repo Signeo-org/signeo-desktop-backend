@@ -7,5 +7,5 @@
 # 2) Run the executable with the model
 #-------------------------------------------
 Set-Location -Path "./build/Release"
-./AudioTranscriptionTool.exe --model "models/ggml-base.bin" -v
+./AudioTranscriptionTool.exe "models/ggml-base.bin" "models/silero_vad.onnx" 
 Set-Location -Path "../.."

@@ -2,7 +2,7 @@
 # 1) Initialize and Update Submodules
 # --------------------------------------
 # Write-Host "Updating git submodules..."
-# git submodule update --init --recursive
+git submodule update --init --recursive
 
 # ----------------------------------
 # 2) Create / Enter Build Directory
@@ -19,7 +19,7 @@ Set-Location -Path "./build"
 #    - Choose Release configuration
 # --------------------------------
 Write-Host "Configuring CMake with CUDA support..."
-cmake -D BUILD_SHARED_LIBS=OFF -D CMAKE_BUILD_TYPE=Release -D WHISPER_CUDA=ON -D GGML_CUDA=ON ..
+cmake -D BUILD_SHARED_LIBS=OFF -D CMAKE_BUILD_TYPE=Release -D GGML_CUDA=OFF ..
 
 # -------------------------------------------------
 # 4) Build the Project (Release mode on Windows)
