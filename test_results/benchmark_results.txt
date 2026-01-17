@@ -1,0 +1,107 @@
++==============================================================+
+|              SIGNEO BACKEND BENCHMARK SUITE                  |
++==============================================================+
+
+[MEMORY] Initial State
+  Working Set:      0 KB
+  Peak Working Set: 0 KB
+  Private Bytes:    0 KB
+----------------------------------------
+
+========== AUDIO PROCESSING LATENCY ==========
+
+[BENCH] Resampling 48kHz -> 16kHz (10ms chunk)
+  Iterations:    10000
+  Total Time:    110.90 ms
+  Mean Latency:  10.90 us
+  Std Dev:       40.89 us
+  P50 Latency:   10.08 us
+  P95 Latency:   11.85 us
+  P99 Latency:   37.61 us
+  Throughput:    91759 ops/sec
+----------------------------------------
+
+[BENCH] Downmix Stereo -> Mono (10ms chunk)
+  Iterations:    10000
+  Total Time:    72.43 ms
+  Mean Latency:  7.10 us
+  Std Dev:       28.24 us
+  P50 Latency:   5.69 us
+  P95 Latency:   9.05 us
+  P99 Latency:   15.03 us
+  Throughput:    140817 ops/sec
+----------------------------------------
+
+[BENCH] Full Audio Pipeline (Stereo 48k -> Mono 16k, 100ms)
+  Iterations:    1000
+  Total Time:    154.44 ms
+  Mean Latency:  154.09 us
+  Std Dev:       167.21 us
+  P50 Latency:   124.02 us
+  P95 Latency:   210.53 us
+  P99 Latency:   589.70 us
+  Throughput:    6490 ops/sec
+----------------------------------------
+
+========== REAL-TIME FACTOR (RTF) ==========
+
+[BENCH] Real-Time Factor (RTF) Analysis
+  10ms audio chunk: proc=0.015ms, RTF=0.0015 [OK] REALTIME
+  100ms audio chunk: proc=0.172ms, RTF=0.0017 [OK] REALTIME
+  500ms audio chunk: proc=0.755ms, RTF=0.0015 [OK] REALTIME
+  1000ms audio chunk: proc=1.541ms, RTF=0.0015 [OK] REALTIME
+----------------------------------------
+
+========== THROUGHPUT ==========
+
+[BENCH] Throughput Analysis (Simulated)
+  Audio Processed:   10.0000 seconds
+  Processing Time:   13.20 ms
+  Simulated Chars:   1500
+  Throughput:        113656 chars/sec
+  Speed Factor:      757.71x realtime
+----------------------------------------
+
+========== WER ACCURACY ==========
+[BENCH] Word Error Rate Examples
+  Perfect Match:
+    WER: 0.0% (S:0 D:0 I:0)
+  Minor Errors (typical STT):
+    WER: 11.1% (S:0 D:1 I:0)
+  Moderate Errors:
+    WER: 28.6% (S:2 D:0 I:0)
+  Significant Errors:
+    WER: 66.7% (S:2 D:1 I:1)
+  Homophones:
+    WER: 42.9% (S:3 D:0 I:0)
+----------------------------------------
+
+========== THREAD CONTENTION ==========
+
+[BENCH] Thread Contention Analysis
+  Mutex Contention (8 threads, 10000 ops each):
+    Total time:       13.47 ms
+    Ops/sec:          5937621
+  Atomic Contention (8 threads, 10000 ops each):
+    Total time:       2 ms
+    Ops/sec:          41309554
+  ThreadSafeQueue (8 producers, 1 consumer, 10000 items each):
+    Total time:       1159 ms
+    Items/sec:        69042
+----------------------------------------
+
+[MEMORY] After Benchmarks
+  Working Set:      0 KB
+  Peak Working Set: 0 KB
+  Private Bytes:    0 KB
+----------------------------------------
+
+[MEMORY] Delta
+  Working Set Change: 0 KB
+  Peak Working Set:   0 KB
+----------------------------------------
+
++==============================================================+
+|                   BENCHMARKS COMPLETE                        |
++==============================================================+
+[INFO] Writing XML report to: benchmark_results.xml

@@ -1,5 +1,36 @@
+# Build directories
+build/
+build_release/
+dist/
+release/
+out/
+cmake-build-*/
+.vs/
+.vscode/
+.idea/
 
-/.vscode
-/build
-/debug
-*.txt
+# OS specific
+.DS_Store
+Thumbs.db
+
+# Dependencies
+deps/*
+!deps/.keep
+
+# Models
+models/*.bin
+models/*.onnx
+models/*.wav
+
+# Binaries
+*.exe
+*.dll
+*.dylib
+*.so
+*.a
+*.lib
+*.zip
+
+# Logs
+*.log
+logs/

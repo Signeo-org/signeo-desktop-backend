@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="8" failures="0" disabled="0" errors="0" time="94.196" timestamp="2026-01-17T16:25:32.472" name="AllTests">
+  <testsuite name="IntegrationTest" tests="8" failures="0" disabled="0" skipped="1" errors="0" time="94.196" timestamp="2026-01-17T16:25:32.472">
+    <testcase name="ConfigLoadingPriority" file="/app/tests/integration/test_pipeline.cpp" line="69" status="run" result="completed" time="0.002" timestamp="2026-01-17T16:25:32.472" classname="IntegrationTest" />
+    <testcase name="PipelineInstantiation" file="/app/tests/integration/test_pipeline.cpp" line="87" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:32.475" classname="IntegrationTest" />
+    <testcase name="WavFileInjection" file="/app/tests/integration/test_pipeline.cpp" line="106" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:32.475" classname="IntegrationTest" />
+    <testcase name="EnvVarConfigPriority" file="/app/tests/integration/test_pipeline.cpp" line="159" status="run" result="completed" time="0.002" timestamp="2026-01-17T16:25:32.475" classname="IntegrationTest" />
+    <testcase name="MultiThreadedStress" file="/app/tests/integration/test_pipeline.cpp" line="190" status="run" result="completed" time="1.039" timestamp="2026-01-17T16:25:32.478" classname="IntegrationTest" />
+    <testcase name="AudioBufferStress" file="/app/tests/integration/test_pipeline.cpp" line="231" status="run" result="completed" time="0.101" timestamp="2026-01-17T16:25:33.518" classname="IntegrationTest" />
+    <testcase name="DeviceHotSwap" file="/app/tests/integration/test_pipeline.cpp" line="284" status="run" result="skipped" time="0.002" timestamp="2026-01-17T16:25:33.620" classname="IntegrationTest">
+      <skipped message="/app/tests/integration/test_pipeline.cpp:317&#x0A;Hot-swap test requires at least 2 audio devices, found 0&#x0A;"><![CDATA[/app/tests/integration/test_pipeline.cpp:317
+Hot-swap test requires at least 2 audio devices, found 0
+]]></skipped>
+    </testcase>
+    <testcase name="PipelineJfkWav" file="/app/tests/integration/test_pipeline.cpp" line="391" status="run" result="completed" time="93.045" timestamp="2026-01-17T16:25:33.623" classname="IntegrationTest" />
+  </testsuite>
+</testsuites>

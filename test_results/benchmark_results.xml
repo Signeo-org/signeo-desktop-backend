@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="Benchmarks" tests="14">
+    <testcase name="Resampling 48kHz -&gt; 16kHz (10ms chunk)" classname="MicroBenchmark">
+      <properties>
+        <property name="iterations" value="10000"/>
+        <property name="mean_latency_us" value="10.898075"/>
+        <property name="p50_us" value="10.079000"/>
+        <property name="p95_us" value="11.852000"/>
+        <property name="p99_us" value="37.608000"/>
+        <property name="stdev_us" value="40.888835"/>
+        <property name="throughput_ops_sec" value="91759.321942"/>
+        <property name="total_time_ms" value="110.902989"/>
+      </properties>
+    </testcase>
+    <testcase name="Downmix Stereo -&gt; Mono (10ms chunk)" classname="MicroBenchmark">
+      <properties>
+        <property name="iterations" value="10000"/>
+        <property name="mean_latency_us" value="7.101407"/>
+        <property name="p50_us" value="5.692000"/>
+        <property name="p95_us" value="9.052000"/>
+        <property name="p99_us" value="15.025000"/>
+        <property name="stdev_us" value="28.242397"/>
+        <property name="throughput_ops_sec" value="140817.170773"/>
+        <property name="total_time_ms" value="72.428036"/>
+      </properties>
+    </testcase>
+    <testcase name="Full Audio Pipeline (Stereo 48k -&gt; Mono 16k, 100ms)" classname="MicroBenchmark">
+      <properties>
+        <property name="iterations" value="1000"/>
+        <property name="mean_latency_us" value="154.092515"/>
+        <property name="p50_us" value="124.024000"/>
+        <property name="p95_us" value="210.532000"/>
+        <property name="p99_us" value="589.696000"/>
+        <property name="stdev_us" value="167.206716"/>
+        <property name="throughput_ops_sec" value="6489.607883"/>
+        <property name="total_time_ms" value="154.435196"/>
+      </properties>
+    </testcase>
+    <testcase name="RTF Analysis 10ms chunk" classname="RTF">
+      <properties>
+        <property name="audio_duration_ms" value="10"/>
+        <property name="processing_time_ms" value="0.015347"/>
+        <property name="realtime_status" value="OK"/>
+        <property name="rtf" value="0.001535"/>
+      </properties>
+    </testcase>
+    <testcase name="RTF Analysis 100ms chunk" classname="RTF">
+      <properties>
+        <property name="audio_duration_ms" value="100"/>
+        <property name="processing_time_ms" value="0.171822"/>
+        <property name="realtime_status" value="OK"/>
+        <property name="rtf" value="0.001718"/>
+      </properties>
+    </testcase>
+    <testcase name="RTF Analysis 500ms chunk" classname="RTF">
+      <properties>
+        <property name="audio_duration_ms" value="500"/>
+        <property name="processing_time_ms" value="0.754940"/>
+        <property name="realtime_status" value="OK"/>
+        <property name="rtf" value="0.001510"/>
+      </properties>
+    </testcase>
+    <testcase name="RTF Analysis 1000ms chunk" classname="RTF">
+      <properties>
+        <property name="audio_duration_ms" value="1000"/>
+        <property name="processing_time_ms" value="1.540988"/>
+        <property name="realtime_status" value="OK"/>
+        <property name="rtf" value="0.001541"/>
+      </properties>
+    </testcase>
+    <testcase name="Throughput Analysis" classname="Throughput">
+      <properties>
+        <property name="audio_processed_s" value="10.000000"/>
+        <property name="processing_time_ms" value="13.197740"/>
+        <property name="simulated_chars" value="1500.000000"/>
+        <property name="speed_factor" value="757.705486"/>
+        <property name="throughput_chars_sec" value="113655.822891"/>
+      </properties>
+    </testcase>
+    <testcase name="WER: Perfect Match" classname="Accuracy">
+      <properties>
+        <property name="deletions" value="0"/>
+        <property name="insertions" value="0"/>
+        <property name="substitutions" value="0"/>
+        <property name="wer_percentage" value="0.000000"/>
+      </properties>
+    </testcase>
+    <testcase name="WER: Minor Errors (typical STT)" classname="Accuracy">
+      <properties>
+        <property name="deletions" value="1"/>
+        <property name="insertions" value="0"/>
+        <property name="substitutions" value="0"/>
+        <property name="wer_percentage" value="11.111111"/>
+      </properties>
+    </testcase>
+    <testcase name="WER: Moderate Errors" classname="Accuracy">
+      <properties>
+        <property name="deletions" value="0"/>
+        <property name="insertions" value="0"/>
+        <property name="substitutions" value="2"/>
+        <property name="wer_percentage" value="28.571429"/>
+      </properties>
+    </testcase>
+    <testcase name="WER: Significant Errors" classname="Accuracy">
+      <properties>
+        <property name="deletions" value="1"/>
+        <property name="insertions" value="1"/>
+        <property name="substitutions" value="2"/>
+        <property name="wer_percentage" value="66.666667"/>
+      </properties>
+    </testcase>
+    <testcase name="WER: Homophones" classname="Accuracy">
+      <properties>
+        <property name="deletions" value="0"/>
+        <property name="insertions" value="0"/>
+        <property name="substitutions" value="3"/>
+        <property name="wer_percentage" value="42.857143"/>
+      </properties>
+    </testcase>
+    <testcase name="ThreadSafeQueue Throughput" classname="ThreadContention">
+      <properties>
+        <property name="items_per_sec" value="69042.227024"/>
+        <property name="items_per_thread" value="10000"/>
+        <property name="producers" value="8"/>
+        <property name="total_time_ms" value="1158.711175"/>
+      </properties>
+    </testcase>
+  </testsuite>
+</testsuites>

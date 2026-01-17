@@ -1,0 +1,953 @@
+Running main() from /app/build/_deps/googletest-src/googletest/src/gtest_main.cc
+[==========] Running 8 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 8 tests from IntegrationTest
+[ RUN      ] IntegrationTest.ConfigLoadingPriority
+[2026-01-17 16:25:32.472] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.474] [info] Loaded configuration from: config.ini
+[       OK ] IntegrationTest.ConfigLoadingPriority (2 ms)
+[ RUN      ] IntegrationTest.PipelineInstantiation
+[       OK ] IntegrationTest.PipelineInstantiation (0 ms)
+[ RUN      ] IntegrationTest.WavFileInjection
+[       OK ] IntegrationTest.WavFileInjection (0 ms)
+[ RUN      ] IntegrationTest.EnvVarConfigPriority
+[2026-01-17 16:25:32.476] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.477] [info] Loaded configuration from: config.ini
+[       OK ] IntegrationTest.EnvVarConfigPriority (2 ms)
+[ RUN      ] IntegrationTest.MultiThreadedStress
+[2026-01-17 16:25:32.479] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.479] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.479] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.479] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.479] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.480] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.480] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.480] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.488] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.488] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.488] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.488] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.489] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.489] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.489] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.489] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.495] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.498] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.498] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.498] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.499] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.499] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.499] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.499] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.504] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.507] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.507] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.508] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.508] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.508] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.509] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.512] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.513] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.515] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.518] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.519] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.519] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.519] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.520] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.522] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.523] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.525] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.526] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.527] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.527] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.528] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.530] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.531] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.531] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.534] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.536] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.537] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.538] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.538] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.538] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.541] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.542] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.543] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.545] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.546] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.547] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.547] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.549] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.550] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.551] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.551] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.554] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.556] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.556] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.556] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.557] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.560] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.560] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.560] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.563] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.564] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.568] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.569] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.569] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.570] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.571] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.572] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.577] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.577] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.578] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.578] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.579] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.580] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.581] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.582] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.586] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.588] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.588] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.588] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.588] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.589] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.591] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.591] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.594] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.597] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.597] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.597] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.598] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.599] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.599] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.600] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.603] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.605] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.606] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.607] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.607] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.608] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.611] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.612] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.613] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.615] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.616] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.616] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.618] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.623] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.623] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.623] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.626] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.627] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.627] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.628] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.632] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.633] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.634] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.635] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.639] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.639] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.640] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.640] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.641] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.642] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.643] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.644] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.647] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.648] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.649] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.649] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.651] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.652] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.653] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.654] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.658] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.658] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.658] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.659] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.661] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.662] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.663] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.664] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.666] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.667] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.669] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.669] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.669] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.670] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.673] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.674] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.676] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.677] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.677] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.678] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.679] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.679] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.682] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.682] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.685] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.687] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.687] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.688] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.688] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.688] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.694] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.694] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.695] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.696] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.696] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.698] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.698] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.701] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.702] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.704] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.704] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.705] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.706] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.707] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.709] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.711] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.712] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.713] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.713] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.715] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.716] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.717] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.719] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.722] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.723] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.724] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.724] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.724] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.726] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.726] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.727] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.731] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.733] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.733] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.733] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.734] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.736] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.736] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.737] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.741] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.742] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.743] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.743] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.745] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.745] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.747] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.751] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.752] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.752] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.752] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.753] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.755] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.757] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.758] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.760] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.760] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.761] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.761] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.762] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.767] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.767] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.768] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.769] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.770] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.771] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.771] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.771] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.777] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.779] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.780] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.780] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.780] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.780] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.782] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.784] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.786] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.787] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.788] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.790] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.790] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.790] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.794] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.794] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.794] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.798] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.799] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.800] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.800] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.802] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.804] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.804] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.805] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.807] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.809] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.809] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.811] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.812] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.813] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.813] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.814] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.815] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.817] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.820] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.820] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.821] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.821] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.822] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.824] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.824] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.827] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.829] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.830] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.830] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.831] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.831] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.832] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.834] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.838] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.838] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.838] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.839] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.840] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.842] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.844] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.844] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.846] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.847] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.848] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.848] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.849] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.851] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.852] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.853] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.856] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.857] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.858] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.859] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.859] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.861] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.861] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.863] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.866] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.866] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.868] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.868] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.868] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.870] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.871] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.871] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.875] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.875] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.877] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.878] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.879] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.879] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.880] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.882] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.884] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.886] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.886] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.887] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.889] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.889] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.890] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.890] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.893] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.894] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.896] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.897] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.897] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.898] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.898] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.900] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.903] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.904] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.905] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.906] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.907] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.907] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.908] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.911] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.912] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.913] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.913] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.916] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.917] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.917] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.919] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.921] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.922] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.923] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.924] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.926] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.927] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.928] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.928] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.930] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.931] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.931] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.934] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.935] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.936] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.938] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.939] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.940] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.941] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.941] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.943] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.944] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.945] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.947] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.948] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.949] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.952] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.952] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.953] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.954] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.954] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.955] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.957] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.958] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.962] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.962] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.963] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.963] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.964] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.965] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.968] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.969] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.971] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.971] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.973] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.973] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.973] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.974] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.976] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.978] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.980] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.982] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.982] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.982] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.983] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.983] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.987] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.989] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.989] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.991] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.992] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.993] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.994] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.994] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.998] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.998] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:32.999] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.000] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.000] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.002] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.005] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.005] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.008] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.008] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.009] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.009] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.010] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.011] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.013] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.014] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.017] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.018] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.018] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.019] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.019] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.019] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.024] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.025] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.025] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.028] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.030] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.030] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.031] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.031] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.032] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.035] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.035] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.039] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.040] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.040] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.042] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.043] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.043] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.045] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.046] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.050] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.051] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.052] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.052] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.052] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.055] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.057] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.059] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.059] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.059] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.059] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.061] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.062] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.064] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.068] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.069] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.070] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.070] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.070] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.071] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.071] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.076] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.077] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.078] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.079] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.081] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.081] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.081] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.082] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.087] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.088] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.089] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.090] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.092] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.093] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.093] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.093] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.093] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.095] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.101] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.102] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.102] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.103] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.104] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.104] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.104] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.104] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.108] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.109] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.111] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.111] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.114] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.116] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.118] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.118] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.119] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.119] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.121] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.122] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.122] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.125] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.125] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.128] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.128] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.131] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.132] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.134] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.135] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.139] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.140] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.141] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.141] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.142] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.143] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.144] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.145] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.151] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.152] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.153] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.153] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.153] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.153] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.155] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.157] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.162] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.163] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.164] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.164] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.165] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.165] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.166] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.167] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.172] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.173] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.174] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.175] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.175] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.176] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.177] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.180] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.181] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.183] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.184] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.185] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.187] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.187] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.187] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.190] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.192] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.193] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.194] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.195] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.195] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.197] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.199] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.200] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.201] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.202] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.204] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.205] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.205] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.206] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.211] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.211] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.213] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.213] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.214] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.214] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.215] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.218] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.220] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.222] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.222] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.223] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.223] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.224] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.224] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.227] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.232] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.232] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.232] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.232] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.234] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.236] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.238] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.239] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.239] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.241] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.243] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.243] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.248] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.248] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.249] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.250] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.255] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.257] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.258] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.259] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.260] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.260] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.260] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.262] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.265] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.266] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.270] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.270] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.270] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.271] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.273] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.274] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.274] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.277] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.279] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.283] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.284] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.284] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.285] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.285] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.285] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.289] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.290] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.293] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.294] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.294] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.295] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.296] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.299] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.299] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.299] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.303] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.303] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.306] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.308] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.308] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.310] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.311] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.312] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.312] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.316] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.319] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.319] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.320] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.320] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.321] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.322] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.324] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.327] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.328] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.330] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.330] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.330] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.332] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.333] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.336] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.337] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.341] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.341] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.341] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.342] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.342] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.343] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.350] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.350] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.350] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.352] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.353] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.354] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.355] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.356] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.361] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.362] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.363] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.365] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.365] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.365] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.368] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.368] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.369] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.373] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.375] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.376] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.377] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.377] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.379] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.382] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.384] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.385] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.386] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.387] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.389] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.391] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.393] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.393] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.394] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.398] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.399] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.401] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.402] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.403] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.404] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.405] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.405] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.408] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.409] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.412] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.412] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.413] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.414] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.417] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.420] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.420] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.422] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.422] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.425] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.426] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.427] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.430] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.430] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.432] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.433] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.435] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.437] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.438] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.439] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.439] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.442] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.442] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.444] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.444] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.448] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.451] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.451] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.451] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.452] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.452] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.452] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.456] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.458] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.461] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.461] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.464] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.464] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.464] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.466] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.467] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.467] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.470] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.473] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.473] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.474] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.477] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.477] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.478] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.478] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.481] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.484] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.485] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.486] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.488] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.490] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.490] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.493] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.495] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.499] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.499] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.499] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.503] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.506] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.507] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.510] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.513] [info] Loaded configuration from: config.ini
+[2026-01-17 16:25:33.514] [info] Loaded configuration from: config.ini
+[       OK ] IntegrationTest.MultiThreadedStress (1039 ms)
+[ RUN      ] IntegrationTest.AudioBufferStress
+[       OK ] IntegrationTest.AudioBufferStress (101 ms)
+[ RUN      ] IntegrationTest.DeviceHotSwap
+[debug] Logging initialized.
+[debug] AudioCapture::create() called with sample_rate=16000, frames_per_buffer=512, file=
+[debug] AudioCapture::init_portaudio() initializing PortAudio...
+ALSA lib confmisc.c:855:(parse_card) cannot find card '0'
+ALSA lib conf.c:5204:(_snd_config_evaluate) function snd_func_card_inum returned error: No such file or directory
+ALSA lib confmisc.c:422:(snd_func_concat) error evaluating strings
+ALSA lib conf.c:5204:(_snd_config_evaluate) function snd_func_concat returned error: No such file or directory
+ALSA lib confmisc.c:1342:(snd_func_refer) error evaluating name
+ALSA lib conf.c:5204:(_snd_config_evaluate) function snd_func_refer returned error: No such file or directory
+ALSA lib conf.c:5727:(snd_config_expand) Evaluate error: No such file or directory
+ALSA lib pcm.c:2721:(snd_pcm_open_noupdate) Unknown PCM sysdefault
+ALSA lib confmisc.c:855:(parse_card) cannot find card '0'
+ALSA lib conf.c:5204:(_snd_config_evaluate) function snd_func_card_inum returned error: No such file or directory
+ALSA lib confmisc.c:422:(snd_func_concat) error evaluating strings
+ALSA lib conf.c:5204:(_snd_config_evaluate) function snd_func_concat returned error: No such file or directory
+ALSA lib confmisc.c:1342:(snd_func_refer) error evaluating name
+ALSA lib conf.c:5204:(_snd_config_evaluate) function snd_func_refer returned error: No such file or directory
+ALSA lib conf.c:5727:(snd_config_expand) Evaluate error: No such file or directory
+ALSA lib pcm.c:2721:(snd_pcm_open_noupdate) Unknown PCM sysdefault
+ALSA lib pcm.c:2721:(snd_pcm_open_noupdate) Unknown PCM cards.pcm.front
+ALSA lib pcm.c:2721:(snd_pcm_open_noupdate) Unknown PCM cards.pcm.rear
+ALSA lib pcm.c:2721:(snd_pcm_open_noupdate) Unknown PCM cards.pcm.center_lfe
+ALSA lib pcm.c:2721:(snd_pcm_open_noupdate) Unknown PCM cards.pcm.side
+ALSA lib pcm.c:2721:(snd_pcm_open_noupdate) Unknown PCM cards.pcm.surround21
+ALSA lib pcm.c:2721:(snd_pcm_open_noupdate) Unknown PCM cards.pcm.surround21
+ALSA lib pcm.c:2721:(snd_pcm_open_noupdate) Unknown PCM cards.pcm.surround40
+ALSA lib pcm.c:2721:(snd_pcm_open_noupdate) Unknown PCM cards.pcm.surround41
+ALSA lib pcm.c:2721:(snd_pcm_open_noupdate) Unknown PCM cards.pcm.surround50
+ALSA lib pcm.c:2721:(snd_pcm_open_noupdate) Unknown PCM cards.pcm.surround51
+ALSA lib pcm.c:2721:(snd_pcm_open_noupdate) Unknown PCM cards.pcm.surround71
+ALSA lib pcm.c:2721:(snd_pcm_open_noupdate) Unknown PCM cards.pcm.iec958
+ALSA lib pcm.c:2721:(snd_pcm_open_noupdate) Unknown PCM cards.pcm.iec958
+ALSA lib pcm.c:2721:(snd_pcm_open_noupdate) Unknown PCM cards.pcm.iec958
+ALSA lib pcm.c:2721:(snd_pcm_open_noupdate) Unknown PCM cards.pcm.hdmi
+ALSA lib pcm.c:2721:(snd_pcm_open_noupdate) Unknown PCM cards.pcm.hdmi
+ALSA lib pcm.c:2721:(snd_pcm_open_noupdate) Unknown PCM cards.pcm.modem
+ALSA lib pcm.c:2721:(snd_pcm_open_noupdate) Unknown PCM cards.pcm.modem
+ALSA lib pcm.c:2721:(snd_pcm_open_noupdate) Unknown PCM cards.pcm.phoneline
+ALSA lib pcm.c:2721:(snd_pcm_open_noupdate) Unknown PCM cards.pcm.phoneline
+ALSA lib confmisc.c:855:(parse_card) cannot find card '0'
+ALSA lib conf.c:5204:(_snd_config_evaluate) function snd_func_card_inum returned error: No such file or directory
+ALSA lib confmisc.c:422:(snd_func_concat) error evaluating strings
+ALSA lib conf.c:5204:(_snd_config_evaluate) function snd_func_concat returned error: No such file or directory
+ALSA lib confmisc.c:1342:(snd_func_refer) error evaluating name
+ALSA lib conf.c:5204:(_snd_config_evaluate) function snd_func_refer returned error: No such file or directory
+ALSA lib conf.c:5727:(snd_config_expand) Evaluate error: No such file or directory
+ALSA lib pcm.c:2721:(snd_pcm_open_noupdate) Unknown PCM default
+ALSA lib confmisc.c:855:(parse_card) cannot find card '0'
+ALSA lib conf.c:5204:(_snd_config_evaluate) function snd_func_card_inum returned error: No such file or directory
+ALSA lib confmisc.c:422:(snd_func_concat) error evaluating strings
+ALSA lib conf.c:5204:(_snd_config_evaluate) function snd_func_concat returned error: No such file or directory
+ALSA lib confmisc.c:1342:(snd_func_refer) error evaluating name
+ALSA lib conf.c:5204:(_snd_config_evaluate) function snd_func_refer returned error: No such file or directory
+ALSA lib conf.c:5727:(snd_config_expand) Evaluate error: No such file or directory
+ALSA lib pcm.c:2721:(snd_pcm_open_noupdate) Unknown PCM default
+ALSA lib confmisc.c:855:(parse_card) cannot find card '0'
+ALSA lib conf.c:5204:(_snd_config_evaluate) function snd_func_card_id returned error: No such file or directory
+ALSA lib confmisc.c:422:(snd_func_concat) error evaluating strings
+ALSA lib conf.c:5204:(_snd_config_evaluate) function snd_func_concat returned error: No such file or directory
+ALSA lib confmisc.c:1342:(snd_func_refer) error evaluating name
+ALSA lib conf.c:5204:(_snd_config_evaluate) function snd_func_refer returned error: No such file or directory
+ALSA lib conf.c:5727:(snd_config_expand) Evaluate error: No such file or directory
+ALSA lib pcm.c:2721:(snd_pcm_open_noupdate) Unknown PCM dmix
+[debug] AudioCapture::init_portaudio() PortAudio initialized successfully
+[info] AudioCapture created. Requested Rate: 16000, Frames: 512
+[debug] AudioCapture::list_devices() called
+[debug] AudioCapture::list_devices() found 0 devices
+
+=== Available Audio Devices ===
+/app/tests/integration/test_pipeline.cpp:317: Skipped
+Hot-swap test requires at least 2 audio devices, found 0
+
+[debug] AudioCapture: Destructor called, cleaning up...
+[debug] AudioCapture: Cleanup complete.
+[  SKIPPED ] IntegrationTest.DeviceHotSwap (2 ms)
+[ RUN      ] IntegrationTest.PipelineJfkWav
+[debug] Logging initialized.
+[info] Loaded WAV: 16000 Hz, 1 ch, 176000 samples
+[info] AudioCapture created in FILE MODE. Loaded 'tests/fixtures/jfk.wav' (16000 Hz, 1 Ch, 176000 samples)
+whisper_init_from_file_with_params_no_state: loading model from 'models/ggml-base.bin'
+whisper_init_with_params_no_state: use gpu    = 1
+whisper_init_with_params_no_state: flash attn = 1
+whisper_init_with_params_no_state: gpu_device = 0
+whisper_init_with_params_no_state: dtw        = 0
+register_backend: registered backend CPU (1 devices)
+register_device: registered device CPU (Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz)
+whisper_init_with_params_no_state: devices    = 1
+whisper_init_with_params_no_state: backends   = 1
+whisper_model_load: loading model
+whisper_model_load: n_vocab       = 51865
+whisper_model_load: n_audio_ctx   = 1500
+whisper_model_load: n_audio_state = 512
+whisper_model_load: n_audio_head  = 8
+whisper_model_load: n_audio_layer = 6
+whisper_model_load: n_text_ctx    = 448
+whisper_model_load: n_text_state  = 512
+whisper_model_load: n_text_head   = 8
+whisper_model_load: n_text_layer  = 6
+whisper_model_load: n_mels        = 80
+whisper_model_load: ftype         = 1
+whisper_model_load: qntvr         = 0
+whisper_model_load: type          = 2 (base)
+whisper_model_load: adding 1608 extra tokens
+whisper_model_load: n_langs       = 99
+whisper_model_load:          CPU total size =   147.37 MB
+whisper_model_load: model size    =  147.37 MB
+whisper_backend_init_gpu: device 0: CPU (type: 0)
+whisper_backend_init_gpu: no GPU found
+whisper_init_state: kv self size  =    6.29 MB
+whisper_init_state: kv cross size =   18.87 MB
+whisper_init_state: kv pad  size  =    3.15 MB
+whisper_init_state: compute buffer (conv)   =   16.28 MB
+whisper_init_state: compute buffer (encode) =   23.09 MB
+whisper_init_state: compute buffer (cross)  =    4.66 MB
+whisper_init_state: compute buffer (decode) =   96.37 MB
+[info] SttEngine created. Language: 'en', Threads: 4, GPU: enabled
+[info] StreamingTranscriber initialized
+[info]   Step: 3000ms, Keep: 500ms, MaxLen: 10000ms
+[info]   Token dedup: on, Timestamp merge: on
+[info] AudioCapture started in FILE MODE (virtual device).
+Processing tests/fixtures/jfk.wav...
+[info] Generic: End of file reached.
+[info] AudioCapture stopped (FILE MODE).
+Transcription Result:  And so my fellow Americans. Ask not what your country can do for you. for your country.
+[       OK ] IntegrationTest.PipelineJfkWav (93045 ms)
+[----------] 8 tests from IntegrationTest (94196 ms total)
+
+[----------] Global test environment tear-down
+[==========] 8 tests from 1 test suite ran. (94196 ms total)
+[  PASSED  ] 7 tests.
+[  SKIPPED ] 1 test, listed below:
+[  SKIPPED ] IntegrationTest.DeviceHotSwap

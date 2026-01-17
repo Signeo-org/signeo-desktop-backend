@@ -1,0 +1,261 @@
+Running main() from /app/build/_deps/googletest-src/googletest/src/gtest_main.cc
+[==========] Running 96 tests from 14 test suites.
+[----------] Global test environment set-up.
+[debug] Logging initialized.
+[----------] 4 tests from AppConfigTest
+[ RUN      ] AppConfigTest.ParseDefaults
+[debug] Loading config from: config.ini
+[info] Loaded configuration from: config.ini
+[       OK ] AppConfigTest.ParseDefaults (2 ms)
+[ RUN      ] AppConfigTest.ParseCLIArgs
+[info] Loaded configuration from: config.ini
+[       OK ] AppConfigTest.ParseCLIArgs (1 ms)
+[ RUN      ] AppConfigTest.ParseVADParams
+[debug] Loading config from: config.ini
+[info] Loaded configuration from: config.ini
+[       OK ] AppConfigTest.ParseVADParams (2 ms)
+[ RUN      ] AppConfigTest.ParseSTTParams
+[info] Loaded configuration from: config.ini
+[       OK ] AppConfigTest.ParseSTTParams (2 ms)
+[----------] 4 tests from AppConfigTest (8 ms total)
+
+[----------] 5 tests from AudioProcessorTest
+[ RUN      ] AudioProcessorTest.ProcessStereoToMonoResample
+[info] AudioResampler initialized: 48000Hz -> 16000Hz (quality: 5)
+[info] AudioProcessor initialized. Downmix: 2ch->Mono, Resample: 48000Hz->16000Hz
+[       OK ] AudioProcessorTest.ProcessStereoToMonoResample (0 ms)
+[ RUN      ] AudioProcessorTest.ProcessMonoResampleOnly
+[info] AudioResampler initialized: 48000Hz -> 16000Hz (quality: 5)
+[info] AudioProcessor initialized. Downmix: None (already Mono), Resample: 48000Hz->16000Hz
+[       OK ] AudioProcessorTest.ProcessMonoResampleOnly (0 ms)
+[ RUN      ] AudioProcessorTest.ProcessPassthrough
+[info] AudioProcessor initialized. Downmix: None (already Mono), Resample: None (already 16000Hz)
+[       OK ] AudioProcessorTest.ProcessPassthrough (0 ms)
+[ RUN      ] AudioProcessorTest.ProcessEmptyInput
+[info] AudioResampler initialized: 48000Hz -> 16000Hz (quality: 5)
+[info] AudioProcessor initialized. Downmix: 2ch->Mono, Resample: 48000Hz->16000Hz
+[       OK ] AudioProcessorTest.ProcessEmptyInput (0 ms)
+[ RUN      ] AudioProcessorTest.DownmixAndResampleLogic
+[info] AudioResampler initialized: 32000Hz -> 16000Hz (quality: 5)
+[info] AudioProcessor initialized. Downmix: 2ch->Mono, Resample: 32000Hz->16000Hz
+[       OK ] AudioProcessorTest.DownmixAndResampleLogic (0 ms)
+[----------] 5 tests from AudioProcessorTest (1 ms total)
+
+[----------] 2 tests from ConfigFileTest
+[ RUN      ] ConfigFileTest.LoadAndParseBasic
+[       OK ] ConfigFileTest.LoadAndParseBasic (2 ms)
+[ RUN      ] ConfigFileTest.EmptyLinesAndComments
+[       OK ] ConfigFileTest.EmptyLinesAndComments (1 ms)
+[----------] 2 tests from ConfigFileTest (4 ms total)
+
+[----------] 4 tests from LoggingTest
+[ RUN      ] LoggingTest.TimerBasic
+[       OK ] LoggingTest.TimerBasic (10 ms)
+[ RUN      ] LoggingTest.TimerReset
+[       OK ] LoggingTest.TimerReset (10 ms)
+[ RUN      ] LoggingTest.TimerPrecision
+[       OK ] LoggingTest.TimerPrecision (0 ms)
+[ RUN      ] LoggingTest.ScopedTraceCompiles
+[       OK ] LoggingTest.ScopedTraceCompiles (1 ms)
+[----------] 4 tests from LoggingTest (21 ms total)
+
+[----------] 3 tests from LoggingInitTest
+[ RUN      ] LoggingInitTest.InitLoggingConsoleOnly
+[debug] Logging initialized.
+[info] Test log message to console
+[       OK ] LoggingInitTest.InitLoggingConsoleOnly (0 ms)
+[ RUN      ] LoggingInitTest.InitLoggingWithFile
+[debug] Logging initialized.
+[info] Test log message to file
+[       OK ] LoggingInitTest.InitLoggingWithFile (0 ms)
+[ RUN      ] LoggingInitTest.InitLoggingFileOnly
+[       OK ] LoggingInitTest.InitLoggingFileOnly (0 ms)
+[----------] 3 tests from LoggingInitTest (0 ms total)
+
+[----------] 8 tests from MetricsCollectorTest
+[ RUN      ] MetricsCollectorTest.InitialState
+[       OK ] MetricsCollectorTest.InitialState (0 ms)
+[ RUN      ] MetricsCollectorTest.VadLatencyTracking
+[       OK ] MetricsCollectorTest.VadLatencyTracking (10 ms)
+[ RUN      ] MetricsCollectorTest.InferenceLatencyTracking
+[       OK ] MetricsCollectorTest.InferenceLatencyTracking (15 ms)
+[ RUN      ] MetricsCollectorTest.PipelineLatencyRecording
+[       OK ] MetricsCollectorTest.PipelineLatencyRecording (0 ms)
+[ RUN      ] MetricsCollectorTest.AudioChunkTracking
+[       OK ] MetricsCollectorTest.AudioChunkTracking (50 ms)
+[ RUN      ] MetricsCollectorTest.ThroughputCalculation
+[       OK ] MetricsCollectorTest.ThroughputCalculation (50 ms)
+[ RUN      ] MetricsCollectorTest.Reset
+[       OK ] MetricsCollectorTest.Reset (0 ms)
+[ RUN      ] MetricsCollectorTest.ThreadSafety
+[       OK ] MetricsCollectorTest.ThreadSafety (0 ms)
+[----------] 8 tests from MetricsCollectorTest (127 ms total)
+
+[----------] 5 tests from ResamplerTest
+[ RUN      ] ResamplerTest.Initialization
+[       OK ] ResamplerTest.Initialization (0 ms)
+[ RUN      ] ResamplerTest.ProcessNormal
+[       OK ] ResamplerTest.ProcessNormal (0 ms)
+[ RUN      ] ResamplerTest.ProcessEmpty
+[       OK ] ResamplerTest.ProcessEmpty (0 ms)
+[ RUN      ] ResamplerTest.Reset
+[       OK ] ResamplerTest.Reset (0 ms)
+[ RUN      ] ResamplerTest.ExpectedSize
+[       OK ] ResamplerTest.ExpectedSize (0 ms)
+[----------] 5 tests from ResamplerTest (0 ms total)
+
+[----------] 12 tests from ResultTest
+[ RUN      ] ResultTest.SuccessValue
+[       OK ] ResultTest.SuccessValue (0 ms)
+[ RUN      ] ResultTest.ErrorValue
+[       OK ] ResultTest.ErrorValue (0 ms)
+[ RUN      ] ResultTest.StatusSuccess
+[       OK ] ResultTest.StatusSuccess (0 ms)
+[ RUN      ] ResultTest.StatusError
+[       OK ] ResultTest.StatusError (0 ms)
+[ RUN      ] ResultTest.ManualErrorPropagation
+[       OK ] ResultTest.ManualErrorPropagation (0 ms)
+[ RUN      ] ResultTest.ManualSuccessPropagation
+[       OK ] ResultTest.ManualSuccessPropagation (0 ms)
+[ RUN      ] ResultTest.ErrorPropagationChain
+[       OK ] ResultTest.ErrorPropagationChain (0 ms)
+[ RUN      ] ResultTest.SuccessPropagationChain
+[       OK ] ResultTest.SuccessPropagationChain (0 ms)
+[ RUN      ] ResultTest.MoveSemantics
+[       OK ] ResultTest.MoveSemantics (0 ms)
+[ RUN      ] ResultTest.MakeErrorHelper
+[       OK ] ResultTest.MakeErrorHelper (0 ms)
+[ RUN      ] ResultTest.LogErrorHelper
+[       OK ] ResultTest.LogErrorHelper (0 ms)
+[ RUN      ] ResultTest.FileOperationPattern
+[       OK ] ResultTest.FileOperationPattern (0 ms)
+[----------] 12 tests from ResultTest (0 ms total)
+
+[----------] 7 tests from RingBufferTest
+[ RUN      ] RingBufferTest.BasicWriteRead
+[       OK ] RingBufferTest.BasicWriteRead (0 ms)
+[ RUN      ] RingBufferTest.ReadEmpty
+[       OK ] RingBufferTest.ReadEmpty (0 ms)
+[ RUN      ] RingBufferTest.AvailableCount
+[       OK ] RingBufferTest.AvailableCount (0 ms)
+[ RUN      ] RingBufferTest.WriteOverflow
+[       OK ] RingBufferTest.WriteOverflow (0 ms)
+[ RUN      ] RingBufferTest.ExactCapacity
+[       OK ] RingBufferTest.ExactCapacity (0 ms)
+[ RUN      ] RingBufferTest.WrapAround
+[       OK ] RingBufferTest.WrapAround (0 ms)
+[ RUN      ] RingBufferTest.LargeDataIntegrity
+[       OK ] RingBufferTest.LargeDataIntegrity (0 ms)
+[----------] 7 tests from RingBufferTest (0 ms total)
+
+[----------] 3 tests from SignalHandlerTest
+[ RUN      ] SignalHandlerTest.InitialState
+[       OK ] SignalHandlerTest.InitialState (0 ms)
+[ RUN      ] SignalHandlerTest.TriggerShutdown
+[       OK ] SignalHandlerTest.TriggerShutdown (0 ms)
+[ RUN      ] SignalHandlerTest.ForceExitInitiallyFalse
+[       OK ] SignalHandlerTest.ForceExitInitiallyFalse (0 ms)
+[----------] 3 tests from SignalHandlerTest (0 ms total)
+
+[----------] 15 tests from StreamingTranscriberLogicTest
+[ RUN      ] StreamingTranscriberLogicTest.TokenizeBasic
+[       OK ] StreamingTranscriberLogicTest.TokenizeBasic (0 ms)
+[ RUN      ] StreamingTranscriberLogicTest.TokenizeWithPunctuation
+[       OK ] StreamingTranscriberLogicTest.TokenizeWithPunctuation (0 ms)
+[ RUN      ] StreamingTranscriberLogicTest.TokenizeEmpty
+[       OK ] StreamingTranscriberLogicTest.TokenizeEmpty (0 ms)
+[ RUN      ] StreamingTranscriberLogicTest.TokenizeMixedCase
+[       OK ] StreamingTranscriberLogicTest.TokenizeMixedCase (0 ms)
+[ RUN      ] StreamingTranscriberLogicTest.FindOverlapNone
+[       OK ] StreamingTranscriberLogicTest.FindOverlapNone (0 ms)
+[ RUN      ] StreamingTranscriberLogicTest.FindOverlapSingle
+[       OK ] StreamingTranscriberLogicTest.FindOverlapSingle (0 ms)
+[ RUN      ] StreamingTranscriberLogicTest.FindOverlapMultiple
+[       OK ] StreamingTranscriberLogicTest.FindOverlapMultiple (0 ms)
+[ RUN      ] StreamingTranscriberLogicTest.FindOverlapEmpty
+[       OK ] StreamingTranscriberLogicTest.FindOverlapEmpty (0 ms)
+[ RUN      ] StreamingTranscriberLogicTest.RemoveRepetitionNoRepeat
+[       OK ] StreamingTranscriberLogicTest.RemoveRepetitionNoRepeat (0 ms)
+[ RUN      ] StreamingTranscriberLogicTest.RemoveRepetitionWithRepeat
+[       OK ] StreamingTranscriberLogicTest.RemoveRepetitionWithRepeat (0 ms)
+[ RUN      ] StreamingTranscriberLogicTest.RemoveRepetitionEmpty
+[       OK ] StreamingTranscriberLogicTest.RemoveRepetitionEmpty (0 ms)
+[ RUN      ] StreamingTranscriberLogicTest.IsHallucinationEmpty
+[       OK ] StreamingTranscriberLogicTest.IsHallucinationEmpty (0 ms)
+[ RUN      ] StreamingTranscriberLogicTest.IsHallucinationSingleChar
+[       OK ] StreamingTranscriberLogicTest.IsHallucinationSingleChar (0 ms)
+[ RUN      ] StreamingTranscriberLogicTest.IsHallucinationBlacklist
+[       OK ] StreamingTranscriberLogicTest.IsHallucinationBlacklist (0 ms)
+[ RUN      ] StreamingTranscriberLogicTest.IsHallucinationValid
+[       OK ] StreamingTranscriberLogicTest.IsHallucinationValid (0 ms)
+[----------] 15 tests from StreamingTranscriberLogicTest (0 ms total)
+
+[----------] 4 tests from ThreadMetricsTest
+[ RUN      ] ThreadMetricsTest.Singleton
+[       OK ] ThreadMetricsTest.Singleton (0 ms)
+[ RUN      ] ThreadMetricsTest.RegisterAndUnregisterThread
+[       OK ] ThreadMetricsTest.RegisterAndUnregisterThread (100 ms)
+[ RUN      ] ThreadMetricsTest.CpuUsageNonNegative
+[       OK ] ThreadMetricsTest.CpuUsageNonNegative (50 ms)
+[ RUN      ] ThreadMetricsTest.ThreadSafety
+[       OK ] ThreadMetricsTest.ThreadSafety (51 ms)
+[----------] 4 tests from ThreadMetricsTest (202 ms total)
+
+[----------] 7 tests from ThreadSafeQueueTest
+[ RUN      ] ThreadSafeQueueTest.BasicPushPop
+[       OK ] ThreadSafeQueueTest.BasicPushPop (0 ms)
+[ RUN      ] ThreadSafeQueueTest.PopEmpty
+[       OK ] ThreadSafeQueueTest.PopEmpty (0 ms)
+[ RUN      ] ThreadSafeQueueTest.MultiplePushPop
+[       OK ] ThreadSafeQueueTest.MultiplePushPop (0 ms)
+[ RUN      ] ThreadSafeQueueTest.BlockingPop
+[       OK ] ThreadSafeQueueTest.BlockingPop (100 ms)
+[ RUN      ] ThreadSafeQueueTest.StopUnblocksPop
+[       OK ] ThreadSafeQueueTest.StopUnblocksPop (50 ms)
+[ RUN      ] ThreadSafeQueueTest.MultiProducerMultiConsumer
+[       OK ] ThreadSafeQueueTest.MultiProducerMultiConsumer (0 ms)
+[ RUN      ] ThreadSafeQueueTest.SizeTracking
+[       OK ] ThreadSafeQueueTest.SizeTracking (0 ms)
+[----------] 7 tests from ThreadSafeQueueTest (151 ms total)
+
+[----------] 17 tests from WerCalculatorTest
+[ RUN      ] WerCalculatorTest.PerfectMatch
+[       OK ] WerCalculatorTest.PerfectMatch (0 ms)
+[ RUN      ] WerCalculatorTest.CompletelyDifferent
+[       OK ] WerCalculatorTest.CompletelyDifferent (0 ms)
+[ RUN      ] WerCalculatorTest.OneSubstitution
+[       OK ] WerCalculatorTest.OneSubstitution (0 ms)
+[ RUN      ] WerCalculatorTest.OneDeletion
+[       OK ] WerCalculatorTest.OneDeletion (0 ms)
+[ RUN      ] WerCalculatorTest.OneInsertion
+[       OK ] WerCalculatorTest.OneInsertion (0 ms)
+[ RUN      ] WerCalculatorTest.MixedErrors
+[       OK ] WerCalculatorTest.MixedErrors (0 ms)
+[ RUN      ] WerCalculatorTest.EmptyReference
+[       OK ] WerCalculatorTest.EmptyReference (0 ms)
+[ RUN      ] WerCalculatorTest.EmptyHypothesis
+[       OK ] WerCalculatorTest.EmptyHypothesis (0 ms)
+[ RUN      ] WerCalculatorTest.BothEmpty
+[       OK ] WerCalculatorTest.BothEmpty (0 ms)
+[ RUN      ] WerCalculatorTest.CaseInsensitive
+[       OK ] WerCalculatorTest.CaseInsensitive (0 ms)
+[ RUN      ] WerCalculatorTest.PunctuationIgnored
+[       OK ] WerCalculatorTest.PunctuationIgnored (0 ms)
+[ RUN      ] WerCalculatorTest.ExtraWhitespace
+[       OK ] WerCalculatorTest.ExtraWhitespace (0 ms)
+[ RUN      ] WerCalculatorTest.Normalize
+[       OK ] WerCalculatorTest.Normalize (0 ms)
+[ RUN      ] WerCalculatorTest.Tokenize
+[       OK ] WerCalculatorTest.Tokenize (0 ms)
+[ RUN      ] WerCalculatorTest.TokenizeEmpty
+[       OK ] WerCalculatorTest.TokenizeEmpty (0 ms)
+[ RUN      ] WerCalculatorTest.RealisticTranscription
+[       OK ] WerCalculatorTest.RealisticTranscription (0 ms)
+[ RUN      ] WerCalculatorTest.TypicalSttErrors
+[       OK ] WerCalculatorTest.TypicalSttErrors (0 ms)
+[----------] 17 tests from WerCalculatorTest (0 ms total)
+
+[----------] Global test environment tear-down
+[debug] Logging initialized.
+[==========] 96 tests from 14 test suites ran. (521 ms total)
+[  PASSED  ] 96 tests.

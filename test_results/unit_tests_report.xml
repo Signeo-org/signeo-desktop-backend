@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="96" failures="0" disabled="0" errors="0" time="0.521" timestamp="2026-01-17T16:25:31.857" name="AllTests">
+  <testsuite name="AppConfigTest" tests="4" failures="0" disabled="0" skipped="0" errors="0" time="0.008" timestamp="2026-01-17T16:25:31.857">
+    <testcase name="ParseDefaults" file="/app/tests/unit/test_app_config.cpp" line="19" status="run" result="completed" time="0.002" timestamp="2026-01-17T16:25:31.857" classname="AppConfigTest" />
+    <testcase name="ParseCLIArgs" file="/app/tests/unit/test_app_config.cpp" line="30" status="run" result="completed" time="0.001" timestamp="2026-01-17T16:25:31.860" classname="AppConfigTest" />
+    <testcase name="ParseVADParams" file="/app/tests/unit/test_app_config.cpp" line="46" status="run" result="completed" time="0.002" timestamp="2026-01-17T16:25:31.862" classname="AppConfigTest" />
+    <testcase name="ParseSTTParams" file="/app/tests/unit/test_app_config.cpp" line="60" status="run" result="completed" time="0.002" timestamp="2026-01-17T16:25:31.864" classname="AppConfigTest" />
+  </testsuite>
+  <testsuite name="AudioProcessorTest" tests="5" failures="0" disabled="0" skipped="0" errors="0" time="0.001" timestamp="2026-01-17T16:25:31.866">
+    <testcase name="ProcessStereoToMonoResample" file="/app/tests/unit/test_audio_processor.cpp" line="11" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:31.866" classname="AudioProcessorTest" />
+    <testcase name="ProcessMonoResampleOnly" file="/app/tests/unit/test_audio_processor.cpp" line="37" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:31.867" classname="AudioProcessorTest" />
+    <testcase name="ProcessPassthrough" file="/app/tests/unit/test_audio_processor.cpp" line="54" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:31.867" classname="AudioProcessorTest" />
+    <testcase name="ProcessEmptyInput" file="/app/tests/unit/test_audio_processor.cpp" line="68" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:31.868" classname="AudioProcessorTest" />
+    <testcase name="DownmixAndResampleLogic" file="/app/tests/unit/test_audio_processor.cpp" line="83" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:31.868" classname="AudioProcessorTest" />
+  </testsuite>
+  <testsuite name="ConfigFileTest" tests="2" failures="0" disabled="0" skipped="0" errors="0" time="0.004" timestamp="2026-01-17T16:25:31.868">
+    <testcase name="LoadAndParseBasic" file="/app/tests/unit/test_config_file.cpp" line="33" status="run" result="completed" time="0.002" timestamp="2026-01-17T16:25:31.868" classname="ConfigFileTest" />
+    <testcase name="EmptyLinesAndComments" file="/app/tests/unit/test_config_file.cpp" line="64" status="run" result="completed" time="0.001" timestamp="2026-01-17T16:25:31.870" classname="ConfigFileTest" />
+  </testsuite>
+  <testsuite name="LoggingTest" tests="4" failures="0" disabled="0" skipped="0" errors="0" time="0.021" timestamp="2026-01-17T16:25:31.872">
+    <testcase name="TimerBasic" file="/app/tests/unit/test_logging.cpp" line="35" status="run" result="completed" time="0.01" timestamp="2026-01-17T16:25:31.872" classname="LoggingTest" />
+    <testcase name="TimerReset" file="/app/tests/unit/test_logging.cpp" line="48" status="run" result="completed" time="0.01" timestamp="2026-01-17T16:25:31.882" classname="LoggingTest" />
+    <testcase name="TimerPrecision" file="/app/tests/unit/test_logging.cpp" line="58" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:31.893" classname="LoggingTest" />
+    <testcase name="ScopedTraceCompiles" file="/app/tests/unit/test_logging.cpp" line="76" status="run" result="completed" time="0.001" timestamp="2026-01-17T16:25:31.893" classname="LoggingTest" />
+  </testsuite>
+  <testsuite name="LoggingInitTest" tests="3" failures="0" disabled="0" skipped="0" errors="0" time="0." timestamp="2026-01-17T16:25:31.894">
+    <testcase name="InitLoggingConsoleOnly" file="/app/tests/unit/test_logging.cpp" line="106" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:31.894" classname="LoggingInitTest" />
+    <testcase name="InitLoggingWithFile" file="/app/tests/unit/test_logging.cpp" line="112" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:31.894" classname="LoggingInitTest" />
+    <testcase name="InitLoggingFileOnly" file="/app/tests/unit/test_logging.cpp" line="126" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:31.894" classname="LoggingInitTest" />
+  </testsuite>
+  <testsuite name="MetricsCollectorTest" tests="8" failures="0" disabled="0" skipped="0" errors="0" time="0.127" timestamp="2026-01-17T16:25:31.895">
+    <testcase name="InitialState" file="/app/tests/unit/test_metrics_collector.cpp" line="28" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:31.895" classname="MetricsCollectorTest" />
+    <testcase name="VadLatencyTracking" file="/app/tests/unit/test_metrics_collector.cpp" line="35" status="run" result="completed" time="0.01" timestamp="2026-01-17T16:25:31.895" classname="MetricsCollectorTest" />
+    <testcase name="InferenceLatencyTracking" file="/app/tests/unit/test_metrics_collector.cpp" line="45" status="run" result="completed" time="0.015" timestamp="2026-01-17T16:25:31.905" classname="MetricsCollectorTest" />
+    <testcase name="PipelineLatencyRecording" file="/app/tests/unit/test_metrics_collector.cpp" line="55" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:31.920" classname="MetricsCollectorTest" />
+    <testcase name="AudioChunkTracking" file="/app/tests/unit/test_metrics_collector.cpp" line="63" status="run" result="completed" time="0.05" timestamp="2026-01-17T16:25:31.920" classname="MetricsCollectorTest" />
+    <testcase name="ThroughputCalculation" file="/app/tests/unit/test_metrics_collector.cpp" line="74" status="run" result="completed" time="0.05" timestamp="2026-01-17T16:25:31.971" classname="MetricsCollectorTest" />
+    <testcase name="Reset" file="/app/tests/unit/test_metrics_collector.cpp" line="85" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:32.021" classname="MetricsCollectorTest" />
+    <testcase name="ThreadSafety" file="/app/tests/unit/test_metrics_collector.cpp" line="101" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:32.021" classname="MetricsCollectorTest" />
+  </testsuite>
+  <testsuite name="ResamplerTest" tests="5" failures="0" disabled="0" skipped="0" errors="0" time="0." timestamp="2026-01-17T16:25:32.022">
+    <testcase name="Initialization" file="/app/tests/unit/test_resampler.cpp" line="20" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:32.022" classname="ResamplerTest" />
+    <testcase name="ProcessNormal" file="/app/tests/unit/test_resampler.cpp" line="31" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:32.022" classname="ResamplerTest" />
+    <testcase name="ProcessEmpty" file="/app/tests/unit/test_resampler.cpp" line="44" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:32.022" classname="ResamplerTest" />
+    <testcase name="Reset" file="/app/tests/unit/test_resampler.cpp" line="54" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:32.022" classname="ResamplerTest" />
+    <testcase name="ExpectedSize" file="/app/tests/unit/test_resampler.cpp" line="63" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:32.022" classname="ResamplerTest" />
+  </testsuite>
+  <testsuite name="ResultTest" tests="12" failures="0" disabled="0" skipped="0" errors="0" time="0." timestamp="2026-01-17T16:25:32.023">
+    <testcase name="SuccessValue" file="/app/tests/unit/test_result.cpp" line="12" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:32.023" classname="ResultTest" />
+    <testcase name="ErrorValue" file="/app/tests/unit/test_result.cpp" line="20" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:32.023" classname="ResultTest" />
+    <testcase name="StatusSuccess" file="/app/tests/unit/test_result.cpp" line="27" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:32.023" classname="ResultTest" />
+    <testcase name="StatusError" file="/app/tests/unit/test_result.cpp" line="33" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:32.023" classname="ResultTest" />
+    <testcase name="ManualErrorPropagation" file="/app/tests/unit/test_result.cpp" line="44" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:32.023" classname="ResultTest" />
+    <testcase name="ManualSuccessPropagation" file="/app/tests/unit/test_result.cpp" line="58" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:32.023" classname="ResultTest" />
+    <testcase name="ErrorPropagationChain" file="/app/tests/unit/test_result.cpp" line="76" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:32.023" classname="ResultTest" />
+    <testcase name="SuccessPropagationChain" file="/app/tests/unit/test_result.cpp" line="98" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:32.023" classname="ResultTest" />
+    <testcase name="MoveSemantics" file="/app/tests/unit/test_result.cpp" line="124" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:32.023" classname="ResultTest" />
+    <testcase name="MakeErrorHelper" file="/app/tests/unit/test_result.cpp" line="137" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:32.023" classname="ResultTest" />
+    <testcase name="LogErrorHelper" file="/app/tests/unit/test_result.cpp" line="144" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:32.023" classname="ResultTest" />
+    <testcase name="FileOperationPattern" file="/app/tests/unit/test_result.cpp" line="165" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:32.023" classname="ResultTest" />
+  </testsuite>
+  <testsuite name="RingBufferTest" tests="7" failures="0" disabled="0" skipped="0" errors="0" time="0." timestamp="2026-01-17T16:25:32.023">
+    <testcase name="BasicWriteRead" file="/app/tests/unit/test_ring_buffer.cpp" line="10" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:32.023" classname="RingBufferTest" />
+    <testcase name="ReadEmpty" file="/app/tests/unit/test_ring_buffer.cpp" line="24" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:32.023" classname="RingBufferTest" />
+    <testcase name="AvailableCount" file="/app/tests/unit/test_ring_buffer.cpp" line="32" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:32.023" classname="RingBufferTest" />
+    <testcase name="WriteOverflow" file="/app/tests/unit/test_ring_buffer.cpp" line="55" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:32.023" classname="RingBufferTest" />
+    <testcase name="ExactCapacity" file="/app/tests/unit/test_ring_buffer.cpp" line="63" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:32.023" classname="RingBufferTest" />
+    <testcase name="WrapAround" file="/app/tests/unit/test_ring_buffer.cpp" line="80" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:32.023" classname="RingBufferTest" />
+    <testcase name="LargeDataIntegrity" file="/app/tests/unit/test_ring_buffer.cpp" line="110" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:32.023" classname="RingBufferTest" />
+  </testsuite>
+  <testsuite name="SignalHandlerTest" tests="3" failures="0" disabled="0" skipped="0" errors="0" time="0." timestamp="2026-01-17T16:25:32.023">
+    <testcase name="InitialState" file="/app/tests/unit/test_signal_handler.cpp" line="9" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:32.023" classname="SignalHandlerTest" />
+    <testcase name="TriggerShutdown" file="/app/tests/unit/test_signal_handler.cpp" line="23" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:32.023" classname="SignalHandlerTest" />
+    <testcase name="ForceExitInitiallyFalse" file="/app/tests/unit/test_signal_handler.cpp" line="37" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:32.023" classname="SignalHandlerTest" />
+  </testsuite>
+  <testsuite name="StreamingTranscriberLogicTest" tests="15" failures="0" disabled="0" skipped="0" errors="0" time="0." timestamp="2026-01-17T16:25:32.023">
+    <testcase name="TokenizeBasic" file="/app/tests/unit/test_streaming_transcriber.cpp" line="139" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:32.023" classname="StreamingTranscriberLogicTest" />
+    <testcase name="TokenizeWithPunctuation" file="/app/tests/unit/test_streaming_transcriber.cpp" line="146" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:32.023" classname="StreamingTranscriberLogicTest" />
+    <testcase name="TokenizeEmpty" file="/app/tests/unit/test_streaming_transcriber.cpp" line="153" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:32.023" classname="StreamingTranscriberLogicTest" />
+    <testcase name="TokenizeMixedCase" file="/app/tests/unit/test_streaming_transcriber.cpp" line="158" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:32.023" classname="StreamingTranscriberLogicTest" />
+    <testcase name="FindOverlapNone" file="/app/tests/unit/test_streaming_transcriber.cpp" line="169" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:32.023" classname="StreamingTranscriberLogicTest" />
+    <testcase name="FindOverlapSingle" file="/app/tests/unit/test_streaming_transcriber.cpp" line="175" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:32.023" classname="StreamingTranscriberLogicTest" />
+    <testcase name="FindOverlapMultiple" file="/app/tests/unit/test_streaming_transcriber.cpp" line="181" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:32.023" classname="StreamingTranscriberLogicTest" />
+    <testcase name="FindOverlapEmpty" file="/app/tests/unit/test_streaming_transcriber.cpp" line="187" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:32.023" classname="StreamingTranscriberLogicTest" />
+    <testcase name="RemoveRepetitionNoRepeat" file="/app/tests/unit/test_streaming_transcriber.cpp" line="197" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:32.023" classname="StreamingTranscriberLogicTest" />
+    <testcase name="RemoveRepetitionWithRepeat" file="/app/tests/unit/test_streaming_transcriber.cpp" line="202" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:32.023" classname="StreamingTranscriberLogicTest" />
+    <testcase name="RemoveRepetitionEmpty" file="/app/tests/unit/test_streaming_transcriber.cpp" line="210" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:32.023" classname="StreamingTranscriberLogicTest" />
+    <testcase name="IsHallucinationEmpty" file="/app/tests/unit/test_streaming_transcriber.cpp" line="218" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:32.023" classname="StreamingTranscriberLogicTest" />
+    <testcase name="IsHallucinationSingleChar" file="/app/tests/unit/test_streaming_transcriber.cpp" line="222" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:32.023" classname="StreamingTranscriberLogicTest" />
+    <testcase name="IsHallucinationBlacklist" file="/app/tests/unit/test_streaming_transcriber.cpp" line="226" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:32.023" classname="StreamingTranscriberLogicTest" />
+    <testcase name="IsHallucinationValid" file="/app/tests/unit/test_streaming_transcriber.cpp" line="232" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:32.023" classname="StreamingTranscriberLogicTest" />
+  </testsuite>
+  <testsuite name="ThreadMetricsTest" tests="4" failures="0" disabled="0" skipped="0" errors="0" time="0.202" timestamp="2026-01-17T16:25:32.023">
+    <testcase name="Singleton" file="/app/tests/unit/test_thread_metrics.cpp" line="21" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:32.023" classname="ThreadMetricsTest" />
+    <testcase name="RegisterAndUnregisterThread" file="/app/tests/unit/test_thread_metrics.cpp" line="27" status="run" result="completed" time="0.1" timestamp="2026-01-17T16:25:32.023" classname="ThreadMetricsTest" />
+    <testcase name="CpuUsageNonNegative" file="/app/tests/unit/test_thread_metrics.cpp" line="66" status="run" result="completed" time="0.05" timestamp="2026-01-17T16:25:32.124" classname="ThreadMetricsTest" />
+    <testcase name="ThreadSafety" file="/app/tests/unit/test_thread_metrics.cpp" line="101" status="run" result="completed" time="0.051" timestamp="2026-01-17T16:25:32.174" classname="ThreadMetricsTest" />
+  </testsuite>
+  <testsuite name="ThreadSafeQueueTest" tests="7" failures="0" disabled="0" skipped="0" errors="0" time="0.151" timestamp="2026-01-17T16:25:32.226">
+    <testcase name="BasicPushPop" file="/app/tests/unit/test_thread_safe_queue.cpp" line="12" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:32.226" classname="ThreadSafeQueueTest" />
+    <testcase name="PopEmpty" file="/app/tests/unit/test_thread_safe_queue.cpp" line="21" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:32.226" classname="ThreadSafeQueueTest" />
+    <testcase name="MultiplePushPop" file="/app/tests/unit/test_thread_safe_queue.cpp" line="29" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:32.226" classname="ThreadSafeQueueTest" />
+    <testcase name="BlockingPop" file="/app/tests/unit/test_thread_safe_queue.cpp" line="47" status="run" result="completed" time="0.1" timestamp="2026-01-17T16:25:32.226" classname="ThreadSafeQueueTest" />
+    <testcase name="StopUnblocksPop" file="/app/tests/unit/test_thread_safe_queue.cpp" line="67" status="run" result="completed" time="0.05" timestamp="2026-01-17T16:25:32.326" classname="ThreadSafeQueueTest" />
+    <testcase name="MultiProducerMultiConsumer" file="/app/tests/unit/test_thread_safe_queue.cpp" line="86" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:32.377" classname="ThreadSafeQueueTest" />
+    <testcase name="SizeTracking" file="/app/tests/unit/test_thread_safe_queue.cpp" line="142" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:32.377" classname="ThreadSafeQueueTest" />
+  </testsuite>
+  <testsuite name="WerCalculatorTest" tests="17" failures="0" disabled="0" skipped="0" errors="0" time="0." timestamp="2026-01-17T16:25:32.377">
+    <testcase name="PerfectMatch" file="/app/tests/unit/test_wer_calculator.cpp" line="10" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:32.377" classname="WerCalculatorTest" />
+    <testcase name="CompletelyDifferent" file="/app/tests/unit/test_wer_calculator.cpp" line="20" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:32.378" classname="WerCalculatorTest" />
+    <testcase name="OneSubstitution" file="/app/tests/unit/test_wer_calculator.cpp" line="29" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:32.378" classname="WerCalculatorTest" />
+    <testcase name="OneDeletion" file="/app/tests/unit/test_wer_calculator.cpp" line="38" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:32.378" classname="WerCalculatorTest" />
+    <testcase name="OneInsertion" file="/app/tests/unit/test_wer_calculator.cpp" line="47" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:32.378" classname="WerCalculatorTest" />
+    <testcase name="MixedErrors" file="/app/tests/unit/test_wer_calculator.cpp" line="56" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:32.378" classname="WerCalculatorTest" />
+    <testcase name="EmptyReference" file="/app/tests/unit/test_wer_calculator.cpp" line="70" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:32.378" classname="WerCalculatorTest" />
+    <testcase name="EmptyHypothesis" file="/app/tests/unit/test_wer_calculator.cpp" line="78" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:32.378" classname="WerCalculatorTest" />
+    <testcase name="BothEmpty" file="/app/tests/unit/test_wer_calculator.cpp" line="85" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:32.378" classname="WerCalculatorTest" />
+    <testcase name="CaseInsensitive" file="/app/tests/unit/test_wer_calculator.cpp" line="92" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:32.378" classname="WerCalculatorTest" />
+    <testcase name="PunctuationIgnored" file="/app/tests/unit/test_wer_calculator.cpp" line="98" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:32.378" classname="WerCalculatorTest" />
+    <testcase name="ExtraWhitespace" file="/app/tests/unit/test_wer_calculator.cpp" line="104" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:32.378" classname="WerCalculatorTest" />
+    <testcase name="Normalize" file="/app/tests/unit/test_wer_calculator.cpp" line="114" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:32.378" classname="WerCalculatorTest" />
+    <testcase name="Tokenize" file="/app/tests/unit/test_wer_calculator.cpp" line="125" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:32.378" classname="WerCalculatorTest" />
+    <testcase name="TokenizeEmpty" file="/app/tests/unit/test_wer_calculator.cpp" line="134" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:32.378" classname="WerCalculatorTest" />
+    <testcase name="RealisticTranscription" file="/app/tests/unit/test_wer_calculator.cpp" line="143" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:32.378" classname="WerCalculatorTest" />
+    <testcase name="TypicalSttErrors" file="/app/tests/unit/test_wer_calculator.cpp" line="152" status="run" result="completed" time="0." timestamp="2026-01-17T16:25:32.378" classname="WerCalculatorTest" />
+  </testsuite>
+</testsuites>
