@@ -39,7 +39,7 @@ add_subdirectory(external/whisper.cpp external/whisper.cpp/build)
 add_subdirectory(external/portaudio external/portaudio/build)
 
 # Manually specify ONNX Runtime include and libs
-set(ONNXRUNTIME_ROOT "${CMAKE_SOURCE_DIR}/external/onnxruntime-win-x64-1.17.1")
+set(ONNXRUNTIME_ROOT "${CMAKE_SOURCE_DIR}/external/onnxruntime-win-x64-1.17.3")
 
 include_directories("${ONNXRUNTIME_ROOT}/include")
 link_directories("${ONNXRUNTIME_ROOT}/lib")
