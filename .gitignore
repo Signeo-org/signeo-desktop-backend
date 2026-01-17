@@ -3,6 +3,7 @@ build/
 build_release/
 dist/
 release/
+coverage/
 out/
 cmake-build-*/
 .vs/
