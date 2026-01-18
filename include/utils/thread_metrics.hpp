@@ -7,7 +7,7 @@
 #include <vector>
 
 #if defined(_WIN32)
-#include <windows.h>
+    #include <windows.h>
 #endif
 
 namespace utils {
@@ -24,13 +24,13 @@ struct ThreadCpuStats {
 
 class ThreadMetrics {
 public:
-    static ThreadMetrics& Get();
+    static auto get() -> ThreadMetrics&;
 
     void register_thread(const std::string& name, std::thread::native_handle_type handle);
     void unregister_thread(const std::string& name);
 
     // Updates and returns latest stats for all registered threads
-    std::vector<ThreadCpuStats> update_and_get();
+    auto update_and_get() -> std::vector<ThreadCpuStats>;
 
 private:
     ThreadMetrics() = default;
@@ -44,4 +44,4 @@ private:
     std::map<std::string, ThreadInfo> threads_;
 };
 
-} // namespace utils
+}  // namespace utils

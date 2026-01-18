@@ -17,7 +17,7 @@
 #include "audio/audio_capture.hpp"
 #include "audio/audio_processor.hpp"
 #include "core/metrics_collector.hpp"
-#include "core/version.hpp" // Generated version header
+#include "core/version.hpp"  // Generated version header
 #include "output/logging.hpp"
 #include "stt/streaming_transcriber.hpp"
 #include "stt/stt_engine.hpp"
@@ -26,12 +26,12 @@
 #include "utils/thread_metrics.hpp"
 #include "vad/vad_processor.hpp"
 #ifdef _WIN32
-#include <conio.h> // For _kbhit, _getch
+    #include <conio.h>  // For _kbhit, _getch
 #else
-#include <fcntl.h>
-#include <stdio.h>
-#include <termios.h>
-#include <unistd.h>
+    #include <fcntl.h>
+    #include <stdio.h>
+    #include <termios.h>
+    #include <unistd.h>
 
 // Linux implementation of _kbhit
 int _kbhit(void) {
@@ -77,14 +77,14 @@ Application::Application(AppConfig config) : config_(std::move(config)) {}
 
 Application::~Application() = default;
 
-int Application::run() {
+auto Application::run() -> int {
     // Logging Setup
     core::init_logging(config_.log_file, !config_.use_ui);
 
     // Check for device list request
     if (config_.list_devices_requested) {
         handle_cli_device_selection();
-        return 0; // Exit after listing
+        return 0;  // Exit after listing
     }
 
     print_startup_banner();
@@ -129,7 +129,7 @@ int Application::run() {
     audio_thread_ = std::thread(&Application::audio_loop, this, tui.get());
 
     // Register threads for monitoring
-    auto& metrics = utils::ThreadMetrics::Get();
+    auto& metrics = utils::ThreadMetrics::get();
     if (stt_thread_.joinable()) {
         metrics.register_thread("STT Worker", stt_thread_.native_handle());
     }
@@ -169,11 +169,11 @@ int Application::run() {
 void Application::print_startup_banner() {
     if (config_.use_ui) {
         spdlog::info("Real-time Subtitler Started (UI Mode)");
-        spdlog::info("Version: {}", core::VERSION_STRING);
-        spdlog::info("Git Commit: {}", core::GIT_DESCRIBE);
+        spdlog::info("Version: {}", core::kVersionString);
+        spdlog::info("Git Commit: {}", core::kGitDescribe);
     } else {
-        spdlog::info("Real-Time Audio-to-Subtitles {} (Multi-Threaded)", core::VERSION_STRING);
-        spdlog::info("Git Commit: {}", core::GIT_DESCRIBE);
+        spdlog::info("Real-Time Audio-to-Subtitles {} (Multi-Threaded)", core::kVersionString);
+        spdlog::info("Git Commit: {}", core::kGitDescribe);
         spdlog::info("Press Ctrl+C to stop gracefully.");
         spdlog::info("Config: Model={}, Threads={}, GPU={}", config_.model_path, config_.n_threads,
                      config_.use_gpu ? "ON" : "OFF");
@@ -250,7 +250,7 @@ void Application::initialize_ui_state(ui::TuiRenderer* tui) const {
     init_settings.stt_min_repetition = config_.stt_min_repetition_len;
     init_settings.stt_hallucination_len = config_.stt_hallucination_min_len;
 
-    init_settings.input_gain = 1.0F; // Default gain
+    init_settings.input_gain = 1.0F;  // Default gain
 
     tui->set_settings(init_settings);
 }
@@ -383,7 +383,7 @@ void Application::audio_loop(ui::TuiRenderer* tui) {
 
         auto chunk = audio_capture->read_chunk(read_samples);
         if (!chunk.data.empty() && audio_processor) {
-            auto processed = audio_processor->process(chunk.data); // Resample/Downmix
+            auto processed = audio_processor->process(chunk.data);  // Resample/Downmix
             if (!processed.empty()) {
                 // Forward original timestamp with processed data
                 audio_queue_.push({.data = std::move(processed), .capture_time = chunk.capture_time});
@@ -430,7 +430,7 @@ void Application::vad_loop(ui::TuiRenderer* tui) {
         // Blocking pop
         auto chunk_opt = audio_queue_.pop();
         if (!chunk_opt) {
-            break; // Queue stopped/empty
+            break;  // Queue stopped/empty
         }
 
         auto& chunk = *chunk_opt;
@@ -500,7 +500,7 @@ void Application::vad_loop(ui::TuiRenderer* tui) {
             } else {
                 if (was_speech) {
                     spdlog::info("Speech ended. Finalizing...");
-                    inference_queue_.push({.data = {}, .capture_time = frame_time}); // Sentinel
+                    inference_queue_.push({.data = {}, .capture_time = frame_time});  // Sentinel
                     was_speech = false;
                 }
             }
@@ -517,9 +517,9 @@ void Application::vad_loop(ui::TuiRenderer* tui) {
 // Helper Implementations
 // -------------------------------------------------------------------------
 
-bool Application::initialize_audio_system(std::unique_ptr<audio::AudioCapture>& capture,
-                                          std::unique_ptr<audio::AudioProcessor>& processor,
-                                          ui::TuiRenderer* tui) const {
+auto Application::initialize_audio_system(std::unique_ptr<audio::AudioCapture>& capture,
+                                          std::unique_ptr<audio::AudioProcessor>& processor, ui::TuiRenderer* tui) const
+    -> bool {
     auto capture_result = audio::AudioCapture::create();
     if (!capture_result) {
         spdlog::error("Failed to create AudioCapture: {}", capture_result.error());
@@ -620,7 +620,7 @@ void Application::handle_audio_device_switch(std::unique_ptr<audio::AudioCapture
     }
 }
 
-bool Application::initialize_vad_processor(std::unique_ptr<vad::VadProcessor>& vad) {
+auto Application::initialize_vad_processor(std::unique_ptr<vad::VadProcessor>& vad) -> bool {
     spdlog::info("Initializing VAD Processor...");
     vad::VadConfig vad_config;
     vad_config.threshold = vad_threshold_.load();
@@ -726,15 +726,15 @@ void Application::stt_loop(ui::TuiRenderer* tui) {
             break;
         }
 
-        auto& chunk = *chunk_opt; // AudioChunk
+        auto& chunk = *chunk_opt;  // AudioChunk
 
         if (!transcriber) {
-            continue; // Safety
+            continue;  // Safety
         }
 
         // Live Config Update for Heuristics
         // (We do this safely here as we own the transcriber in this thread)
-        stt::TranscriberConfig current_cfg = stream_config; // Base config
+        stt::TranscriberConfig current_cfg = stream_config;  // Base config
         current_cfg.min_repetition_len = stt_min_repetition_len_.load();
         current_cfg.hallucination_min_len = stt_hallucination_len_.load();
         // blacklist is not atomic, requires reload to likely change

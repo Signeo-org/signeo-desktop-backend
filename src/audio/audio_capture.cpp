@@ -12,15 +12,15 @@
 #include "output/logging.hpp"
 
 #ifdef _WIN32
-#include <pa_win_wasapi.h>
-#include <windows.h>
+    #include <pa_win_wasapi.h>
+    #include <windows.h>
 #endif
 
 namespace audio {
 
 // Factory Method
-core::Result<std::unique_ptr<AudioCapture>> AudioCapture::create(int sample_rate, int frames_per_buffer,
-                                                                 const std::string& file_path) {
+auto AudioCapture::create(int sample_rate, int frames_per_buffer, const std::string& file_path)
+    -> core::Result<std::unique_ptr<AudioCapture>> {
     LOG_SCOPED_TRACE();
     spdlog::debug("AudioCapture::create() called with sample_rate={}, frames_per_buffer={}, file={}", sample_rate,
                   frames_per_buffer, file_path);
@@ -55,7 +55,7 @@ AudioCapture::AudioCapture(int sample_rate, int frames_per_buffer, const std::st
     // Ring buffer will be allocated in start() for PA mode, or we don't use it for file mode
 }
 
-core::Status AudioCapture::init_portaudio() {
+auto AudioCapture::init_portaudio() -> core::Status {
     spdlog::debug("AudioCapture::init_portaudio() initializing PortAudio...");
 
     PaError err = Pa_Initialize();
@@ -68,7 +68,7 @@ core::Status AudioCapture::init_portaudio() {
     return {};
 }
 
-core::Status AudioCapture::load_wav_file() {
+auto AudioCapture::load_wav_file() -> core::Status {
     std::ifstream file(wav_path_, std::ios::binary);
     if (!file.is_open()) {
         return core::log_error(std::format("Failed to open WAV file: {}", wav_path_));
@@ -101,7 +101,7 @@ core::Status AudioCapture::load_wav_file() {
     }
 
     // Read samples
-    size_t num_samples = chunk_size / 2; // 16-bit = 2 bytes
+    size_t num_samples = chunk_size / 2;  // 16-bit = 2 bytes
     std::vector<int16_t> pcm_data(num_samples);
     file.read(reinterpret_cast<char*>(pcm_data.data()), chunk_size);
 
@@ -115,20 +115,20 @@ core::Status AudioCapture::load_wav_file() {
     return {};
 }
 
-core::Status AudioCapture::read_wav_header(std::ifstream& file, uint16_t& channels, uint32_t& sample_rate,
-                                           uint16_t& bits_per_sample) {
+auto AudioCapture::read_wav_header(std::ifstream& file, uint16_t& channels, uint32_t& sample_rate,
+                                   uint16_t& bits_per_sample) -> core::Status {
     struct WavHeader {
         char riff[4];
-        uint32_t fileSize;
+        uint32_t file_size;
         char wave[4];
         char fmt[4];
-        uint32_t fmtSize;
-        uint16_t audioFormat;
-        uint16_t numChannels;
-        uint32_t sampleRate;
-        uint32_t byteRate;
-        uint16_t blockAlign;
-        uint16_t bitsPerSample;
+        uint32_t fmt_size;
+        uint16_t audio_format;
+        uint16_t num_channels;
+        uint32_t sample_rate;
+        uint32_t byte_rate;
+        uint16_t block_align;
+        uint16_t bits_per_sample;
     } header;
 
     file.read(reinterpret_cast<char*>(&header), sizeof(header));
@@ -137,13 +137,13 @@ core::Status AudioCapture::read_wav_header(std::ifstream& file, uint16_t& channe
         return core::log_error("Invalid WAV file format");
     }
 
-    if (header.audioFormat != 1) { // PCM = 1
+    if (header.audio_format != 1) {  // PCM = 1
         return core::log_error("Unsupported WAV format (only PCM supported)");
     }
 
-    channels = header.numChannels;
-    sample_rate = header.sampleRate;
-    bits_per_sample = header.bitsPerSample;
+    channels = header.num_channels;
+    sample_rate = header.sample_rate;
+    bits_per_sample = header.bits_per_sample;
 
     return {};
 }
@@ -157,7 +157,7 @@ AudioCapture::~AudioCapture() {
     spdlog::debug("AudioCapture: Cleanup complete.");
 }
 
-core::Status AudioCapture::start(int device_index) {
+auto AudioCapture::start(int device_index) -> core::Status {
     LOG_SCOPED_TRACE();
     spdlog::debug("AudioCapture::start() device_index={}", device_index);
 
@@ -237,7 +237,7 @@ core::Status AudioCapture::start(int device_index) {
     return {};
 }
 
-core::Status AudioCapture::open_pa_stream(const PaDeviceInfo* deviceInfo, PaStreamParameters& params) {
+auto AudioCapture::open_pa_stream(const PaDeviceInfo* deviceInfo, PaStreamParameters& params) -> core::Status {
     bool is_loopback = is_loopback_device(params.device);
 
     // Try to open stream with channel fallback
@@ -262,7 +262,7 @@ core::Status AudioCapture::open_pa_stream(const PaDeviceInfo* deviceInfo, PaStre
         // Try opening with current parameters
         auto status = try_open_stream(params, sample_rate_);
         if (status) {
-            return {}; // Success
+            return {};  // Success
         }
 
         // If failed, adjust strategy
@@ -301,7 +301,7 @@ void AudioCapture::stop() {
     spdlog::info("Audio stream stopped.");
 }
 
-core::AudioChunk AudioCapture::read_chunk(size_t max_frames) {
+auto AudioCapture::read_chunk(size_t max_frames) -> core::AudioChunk {
     core::AudioChunk chunk;
 
     if (file_mode_) {
@@ -334,7 +334,7 @@ core::AudioChunk AudioCapture::read_chunk(size_t max_frames) {
     return chunk;
 }
 
-bool AudioCapture::is_loopback_device(int device_index) {
+auto AudioCapture::is_loopback_device(int device_index) -> bool {
 #ifdef _WIN32
     return PaWasapi_IsLoopback(device_index) == 1;
 #else
@@ -342,7 +342,7 @@ bool AudioCapture::is_loopback_device(int device_index) {
 #endif
 }
 
-core::Status AudioCapture::try_open_stream(const PaStreamParameters& params, double sample_rate) {
+auto AudioCapture::try_open_stream(const PaStreamParameters& params, double sample_rate) -> core::Status {
     PaStream* temp_stream = nullptr;
     PaError err = Pa_OpenStream(&temp_stream, &params, nullptr, sample_rate, paFramesPerBufferUnspecified, paClipOff,
                                 (PaStreamCallback*)&AudioCapture::pa_callback, this);
@@ -354,7 +354,7 @@ core::Status AudioCapture::try_open_stream(const PaStreamParameters& params, dou
     return std::unexpected(std::string(Pa_GetErrorText(err)));
 }
 
-core::Result<std::vector<AudioDevice>> AudioCapture::list_devices() {
+auto AudioCapture::list_devices() -> core::Result<std::vector<AudioDevice>> {
     spdlog::debug("AudioCapture::list_devices() called");
 
     if (file_mode_) {
@@ -404,23 +404,33 @@ core::Result<std::vector<AudioDevice>> AudioCapture::list_devices() {
     return devices;
 }
 
-bool AudioCapture::is_active() const { return active_; }
+auto AudioCapture::is_active() const -> bool {
+    return active_;
+}
 
-int AudioCapture::sample_rate() const { return sample_rate_; }
+auto AudioCapture::sample_rate() const -> int {
+    return sample_rate_;
+}
 
-int AudioCapture::channels() const { return channels_; }
+auto AudioCapture::channels() const -> int {
+    return channels_;
+}
 
-void AudioCapture::set_gain(float gain) { input_gain_.store(gain); }
+void AudioCapture::set_gain(float gain) {
+    input_gain_.store(gain);
+}
 
-float AudioCapture::get_gain() const { return input_gain_.load(); }
+auto AudioCapture::get_gain() const -> float {
+    return input_gain_.load();
+}
 
-int AudioCapture::pa_callback(const void* inputBuffer, void* outputBuffer, unsigned long framesPerBuffer,
-                              const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags,
-                              void* userData) {
+auto AudioCapture::pa_callback(const void* inputBuffer, void* outputBuffer, unsigned long framesPerBuffer,
+                               const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags,
+                               void* userData) -> int {
     auto* self = static_cast<AudioCapture*>(userData);
     const auto* in = static_cast<const float*>(inputBuffer);
 
-    (void)outputBuffer; // Unused
+    (void)outputBuffer;  // Unused
     (void)timeInfo;
     (void)statusFlags;
 
@@ -452,4 +462,4 @@ int AudioCapture::pa_callback(const void* inputBuffer, void* outputBuffer, unsig
     return paContinue;
 }
 
-} // namespace audio
+}  // namespace audio

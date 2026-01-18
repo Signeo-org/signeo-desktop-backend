@@ -12,7 +12,7 @@
 #include "core/application.hpp"
 #include "utils/signal_handler.hpp"
 
-int main(int argc, char* argv[]) {
+auto main(int argc, char* argv[]) -> int {
     // 1. Initialize Signal Handlers
     utils::SignalHandler::init();
 

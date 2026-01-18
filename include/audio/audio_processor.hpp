@@ -24,8 +24,8 @@ public:
      * @param output_rate Target sample rate (default: 16000 for VAD/STT)
      * @return Result containing unique_ptr to processor or error
      */
-    static core::Result<std::unique_ptr<AudioProcessor>> create(int input_rate, int input_channels,
-                                                                int output_rate = 16000);
+    static auto create(int input_rate, int input_channels, int output_rate = 16000)
+        -> core::Result<std::unique_ptr<AudioProcessor>>;
 
 private:
     AudioProcessor(int input_rate, int input_channels, int output_rate);
@@ -35,7 +35,7 @@ public:
 
     // Disable copy
     AudioProcessor(const AudioProcessor&) = delete;
-    AudioProcessor& operator=(const AudioProcessor&) = delete;
+    auto operator=(const AudioProcessor&) -> AudioProcessor& = delete;
 
     /**
      * @brief Process interleaved audio data
@@ -45,16 +45,22 @@ public:
      * @param interleaved_input Interleaved input samples
      * @return Mono output samples at output_rate
      */
-    std::vector<float> process(const std::vector<float>& interleaved_input);
+    auto process(const std::vector<float>& interleaved_input) -> std::vector<float>;
 
     /**
      * @brief Reset processor state
      */
     void reset();
 
-    int input_rate() const { return input_rate_; }
-    int input_channels() const { return input_channels_; }
-    int output_rate() const { return output_rate_; }
+    auto input_rate() const -> int {
+        return input_rate_;
+    }
+    auto input_channels() const -> int {
+        return input_channels_;
+    }
+    auto output_rate() const -> int {
+        return output_rate_;
+    }
 
 private:
     int input_rate_;
@@ -71,7 +77,7 @@ private:
      * @param interleaved Interleaved multi-channel samples
      * @return Mono samples
      */
-    std::vector<float> downmix_to_mono(const std::vector<float>& interleaved) const;
+    auto downmix_to_mono(const std::vector<float>& interleaved) const -> std::vector<float>;
 };
 
-} // namespace audio
+}  // namespace audio

@@ -13,10 +13,10 @@ struct AudioChunk {
 
 struct TranscriptionSegment {
     std::string text;
-    float confidence = 0.0f;
+    float confidence = 0.0F;
     std::chrono::steady_clock::time_point capture_time;
     std::chrono::steady_clock::time_point finalize_time;
     bool is_final = false;
 };
 
-} // namespace core
+}  // namespace core

@@ -30,27 +30,27 @@ public:
      * @param path Path to config file
      * @return true if loaded successfully, false if file not found or error
      */
-    bool load(const std::string& path);
+    auto load(const std::string& path) -> bool;
 
     /**
      * @brief Get string value
      */
-    std::string get(const std::string& key, const std::string& default_value = "") const;
+    auto get(const std::string& key, const std::string& default_value = "") const -> std::string;
 
     /**
      * @brief Get integer value
      */
-    int get_int(const std::string& key, int default_value = 0) const;
+    auto get_int(const std::string& key, int default_value = 0) const -> int;
 
     /**
      * @brief Get float value
      */
-    float get_float(const std::string& key, float default_value = 0.0f) const;
+    auto get_float(const std::string& key, float default_value = 0.0F) const -> float;
 
     /**
      * @brief Get boolean value (supports: true/false, yes/no, 1/0)
      */
-    bool get_bool(const std::string& key, bool default_value = false) const;
+    auto get_bool(const std::string& key, bool default_value = false) const -> bool;
 
     /**
      * @brief Check if a key exists
@@ -58,25 +58,25 @@ public:
     /**
      * @brief Check if a key exists
      */
-    bool has(const std::string& key) const;
+    auto has(const std::string& key) const -> bool;
 
     /**
      * @brief Check if config was loaded
      */
-    bool is_loaded() const;
+    auto is_loaded() const -> bool;
 
     /**
      * @brief Get default config file path
      */
-    static std::string get_default_path();
+    static auto get_default_path() -> std::string;
 
 private:
-    static std::string trim(const std::string& str);
+    static auto trim(const std::string& str) -> std::string;
 
-    static std::string get_home_dir();
+    static auto get_home_dir() -> std::string;
 
     std::map<std::string, std::string> values_;
     bool loaded_ = false;
 };
 
-} // namespace config
+}  // namespace config

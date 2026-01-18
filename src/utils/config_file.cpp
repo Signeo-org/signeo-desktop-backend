@@ -8,14 +8,14 @@
 // #include <windows.h>
 // #include <shlobj.h>
 #else
-#include <pwd.h>
-#include <unistd.h>
+    #include <pwd.h>
+    #include <unistd.h>
 #endif
 
 namespace config {
 
 // ConfigFile implementation is already in namespace config, but needs proper class scope
-bool ConfigFile::load(const std::string& path) {
+auto ConfigFile::load(const std::string& path) -> bool {
     std::ifstream file(path);
     if (!file.is_open()) {
         return false;
@@ -61,12 +61,12 @@ bool ConfigFile::load(const std::string& path) {
     return true;
 }
 
-std::string ConfigFile::get(const std::string& key, const std::string& default_value) const {
+auto ConfigFile::get(const std::string& key, const std::string& default_value) const -> std::string {
     auto it = values_.find(key);
     return it != values_.end() ? it->second : default_value;
 }
 
-int ConfigFile::get_int(const std::string& key, int default_value) const {
+auto ConfigFile::get_int(const std::string& key, int default_value) const -> int {
     auto it = values_.find(key);
     if (it == values_.end()) {
         return default_value;
@@ -78,7 +78,7 @@ int ConfigFile::get_int(const std::string& key, int default_value) const {
     }
 }
 
-float ConfigFile::get_float(const std::string& key, float default_value) const {
+auto ConfigFile::get_float(const std::string& key, float default_value) const -> float {
     auto it = values_.find(key);
     if (it == values_.end()) {
         return default_value;
@@ -90,7 +90,7 @@ float ConfigFile::get_float(const std::string& key, float default_value) const {
     }
 }
 
-bool ConfigFile::get_bool(const std::string& key, bool default_value) const {
+auto ConfigFile::get_bool(const std::string& key, bool default_value) const -> bool {
     auto it = values_.find(key);
     if (it == values_.end()) {
         return default_value;
@@ -102,9 +102,11 @@ bool ConfigFile::get_bool(const std::string& key, bool default_value) const {
     return val == "true" || val == "yes" || val == "1" || val == "on";
 }
 
-std::string ConfigFile::get_default_path() { return "config.ini"; }
+auto ConfigFile::get_default_path() -> std::string {
+    return "config.ini";
+}
 
-std::string ConfigFile::trim(const std::string& str) {
+auto ConfigFile::trim(const std::string& str) -> std::string {
     size_t start = str.find_first_not_of(" \t\r\n");
     if (start == std::string::npos) {
         return "";
@@ -113,7 +115,7 @@ std::string ConfigFile::trim(const std::string& str) {
     return str.substr(start, end - start + 1);
 }
 
-std::string ConfigFile::get_home_dir() {
+auto ConfigFile::get_home_dir() -> std::string {
 #ifdef _WIN32
     char* buf = nullptr;
     size_t sz = 0;
@@ -133,8 +135,12 @@ std::string ConfigFile::get_home_dir() {
 #endif
 }
 
-bool ConfigFile::has(const std::string& key) const { return values_.find(key) != values_.end(); }
+auto ConfigFile::has(const std::string& key) const -> bool {
+    return values_.contains(key);
+}
 
-bool ConfigFile::is_loaded() const { return loaded_; }
+auto ConfigFile::is_loaded() const -> bool {
+    return loaded_;
+}
 
-} // namespace config
+}  // namespace config

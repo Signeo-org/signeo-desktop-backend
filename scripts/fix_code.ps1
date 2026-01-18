@@ -33,7 +33,7 @@ Write-Host "Using Clang-Tidy: $ClangTidy" -ForegroundColor Cyan
 
 # 1. Format
 Write-Host "`n[1/2] Running clang-format (Style)..." -ForegroundColor Green
-Get-ChildItem -Path "src","include" -Recurse -Include *.cpp,*.hpp | ForEach-Object {
+Get-ChildItem -Path "src", "include" -Recurse -Include *.cpp, *.hpp | ForEach-Object {
     Write-Host "Formatting $($_.Name)" -ForegroundColor Gray
     clang-format -i $_.FullName
 }
@@ -46,7 +46,7 @@ foreach ($File in $Sources) {
     Write-Host "Analyzing $($File.Name)..." -ForegroundColor Cyan
     # -p points to the build folder with compile_commands.json
     # -fix applies changes
-    # -format-style=file uses our .clang-format to reformat after fixing
+    # -format-style=file uses our .clang-format to reformat after fixing  //-fix-errors
     & $ClangTidy -p $BuildDir --fix --format-style=file $File.FullName
 }
 

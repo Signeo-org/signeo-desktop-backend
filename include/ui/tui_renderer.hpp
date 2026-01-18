@@ -27,8 +27,8 @@ struct SubtitleItem {
 };
 
 struct DeviceItem {
-    int id;           // Internal PortAudio index
-    std::string name; // Display name
+    int id;            // Internal PortAudio index
+    std::string name;  // Display name
     int channels;
     int sample_rate;
 };
@@ -42,10 +42,10 @@ struct AppState {
     std::string language;
 
     // VAD Metrics
-    float vad_energy = 0.0f;
-    float vad_probability = 0.0f;
+    float vad_energy = 0.0F;
+    float vad_probability = 0.0F;
     bool is_speech = false;
-    float vad_threshold = 0.5f;
+    float vad_threshold = 0.5F;
 
     // STT Output
     std::vector<SubtitleItem> subtitles;
@@ -53,10 +53,10 @@ struct AppState {
 
     // Performance
     int last_latency_ms = 0;
-    float vad_latency_ms = 0.0f;       // float
-    float inference_latency_ms = 0.0f; // float
-    float rtf = 0.0f;                  // Real Time Factor
-    float throughput = 0.0f;           // Char/sec
+    float vad_latency_ms = 0.0F;        // float
+    float inference_latency_ms = 0.0F;  // float
+    float rtf = 0.0F;                   // Real Time Factor
+    float throughput = 0.0F;            // Char/sec
 
     // Queue Metrics
     int audio_queue_depth = 0;
@@ -70,18 +70,18 @@ struct AppState {
 struct SettingsState {
     // Audio
     int current_device_id = -1;
-    float input_gain = 1.0f;
+    float input_gain = 1.0F;
     int sample_rate = 16000;
 
     // VAD
-    float vad_threshold = 0.5f;
-    float vad_energy_thresh = 0.001f;
+    float vad_threshold = 0.5F;
+    float vad_energy_thresh = 0.001F;
     int vad_hangover = 20;
-    float vad_smoothing = 0.3f;
+    float vad_smoothing = 0.3F;
     bool vad_adaptive = true;
-    float vad_adaptive_min = 0.35f;
-    float vad_adaptive_max = 0.6f;
-    float vad_adaptive_alpha = 0.95f;
+    float vad_adaptive_min = 0.35F;
+    float vad_adaptive_max = 0.6F;
+    float vad_adaptive_alpha = 0.95F;
 
     // STT
     int stt_threads = 4;
@@ -119,7 +119,7 @@ public:
     /**
      * @brief Build the main component layout
      */
-    ftxui::Component check_quit();
+    auto check_quit() -> ftxui::Component;
 
     /**
      * @brief Start the TUI event loop (Blocking)
@@ -145,7 +145,7 @@ public:
     /**
      * @brief Check if TUI is running
      */
-    bool is_running() const;
+    auto is_running() const -> bool;
 
     /**
      * @brief Initialize settings state from config
@@ -163,12 +163,12 @@ public:
     void set_on_vad_adaptive_changed(std::function<void(bool, float, float, float)> callback);
 
     void set_on_stt_gpu_changed(std::function<void(bool)> callback);
-    void set_on_stt_heuristics_changed(std::function<void(int, int)> callback); // rep_len, hal_len
+    void set_on_stt_heuristics_changed(std::function<void(int, int)> callback);  // rep_len, hal_len
     void set_on_stt_params_changed(std::function<void(int, std::string)> callback);
 
     // Helper methods for run()
-    ftxui::Component setup_components();
-    ftxui::Component setup_layout(const ftxui::Component& tab_content, const ftxui::Component& tab_toggle);
+    auto setup_components() -> ftxui::Component;
+    auto setup_layout(const ftxui::Component& tab_content, const ftxui::Component& tab_toggle) -> ftxui::Component;
 
 private:
     ftxui::ScreenInteractive screen_;
@@ -185,31 +185,31 @@ private:
 
     // STT Callbacks
     std::function<void(bool)> on_stt_gpu_changed_;
-    std::function<void(int, std::string)> on_stt_params_changed_; // threads, lang
+    std::function<void(int, std::string)> on_stt_params_changed_;  // threads, lang
     std::function<void(bool, float, float, float)> on_vad_adaptive_changed_;
     std::function<void(int, int)> on_stt_heuristics_changed_;
 
     // Render helpers
-    ftxui::Element render_header() const;
-    ftxui::Element render_subtitles();
-    ftxui::Element render_metrics(); // Mini summary
-    ftxui::Element render_vad_metrics();
-    ftxui::Element render_system_metrics();
-    static ftxui::Element render_footer();
+    auto render_header() const -> ftxui::Element;
+    auto render_subtitles() -> ftxui::Element;
+    auto render_metrics() -> ftxui::Element;  // Mini summary
+    auto render_vad_metrics() -> ftxui::Element;
+    auto render_system_metrics() -> ftxui::Element;
+    static auto render_footer() -> ftxui::Element;
 
     // Component factories
-    ftxui::Component create_logs_component();
-    ftxui::Component create_devices_component();
-    ftxui::Component create_audio_settings_component();
-    ftxui::Component create_vad_settings_component();
-    ftxui::Component create_stt_settings_component();
-    ftxui::Component create_system_view_component();
-    static ftxui::Component create_help_component();
+    auto create_logs_component() -> ftxui::Component;
+    auto create_devices_component() -> ftxui::Component;
+    auto create_audio_settings_component() -> ftxui::Component;
+    auto create_vad_settings_component() -> ftxui::Component;
+    auto create_stt_settings_component() -> ftxui::Component;
+    auto create_system_view_component() -> ftxui::Component;
+    static auto create_help_component() -> ftxui::Component;
 
     // Pages
     // (Logic implemented inline in run() for closure access)
 
-    int active_page_index_ = 0; // 0=Dash, 1=Settings, 2=Devices
+    int active_page_index_ = 0;  // 0=Dash, 1=Settings, 2=Devices
 
     // TUI State (formerly local to run())
     std::vector<std::string> device_menu_entries_;
@@ -219,4 +219,4 @@ private:
                                            " 📝 STT ",  " 📊 System ",  " ❓ Help "};
 };
 
-} // namespace ui
+}  // namespace ui

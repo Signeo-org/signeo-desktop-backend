@@ -8,17 +8,24 @@ BUILD_DIR="$PROJECT_ROOT/build"
 ENABLE_GPU="OFF"
 
 # Parse arguments
+ENABLE_TIDY="OFF"
+ENABLE_FORMAT="OFF"
+
 while [[ "$#" -gt 0 ]]; do
     case $1 in
         --gpu|-gpu) ENABLE_GPU="ON"; BUILD_DIR="$PROJECT_ROOT/build_gpu" ;;
         --clean|-clean) rm -rf "$BUILD_DIR" ;;
+        --tidy|-tidy) ENABLE_TIDY="ON" ;;
+        --format|-format) ENABLE_FORMAT="ON" ;;
         *) echo "Unknown parameter passed: $1"; exit 1 ;;
     esac
     shift
 done
 
 echo -e "\033[0;36mBuilding Project...\033[0m"
-echo "GPU Support: $ENABLE_GPU"
+echo "GPU Support:  $ENABLE_GPU"
+echo "Clang-Tidy:   $ENABLE_TIDY"
+echo "Clang-Format: $ENABLE_FORMAT"
 echo "Project Root: $PROJECT_ROOT"
 echo "Build Dir:    $BUILD_DIR"
 
@@ -35,12 +42,7 @@ if ! command -v ninja &> /dev/null; then
     echo "Ninja not found, using default generator."
 fi
 
-CMAKE_ARGS=("-S" "$PROJECT_ROOT" "-B" "$BUILD_DIR" $GENERATOR "-DENABLE_GPU=$ENABLE_GPU")
-
-if [ "$ENABLE_GPU" == "ON" ]; then
-    # Disable Tidy for GPU builds by default to match Windows behavior
-    CMAKE_ARGS+=("-DENABLE_CLANG_TIDY=OFF")
-fi
+CMAKE_ARGS=("-S" "$PROJECT_ROOT" "-B" "$BUILD_DIR" $GENERATOR "-DENABLE_GPU=$ENABLE_GPU" "-DENABLE_CLANG_TIDY=$ENABLE_TIDY" "-DENABLE_CLANG_FORMAT=$ENABLE_FORMAT")
 
 cmake "${CMAKE_ARGS[@]}"
 

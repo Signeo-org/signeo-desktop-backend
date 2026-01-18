@@ -1,17 +1,28 @@
 ---
-Checks:          'clang-diagnostic-*,clang-analyzer-*,bugprone-*,modernize-*,performance-*,readability-*,portability-*,-modernize-use-trailing-return-type'
-WarningsAsErrors: ''
+Checks: "clang-diagnostic-*,clang-analyzer-*,modernize-*,readability-*,performance-*,bugprone-*,cppcoreguidelines-*,concurrency-*"
+WarningsAsErrors: ""
 HeaderFilterRegex: 'backend[\\/](src|include).*'
-FormatStyle:     file
+FormatStyle: file
 CheckOptions:
-  - key:             readability-identifier-naming.ClassCase
-    value:           CamelCase
-  - key:             readability-identifier-naming.StructCase
-    value:           CamelCase
-  - key:             readability-identifier-naming.FunctionCase
-    value:           camelBack
-  - key:             readability-identifier-naming.VariableCase
-    value:           lower_case
-  - key:             readability-identifier-naming.GlobalConstantCase
-    value:           UPPER_CASE
-...
+  - key: readability-identifier-naming.NamespaceCase
+    value: lower_case
+  - key: readability-identifier-naming.ClassCase
+    value: CamelCase
+  - key: readability-identifier-naming.StructCase
+    value: CamelCase
+  - key: readability-identifier-naming.FunctionCase
+    value: lower_case
+  - key: readability-identifier-naming.VariableCase
+    value: lower_case
+  - key: readability-identifier-naming.GlobalConstantCase
+    value: CamelCase
+  - key: readability-identifier-naming.GlobalConstantPrefix
+    value: k
+  - key: readability-identifier-naming.MemberCase
+    value: lower_case
+  - key: readability-identifier-naming.PrivateMemberSuffix
+    value: _
+  - key: readability-function-cognitive-complexity.Threshold
+    value: 25
+  - key: modernize-use-nodiscard.ReplacementString
+    value: "[[nodiscard]]"

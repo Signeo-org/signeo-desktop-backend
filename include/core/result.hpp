@@ -71,4 +71,4 @@ template <typename... Args>
         std::move(*_result);                                                       \
     })
 
-} // namespace core
+}  // namespace core

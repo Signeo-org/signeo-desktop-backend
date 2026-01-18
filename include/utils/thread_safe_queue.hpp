@@ -34,7 +34,7 @@ public:
 
     // Non-copyable
     ThreadSafeQueue(const ThreadSafeQueue&) = delete;
-    ThreadSafeQueue& operator=(const ThreadSafeQueue&) = delete;
+    auto operator=(const ThreadSafeQueue&) -> ThreadSafeQueue& = delete;
 
     /**
      * @brief Push a value into the queue
@@ -43,8 +43,9 @@ public:
      */
     void push(T value) {
         std::lock_guard<std::mutex> lock(mutex_);
-        if (stopped_)
+        if (stopped_) {
             return;
+        }
         queue_.push(std::move(value));
         cond_var_.notify_one();
     }
@@ -54,7 +55,7 @@ public:
      * @return std::optional<T> containing value, or nullopt if stopped
      * @note Blocks until data is available or stop() is called
      */
-    [[nodiscard]] std::optional<T> pop() {
+    [[nodiscard]] auto pop() -> std::optional<T> {
         std::unique_lock<std::mutex> lock(mutex_);
         cond_var_.wait(lock, [this] { return !queue_.empty() || stopped_; });
 
@@ -90,7 +91,7 @@ public:
      * @brief Check if the queue is empty
      * @return true if empty
      */
-    [[nodiscard]] bool empty() const {
+    [[nodiscard]] auto empty() const -> bool {
         std::lock_guard<std::mutex> lock(mutex_);
         return queue_.empty();
     }
@@ -99,7 +100,7 @@ public:
      * @brief Get the current queue size
      * @return Number of elements in queue
      */
-    [[nodiscard]] size_t size() const {
+    [[nodiscard]] auto size() const -> size_t {
         std::lock_guard<std::mutex> lock(mutex_);
         return queue_.size();
     }
@@ -119,4 +120,4 @@ private:
     std::atomic<bool> stopped_;
 };
 
-} // namespace utils
+}  // namespace utils

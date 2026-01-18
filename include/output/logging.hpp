@@ -80,12 +80,12 @@ public:
 
     void reset();
 
-    int64_t elapsed_us() const;
+    auto elapsed_us() const -> int64_t;
 
-    int64_t elapsed_ms() const;
+    auto elapsed_ms() const -> int64_t;
 
 private:
     std::chrono::steady_clock::time_point start_;
 };
 
-} // namespace core
+}  // namespace core

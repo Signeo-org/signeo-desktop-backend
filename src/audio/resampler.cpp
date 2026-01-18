@@ -10,11 +10,12 @@
 
 namespace audio {
 
-core::Result<std::unique_ptr<AudioResampler>> AudioResampler::create(int input_rate, int output_rate, int quality) {
+auto AudioResampler::create(int input_rate, int output_rate, int quality)
+    -> core::Result<std::unique_ptr<AudioResampler>> {
     auto resampler = std::unique_ptr<AudioResampler>(new AudioResampler(input_rate, output_rate, quality));
 
     int err = 0;
-    resampler->resampler_ = speex_resampler_init(1, // channels (mono)
+    resampler->resampler_ = speex_resampler_init(1,  // channels (mono)
                                                  static_cast<spx_uint32_t>(input_rate),
                                                  static_cast<spx_uint32_t>(output_rate), quality, &err);
 
@@ -37,7 +38,7 @@ AudioResampler::~AudioResampler() {
     }
 }
 
-std::vector<float> AudioResampler::process(const std::vector<float>& input) {
+auto AudioResampler::process(const std::vector<float>& input) -> std::vector<float> {
     if (input.empty()) {
         return {};
     }
@@ -50,7 +51,7 @@ std::vector<float> AudioResampler::process(const std::vector<float>& input) {
     auto out_len = static_cast<spx_uint32_t>(out_size);
 
     int err = speex_resampler_process_float(resampler_,
-                                            0, // channel index (mono)
+                                            0,  // channel index (mono)
                                             input.data(), &in_len, output.data(), &out_len);
 
     if (err != RESAMPLER_ERR_SUCCESS) {
@@ -69,9 +70,9 @@ void AudioResampler::reset() {
     }
 }
 
-size_t AudioResampler::expected_output_size(size_t input_size) const {
+auto AudioResampler::expected_output_size(size_t input_size) const -> size_t {
     // output_size = input_size * (output_rate / input_rate)
     return static_cast<size_t>(std::ceil(static_cast<double>(input_size) * output_rate_ / input_rate_));
 }
 
-} // namespace audio
+}  // namespace audio

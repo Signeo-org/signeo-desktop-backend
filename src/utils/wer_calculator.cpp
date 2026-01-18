@@ -7,15 +7,15 @@
 
 namespace utils {
 
-WerResult WerCalculator::calculate(const std::string& reference, const std::string& hypothesis) {
+auto WerCalculator::calculate(const std::string& reference, const std::string& hypothesis) -> WerResult {
     auto ref_words = tokenize(normalize(reference));
     auto hyp_words = tokenize(normalize(hypothesis));
 
     return calculate_wer(ref_words, hyp_words);
 }
 
-WerResult WerCalculator::calculate_wer(const std::vector<std::string>& reference,
-                                       const std::vector<std::string>& hypothesis) {
+auto WerCalculator::calculate_wer(const std::vector<std::string>& reference, const std::vector<std::string>& hypothesis)
+    -> WerResult {
     WerResult result;
     result.reference_words = static_cast<int>(reference.size());
     result.hypothesis_words = static_cast<int>(hypothesis.size());
@@ -41,22 +41,22 @@ WerResult WerCalculator::calculate_wer(const std::vector<std::string>& reference
 
     // Initialize base cases
     for (size_t i = 0; i <= m; ++i) {
-        dp[i][0] = static_cast<int>(i); // Deletions
+        dp[i][0] = static_cast<int>(i);  // Deletions
     }
     for (size_t j = 0; j <= n; ++j) {
-        dp[0][j] = static_cast<int>(j); // Insertions
+        dp[0][j] = static_cast<int>(j);  // Insertions
     }
 
     // Fill DP matrix
     for (size_t i = 1; i <= m; ++i) {
         for (size_t j = 1; j <= n; ++j) {
             if (reference[i - 1] == hypothesis[j - 1]) {
-                dp[i][j] = dp[i - 1][j - 1]; // Match
+                dp[i][j] = dp[i - 1][j - 1];  // Match
             } else {
                 dp[i][j] = 1 + std::min({
-                                   dp[i - 1][j],    // Deletion
-                                   dp[i][j - 1],    // Insertion
-                                   dp[i - 1][j - 1] // Substitution
+                                   dp[i - 1][j],     // Deletion
+                                   dp[i][j - 1],     // Insertion
+                                   dp[i - 1][j - 1]  // Substitution
                                });
             }
         }
@@ -95,11 +95,11 @@ WerResult WerCalculator::calculate_wer(const std::vector<std::string>& reference
     return result;
 }
 
-std::string WerCalculator::normalize(const std::string& text) {
+auto WerCalculator::normalize(const std::string& text) -> std::string {
     std::string result;
     result.reserve(text.size());
 
-    bool last_was_space = true; // Trim leading
+    bool last_was_space = true;  // Trim leading
     for (char c : text) {
         if (std::isalnum(static_cast<unsigned char>(c)) != 0) {
             result += static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
@@ -121,7 +121,7 @@ std::string WerCalculator::normalize(const std::string& text) {
     return result;
 }
 
-std::vector<std::string> WerCalculator::tokenize(const std::string& text) {
+auto WerCalculator::tokenize(const std::string& text) -> std::vector<std::string> {
     std::vector<std::string> words;
     std::istringstream iss(text);
     std::string word;
@@ -134,8 +134,12 @@ std::vector<std::string> WerCalculator::tokenize(const std::string& text) {
 }
 
 // WerResult implementation
-int WerResult::total_errors() const { return substitutions + deletions + insertions; }
+auto WerResult::total_errors() const -> int {
+    return substitutions + deletions + insertions;
+}
 
-double WerResult::wer_percentage() const { return wer * 100.0; }
+auto WerResult::wer_percentage() const -> double {
+    return wer * 100.0;
+}
 
-} // namespace utils
+}  // namespace utils

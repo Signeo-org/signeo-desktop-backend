@@ -8,7 +8,7 @@
 #include "utils/config_file.hpp"
 
 // Helper: Get environment variable with default
-static std::string getEnv(const std::string& name, const std::string& default_value = "") {
+static auto get_env(const std::string& name, const std::string& default_value = "") -> std::string {
 #ifdef _WIN32
     char* buf = nullptr;
     size_t sz = 0;
@@ -24,8 +24,8 @@ static std::string getEnv(const std::string& name, const std::string& default_va
 #endif
 }
 
-static int getEnvInt(const std::string& name, int default_val) {
-    std::string val = getEnv(name);
+static auto get_env_int(const std::string& name, int default_val) -> int {
+    std::string val = get_env(name);
     if (val.empty()) {
         return default_val;
     }
@@ -36,8 +36,8 @@ static int getEnvInt(const std::string& name, int default_val) {
     }
 }
 
-static float getEnvFloat(const std::string& name, float default_val) {
-    std::string val = getEnv(name);
+static auto get_env_float(const std::string& name, float default_val) -> float {
+    std::string val = get_env(name);
     if (val.empty()) {
         return default_val;
     }
@@ -48,8 +48,8 @@ static float getEnvFloat(const std::string& name, float default_val) {
     }
 }
 
-static bool getEnvBool(const std::string& name, bool default_val) {
-    std::string val = getEnv(name);
+static auto get_env_bool(const std::string& name, bool default_val) -> bool {
+    std::string val = get_env(name);
     if (val.empty()) {
         return default_val;
     }
@@ -57,7 +57,7 @@ static bool getEnvBool(const std::string& name, bool default_val) {
 }
 
 // Helper: Set log level from string
-static void setLogLevel(const std::string& level) {
+static void set_log_level(const std::string& level) {
     if (level == "trace") {
         spdlog::set_level(spdlog::level::trace);
     } else if (level == "debug") {
@@ -73,7 +73,7 @@ static void setLogLevel(const std::string& level) {
     }
 }
 
-AppConfig AppConfig::parse(int argc, char* argv[]) {
+auto AppConfig::parse(int argc, char* argv[]) -> AppConfig {
     AppConfig config;
 
     // 1. Load config file (lowest priority)
@@ -134,45 +134,45 @@ AppConfig AppConfig::parse(int argc, char* argv[]) {
 
     // 2. Load environment variables (medium priority)
     // Global
-    config.model_path = getEnv("SUBTITLER_MODEL_PATH", config.model_path);
-    config.device_index = getEnvInt("SUBTITLER_DEVICE", config.device_index);
-    config.language = getEnv("SUBTITLER_LANGUAGE", config.language);
-    config.n_threads = getEnvInt("SUBTITLER_THREADS", config.n_threads);
-    config.use_gpu = getEnvBool("SUBTITLER_USE_GPU", config.use_gpu);
-    config.flash_attn = getEnvBool("SUBTITLER_FLASH_ATTN", config.flash_attn);
-    config.use_ui = getEnvBool("SUBTITLER_UI", config.use_ui);
+    config.model_path = get_env("SUBTITLER_MODEL_PATH", config.model_path);
+    config.device_index = get_env_int("SUBTITLER_DEVICE", config.device_index);
+    config.language = get_env("SUBTITLER_LANGUAGE", config.language);
+    config.n_threads = get_env_int("SUBTITLER_THREADS", config.n_threads);
+    config.use_gpu = get_env_bool("SUBTITLER_USE_GPU", config.use_gpu);
+    config.flash_attn = get_env_bool("SUBTITLER_FLASH_ATTN", config.flash_attn);
+    config.use_ui = get_env_bool("SUBTITLER_UI", config.use_ui);
 
     // VAD
-    config.vad_model_path = getEnv("SUBTITLER_VAD_MODEL", config.vad_model_path);
-    config.vad_threshold = getEnvFloat("SUBTITLER_VAD_THRESHOLD", config.vad_threshold);
-    config.vad_energy_threshold = getEnvFloat("SUBTITLER_VAD_ENERGY_THRESHOLD", config.vad_energy_threshold);
-    config.vad_smoothing_alpha = getEnvFloat("SUBTITLER_VAD_SMOOTHING", config.vad_smoothing_alpha);
-    config.vad_hangover_frames = getEnvInt("SUBTITLER_VAD_HANGOVER", config.vad_hangover_frames);
-    config.vad_pre_roll_frames = getEnvInt("SUBTITLER_VAD_PREROLL", config.vad_pre_roll_frames);
-    config.vad_adaptive_threshold = getEnvBool("SUBTITLER_VAD_ADAPTIVE", config.vad_adaptive_threshold);
-    config.vad_adaptive_min_threshold = getEnvFloat("SUBTITLER_VAD_ADAPTIVE_MIN", config.vad_adaptive_min_threshold);
-    config.vad_adaptive_max_threshold = getEnvFloat("SUBTITLER_VAD_ADAPTIVE_MAX", config.vad_adaptive_max_threshold);
-    config.vad_adaptive_alpha = getEnvFloat("SUBTITLER_VAD_ADAPTIVE_ALPHA", config.vad_adaptive_alpha);
+    config.vad_model_path = get_env("SUBTITLER_VAD_MODEL", config.vad_model_path);
+    config.vad_threshold = get_env_float("SUBTITLER_VAD_THRESHOLD", config.vad_threshold);
+    config.vad_energy_threshold = get_env_float("SUBTITLER_VAD_ENERGY_THRESHOLD", config.vad_energy_threshold);
+    config.vad_smoothing_alpha = get_env_float("SUBTITLER_VAD_SMOOTHING", config.vad_smoothing_alpha);
+    config.vad_hangover_frames = get_env_int("SUBTITLER_VAD_HANGOVER", config.vad_hangover_frames);
+    config.vad_pre_roll_frames = get_env_int("SUBTITLER_VAD_PREROLL", config.vad_pre_roll_frames);
+    config.vad_adaptive_threshold = get_env_bool("SUBTITLER_VAD_ADAPTIVE", config.vad_adaptive_threshold);
+    config.vad_adaptive_min_threshold = get_env_float("SUBTITLER_VAD_ADAPTIVE_MIN", config.vad_adaptive_min_threshold);
+    config.vad_adaptive_max_threshold = get_env_float("SUBTITLER_VAD_ADAPTIVE_MAX", config.vad_adaptive_max_threshold);
+    config.vad_adaptive_alpha = get_env_float("SUBTITLER_VAD_ADAPTIVE_ALPHA", config.vad_adaptive_alpha);
 
     // STT
-    config.stt_step_ms = getEnvInt("SUBTITLER_STT_STEP", config.stt_step_ms);
-    config.stt_keep_ms = getEnvInt("SUBTITLER_STT_KEEP", config.stt_keep_ms);
-    config.stt_max_length_ms = getEnvInt("SUBTITLER_STT_MAX_LENGTH", config.stt_max_length_ms);
-    config.stt_token_dedup = getEnvBool("SUBTITLER_STT_DEDUP", config.stt_token_dedup);
+    config.stt_step_ms = get_env_int("SUBTITLER_STT_STEP", config.stt_step_ms);
+    config.stt_keep_ms = get_env_int("SUBTITLER_STT_KEEP", config.stt_keep_ms);
+    config.stt_max_length_ms = get_env_int("SUBTITLER_STT_MAX_LENGTH", config.stt_max_length_ms);
+    config.stt_token_dedup = get_env_bool("SUBTITLER_STT_DEDUP", config.stt_token_dedup);
 
-    config.stt_min_repetition_len = getEnvInt("SUBTITLER_STT_MIN_REPETITION", config.stt_min_repetition_len);
-    config.stt_hallucination_min_len = getEnvInt("SUBTITLER_STT_HALLUCINATION_LEN", config.stt_hallucination_min_len);
+    config.stt_min_repetition_len = get_env_int("SUBTITLER_STT_MIN_REPETITION", config.stt_min_repetition_len);
+    config.stt_hallucination_min_len = get_env_int("SUBTITLER_STT_HALLUCINATION_LEN", config.stt_hallucination_min_len);
     // Note: STT Blacklist via ENV is not supported (list parsing complexity) or could be added if needed via string
     // split helper
 
     // Logging
-    config.log_level = getEnv("SUBTITLER_LOG_LEVEL", config.log_level);
-    config.log_file = getEnv("SUBTITLER_LOG_FILE", config.log_file);
-    config.verbose = getEnvBool("SUBTITLER_VERBOSE", config.verbose);
+    config.log_level = get_env("SUBTITLER_LOG_LEVEL", config.log_level);
+    config.log_file = get_env("SUBTITLER_LOG_FILE", config.log_file);
+    config.verbose = get_env_bool("SUBTITLER_VERBOSE", config.verbose);
 
     // 3. CLI Args (highest priority)
     CLI::App app{"Real-Time Audio-to-Subtitles - Local speech-to-text with live display"};
-    app.set_version_flag("--version", core::VERSION_STRING);
+    app.set_version_flag("--version", core::kVersionString);
 
     app.add_option("-d,--device", config.device_index, "Audio device index (-1 for default)");
 
@@ -227,7 +227,7 @@ AppConfig AppConfig::parse(int argc, char* argv[]) {
     if (config.verbose) {
         config.log_level = "debug";
     }
-    setLogLevel(config.log_level);
+    set_log_level(config.log_level);
 
     return config;
 };

@@ -37,7 +37,7 @@ public:
 
     // Non-copyable
     RingBuffer(const RingBuffer&) = delete;
-    RingBuffer& operator=(const RingBuffer&) = delete;
+    auto operator=(const RingBuffer&) -> RingBuffer& = delete;
     ~RingBuffer() = default;
 
     /**
@@ -46,7 +46,7 @@ public:
      * @param count Number of samples to write
      * @return Number of samples actually written (may be less if full)
      */
-    size_t write(const float* data, size_t count);
+    auto write(const float* data, size_t count) -> size_t;
 
     /**
      * @brief Read audio samples from the buffer
@@ -54,25 +54,25 @@ public:
      * @param count Maximum number of samples to read
      * @return Number of samples actually read (may be less if empty)
      */
-    size_t read(float* dest, size_t count);
+    auto read(float* dest, size_t count) -> size_t;
 
     /**
      * @brief Get number of samples available for reading
      * @return Available read count
      */
-    [[nodiscard]] size_t available_read() const;
+    [[nodiscard]] auto available_read() const -> size_t;
 
     /**
      * @brief Get number of samples that can be written
      * @return Available write capacity
      */
-    [[nodiscard]] size_t available_write() const;
+    [[nodiscard]] auto available_write() const -> size_t;
 
     /**
      * @brief Get the total buffer capacity
      * @return Maximum number of samples the buffer can hold
      */
-    [[nodiscard]] size_t capacity() const noexcept;
+    [[nodiscard]] auto capacity() const noexcept -> size_t;
 
     /**
      * @brief Clear all data from the buffer
@@ -90,4 +90,4 @@ private:
     mutable std::mutex mutex_;
 };
 
-} // namespace audio
+}  // namespace audio

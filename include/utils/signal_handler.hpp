@@ -13,8 +13,8 @@ class SignalHandler {
 public:
     static void init();
 
-    static bool is_running();
-    static bool is_force_exit();
+    static auto is_running() -> bool;
+    static auto is_force_exit() -> bool;
     static void trigger_shutdown();
 
 private:
@@ -24,4 +24,4 @@ private:
     static void handle_signal(int signal);
 };
 
-} // namespace utils
+}  // namespace utils

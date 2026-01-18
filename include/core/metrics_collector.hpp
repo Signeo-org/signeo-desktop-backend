@@ -32,7 +32,7 @@ public:
 
     // Non-copyable (metrics should be unique per application instance)
     MetricsCollector(const MetricsCollector&) = delete;
-    MetricsCollector& operator=(const MetricsCollector&) = delete;
+    auto operator=(const MetricsCollector&) -> MetricsCollector& = delete;
 
     // =========================================================================
     // Audio Pipeline Event Tracking
@@ -77,37 +77,37 @@ public:
      * @brief Get Real-Time Factor (processing_time / audio_duration)
      * @return RTF value (< 1.0 means faster than realtime)
      */
-    [[nodiscard]] double get_current_rtf() const;
+    [[nodiscard]] auto get_current_rtf() const -> double;
 
     /**
      * @brief Get last STT inference latency
      * @return Latency in milliseconds
      */
-    [[nodiscard]] double get_inference_latency_ms() const;
+    [[nodiscard]] auto get_inference_latency_ms() const -> double;
 
     /**
      * @brief Get last VAD processing latency
      * @return Latency in milliseconds
      */
-    [[nodiscard]] double get_vad_latency_ms() const;
+    [[nodiscard]] auto get_vad_latency_ms() const -> double;
 
     /**
      * @brief Get end-to-end pipeline latency
      * @return Latency in milliseconds
      */
-    [[nodiscard]] double get_pipeline_latency_ms() const;
+    [[nodiscard]] auto get_pipeline_latency_ms() const -> double;
 
     /**
      * @brief Get transcription throughput
      * @return Characters per second (approximate)
      */
-    [[nodiscard]] double get_throughput_char_per_sec() const;
+    [[nodiscard]] auto get_throughput_char_per_sec() const -> double;
 
     /**
      * @brief Get audio input fill rate
      * @return Samples per second being processed
      */
-    [[nodiscard]] double get_audio_fill_rate() const;
+    [[nodiscard]] auto get_audio_fill_rate() const -> double;
 
     /**
      * @brief Record pipeline latency (end-to-end)
@@ -121,22 +121,22 @@ public:
     void reset();
 
     // Timestamps
-    std::chrono::steady_clock::time_point vad_start_time_;
-    std::chrono::steady_clock::time_point inference_start_time_;
+    std::chrono::steady_clock::time_point vad_start_time;
+    std::chrono::steady_clock::time_point inference_start_time;
 
     // Thread-safe atomic metrics
-    std::atomic<double> last_vad_latency_ms_{0.0};
-    std::atomic<double> last_inference_latency_ms_{0.0};
-    std::atomic<double> last_pipeline_latency_ms_{0.0};
-    std::atomic<double> current_rtf_{1.0};
+    std::atomic<double> last_vad_latency_ms{0.0};
+    std::atomic<double> last_inference_latency_ms{0.0};
+    std::atomic<double> last_pipeline_latency_ms{0.0};
+    std::atomic<double> current_rtf{1.0};
 
     // Throughput tracking
-    std::atomic<size_t> total_tokens_{0};
-    std::atomic<size_t> total_audio_samples_{0};
-    std::atomic<double> audio_fill_rate_{0.0};
+    std::atomic<size_t> total_tokens{0};
+    std::atomic<size_t> total_audio_samples{0};
+    std::atomic<double> audio_fill_rate{0.0};
 
-    std::chrono::steady_clock::time_point start_time_ = std::chrono::steady_clock::now();
-    std::chrono::steady_clock::time_point last_audio_chunk_time_ = std::chrono::steady_clock::now();
+    std::chrono::steady_clock::time_point start_time = std::chrono::steady_clock::now();
+    std::chrono::steady_clock::time_point last_audio_chunk_time = std::chrono::steady_clock::now();
 };
 
-} // namespace core
+}  // namespace core

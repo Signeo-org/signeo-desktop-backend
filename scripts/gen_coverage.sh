@@ -33,4 +33,3 @@ echo -e "\n\033[0;36mGenerating HTML Report...\033[0m"
 genhtml "$COVERAGE_DIR/coverage_filtered.info" --output-directory "$COVERAGE_DIR/report"
 
 echo -e "\n\033[0;32mCoverage report generated at $COVERAGE_DIR/report/index.html\033[0m"
-python3 -m http.server --directory "$COVERAGE_DIR/report" 8000

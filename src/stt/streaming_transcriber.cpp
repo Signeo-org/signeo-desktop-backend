@@ -7,6 +7,8 @@
 #include <sstream>
 #include <utility>
 
+#include "whisper.h"
+
 namespace stt {
 
 StreamingTranscriber::StreamingTranscriber(SttEngine& engine, TranscriberConfig config)
@@ -17,45 +19,47 @@ StreamingTranscriber::StreamingTranscriber(SttEngine& engine, TranscriberConfig 
                  config_.timestamp_merge ? "on" : "off");
 }
 
-void StreamingTranscriber::set_config(const TranscriberConfig& config) { config_ = config; }
+void StreamingTranscriber::set_config(const TranscriberConfig& config) {
+    config_ = config;
+}
 
 void StreamingTranscriber::push_audio(const std::vector<float>& audio) {
     audio_buffer_.insert(audio_buffer_.end(), audio.begin(), audio.end());
 
     // Trim if exceeding max length
-    int max_samples = (config_.max_length_ms * SAMPLE_RATE) / 1000;
-    if (static_cast<int>(audio_buffer_.size()) > max_samples) {
+    int max_samples = (config_.max_length_ms * WHISPER_SAMPLE_RATE) / 1000;
+    if (std::cmp_greater(audio_buffer_.size(), max_samples)) {
         int excess = static_cast<int>(audio_buffer_.size()) - max_samples;
         audio_buffer_.erase(audio_buffer_.begin(), audio_buffer_.begin() + excess);
-        audio_offset_ms_ += (excess * 1000) / SAMPLE_RATE;
+        audio_offset_ms_ += (excess * 1000) / WHISPER_SAMPLE_RATE;
     }
 }
 
-bool StreamingTranscriber::should_transcribe() const {
-    int step_samples = (config_.step_ms * SAMPLE_RATE) / 1000;
+auto StreamingTranscriber::should_transcribe() const -> bool {
+    int step_samples = (config_.step_ms * WHISPER_SAMPLE_RATE) / 1000;
     int keep_samples = static_cast<int>(keep_buffer_.size());
     int new_samples = static_cast<int>(audio_buffer_.size()) - keep_samples;
     return new_samples >= step_samples;
 }
 
-int StreamingTranscriber::audio_length_ms() const {
-    return static_cast<int>((audio_buffer_.size() * 1000) / SAMPLE_RATE);
+auto StreamingTranscriber::audio_length_ms() const -> int {
+    return static_cast<int>((audio_buffer_.size() * 1000) / WHISPER_SAMPLE_RATE);
 }
 
-StreamingTranscriber::Segment StreamingTranscriber::process() {
+auto StreamingTranscriber::process() -> StreamingTranscriber::Segment {
     if (!should_transcribe()) {
         return Segment{};
     }
     return transcribe_buffer();
 }
 
-StreamingTranscriber::Segment StreamingTranscriber::get_partial() {
+auto StreamingTranscriber::get_partial() -> StreamingTranscriber::Segment {
     if (audio_buffer_.empty()) {
         return Segment{};
     }
 
-    int min_samples = (config_.min_audio_ms * SAMPLE_RATE) / 1000;
-    if (static_cast<int>(audio_buffer_.size()) < min_samples) {
+    int min_samples = (config_.min_audio_ms * WHISPER_SAMPLE_RATE) / 1000;
+    if (std::cmp_less(audio_buffer_.size(), min_samples)) {
         return Segment{};
     }
 
@@ -81,7 +85,7 @@ StreamingTranscriber::Segment StreamingTranscriber::get_partial() {
     return seg;
 }
 
-StreamingTranscriber::Segment StreamingTranscriber::finalize() {
+auto StreamingTranscriber::finalize() -> StreamingTranscriber::Segment {
     if (audio_buffer_.empty()) {
         spdlog::debug("StreamingTranscriber::finalize(): Audio buffer is empty");
         return Segment{};
@@ -123,7 +127,7 @@ StreamingTranscriber::Segment StreamingTranscriber::finalize() {
     return seg;
 }
 
-std::vector<float> StreamingTranscriber::prepare_combined_buffer() {
+auto StreamingTranscriber::prepare_combined_buffer() -> std::vector<float> {
     std::vector<float> combined;
     combined.reserve(keep_buffer_.size() + audio_buffer_.size());
     combined.insert(combined.end(), keep_buffer_.begin(), keep_buffer_.end());
@@ -147,8 +151,8 @@ void StreamingTranscriber::update_state_after_transcription(const SttEngine::Tra
     previous_tokens_ = tokenize(result.text);
 
     // Keep last portion for context
-    int keep_samples = (config_.keep_ms * SAMPLE_RATE) / 1000;
-    if (static_cast<int>(audio_buffer_.size()) > keep_samples) {
+    int keep_samples = (config_.keep_ms * WHISPER_SAMPLE_RATE) / 1000;
+    if (std::cmp_greater(audio_buffer_.size(), keep_samples)) {
         keep_buffer_.assign(audio_buffer_.end() - keep_samples, audio_buffer_.end());
     } else {
         keep_buffer_ = audio_buffer_;
@@ -159,7 +163,7 @@ void StreamingTranscriber::update_state_after_transcription(const SttEngine::Tra
     audio_buffer_.clear();
 }
 
-std::string StreamingTranscriber::post_process_text(const std::string& raw_text) {
+auto StreamingTranscriber::post_process_text(const std::string& raw_text) -> std::string {
     // Deduplicate if enabled
     std::string text = raw_text;
     if (config_.token_dedup && !previous_text_.empty()) {
@@ -178,7 +182,9 @@ std::string StreamingTranscriber::post_process_text(const std::string& raw_text)
     return text;
 }
 
-StreamingTranscriber::Segment StreamingTranscriber::transcribe_buffer() { return finalize(); }
+auto StreamingTranscriber::transcribe_buffer() -> StreamingTranscriber::Segment {
+    return finalize();
+}
 
 void StreamingTranscriber::reset() {
     audio_buffer_.clear();
@@ -191,7 +197,7 @@ void StreamingTranscriber::reset() {
     spdlog::debug("StreamingTranscriber: Reset complete");
 }
 
-std::vector<std::string> StreamingTranscriber::tokenize(const std::string& text) {
+auto StreamingTranscriber::tokenize(const std::string& text) -> std::vector<std::string> {
     std::vector<std::string> tokens;
     std::istringstream iss(text);
     std::string word;
@@ -210,7 +216,8 @@ std::vector<std::string> StreamingTranscriber::tokenize(const std::string& text)
     return tokens;
 }
 
-int StreamingTranscriber::find_overlap(const std::vector<std::string>& prev, const std::vector<std::string>& curr) {
+auto StreamingTranscriber::find_overlap(const std::vector<std::string>& prev, const std::vector<std::string>& curr)
+    -> int {
     if (prev.empty() || curr.empty()) {
         return 0;
     }
@@ -233,7 +240,7 @@ int StreamingTranscriber::find_overlap(const std::vector<std::string>& prev, con
     return 0;
 }
 
-std::string StreamingTranscriber::deduplicate_text(const std::string& new_text) {
+auto StreamingTranscriber::deduplicate_text(const std::string& new_text) -> std::string {
     if (previous_tokens_.empty()) {
         return new_text;
     }
@@ -266,7 +273,7 @@ std::string StreamingTranscriber::deduplicate_text(const std::string& new_text) 
     return result;
 }
 
-std::string StreamingTranscriber::remove_repetition(const std::string& text) const {
+auto StreamingTranscriber::remove_repetition(const std::string& text) const -> std::string {
     if (text.empty()) {
         return text;
     }
@@ -289,14 +296,14 @@ std::string StreamingTranscriber::remove_repetition(const std::string& text) con
                 // "Hello World. Hello World." -> "Hello World." (Correct)
                 // "Test Test" -> "Test" (Correct)
                 changed = true;
-                break; // Restart scan on new string
+                break;  // Restart scan on new string
             }
         }
     }
     return current;
 }
 
-bool StreamingTranscriber::is_hallucination(const std::string& text) {
+auto StreamingTranscriber::is_hallucination(const std::string& text) -> bool {
     if (text.empty()) {
         return true;
     }
@@ -325,6 +332,8 @@ bool StreamingTranscriber::is_hallucination(const std::string& text) {
     return false;
 }
 
-const std::string& StreamingTranscriber::get_full_text() const { return full_text_; }
+auto StreamingTranscriber::get_full_text() const -> const std::string& {
+    return full_text_;
+}
 
-} // namespace stt
+}  // namespace stt

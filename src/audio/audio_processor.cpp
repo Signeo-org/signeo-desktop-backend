@@ -6,8 +6,8 @@
 
 namespace audio {
 
-core::Result<std::unique_ptr<AudioProcessor>> AudioProcessor::create(int input_rate, int input_channels,
-                                                                     int output_rate) {
+auto AudioProcessor::create(int input_rate, int input_channels, int output_rate)
+    -> core::Result<std::unique_ptr<AudioProcessor>> {
     if (input_channels < 1 || input_channels > 8) {
         return core::log_error("Invalid channel count (must be 1-8)");
     }
@@ -40,7 +40,7 @@ core::Result<std::unique_ptr<AudioProcessor>> AudioProcessor::create(int input_r
 AudioProcessor::AudioProcessor(int input_rate, int input_channels, int output_rate)
     : input_rate_(input_rate), input_channels_(input_channels), output_rate_(output_rate) {}
 
-std::vector<float> AudioProcessor::process(const std::vector<float>& interleaved_input) {
+auto AudioProcessor::process(const std::vector<float>& interleaved_input) -> std::vector<float> {
     if (interleaved_input.empty()) {
         return {};
     }
@@ -67,7 +67,7 @@ void AudioProcessor::reset() {
     }
 }
 
-std::vector<float> AudioProcessor::downmix_to_mono(const std::vector<float>& interleaved) const {
+auto AudioProcessor::downmix_to_mono(const std::vector<float>& interleaved) const -> std::vector<float> {
     size_t num_frames = interleaved.size() / input_channels_;
     std::vector<float> mono(num_frames);
 
@@ -84,4 +84,4 @@ std::vector<float> AudioProcessor::downmix_to_mono(const std::vector<float>& int
     return mono;
 }
 
-} // namespace audio
+}  // namespace audio

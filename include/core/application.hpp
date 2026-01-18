@@ -23,7 +23,7 @@ class TuiRenderer;
 namespace audio {
 class AudioCapture;
 class AudioProcessor;
-} // namespace audio
+}  // namespace audio
 namespace vad {
 class VadProcessor;
 }
@@ -40,7 +40,7 @@ public:
     ~Application();
 
     /// @brief Run the main application loop. Returns exit code.
-    int run();
+    auto run() -> int;
 
 private:
     // ─────────────────────────────────────────────────────────────
@@ -58,19 +58,19 @@ private:
     void run_main_loop(ui::TuiRenderer* tui);
 
     // Refactored Worker Helpers
-    bool initialize_audio_system(std::unique_ptr<audio::AudioCapture>& capture,
-                                 std::unique_ptr<audio::AudioProcessor>& processor, ui::TuiRenderer* tui) const;
+    auto initialize_audio_system(std::unique_ptr<audio::AudioCapture>& capture,
+                                 std::unique_ptr<audio::AudioProcessor>& processor, ui::TuiRenderer* tui) const -> bool;
     void handle_audio_device_switch(std::unique_ptr<audio::AudioCapture>& capture,
                                     std::unique_ptr<audio::AudioProcessor>& processor, ui::TuiRenderer* tui);
 
-    bool initialize_vad_processor(std::unique_ptr<vad::VadProcessor>& vad);
+    auto initialize_vad_processor(std::unique_ptr<vad::VadProcessor>& vad) -> bool;
     void update_vad_parameters(vad::VadProcessor* vad);
 
     // ─────────────────────────────────────────────────────────────
     // Configuration
     // ─────────────────────────────────────────────────────────────
     AppConfig config_;
-    std::mutex config_mutex_; // Protects config_ for hot-reload operations
+    std::mutex config_mutex_;  // Protects config_ for hot-reload operations
 
     // ─────────────────────────────────────────────────────────────
     // Threading
@@ -83,20 +83,20 @@ private:
     // ─────────────────────────────────────────────────────────────
     // Inter-Thread Queues
     // ─────────────────────────────────────────────────────────────
-    utils::ThreadSafeQueue<core::AudioChunk> audio_queue_;     // Audio → VAD
-    utils::ThreadSafeQueue<core::AudioChunk> inference_queue_; // VAD → STT
+    utils::ThreadSafeQueue<core::AudioChunk> audio_queue_;      // Audio → VAD
+    utils::ThreadSafeQueue<core::AudioChunk> inference_queue_;  // VAD → STT
 
     // ─────────────────────────────────────────────────────────────
     // Live State (atomic for lock-free updates from UI)
     // ─────────────────────────────────────────────────────────────
     // Audio
     std::atomic<int> pending_device_switch_{-1};
-    std::atomic<float> pending_gain_{1.0f};
+    std::atomic<float> pending_gain_{1.0F};
 
     // VAD
-    std::atomic<float> vad_threshold_{0.5f};
-    std::atomic<float> vad_energy_threshold_{0.0001f};
-    std::atomic<float> vad_smoothing_alpha_{0.5f};
+    std::atomic<float> vad_threshold_{0.5F};
+    std::atomic<float> vad_energy_threshold_{0.0001F};
+    std::atomic<float> vad_smoothing_alpha_{0.5F};
     std::atomic<bool> vad_reload_requested_{false};
 
     // STT
@@ -108,9 +108,9 @@ private:
 
     // VAD Adaptive
     std::atomic<bool> vad_adaptive_enabled_{true};
-    std::atomic<float> vad_adaptive_min_{0.35f};
-    std::atomic<float> vad_adaptive_max_{0.6f};
-    std::atomic<float> vad_adaptive_alpha_{0.95f};
+    std::atomic<float> vad_adaptive_min_{0.35F};
+    std::atomic<float> vad_adaptive_max_{0.6F};
+    std::atomic<float> vad_adaptive_alpha_{0.95F};
 
     // ─────────────────────────────────────────────────────────────
     // Metrics

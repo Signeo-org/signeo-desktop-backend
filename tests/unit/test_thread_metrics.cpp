@@ -19,13 +19,13 @@ protected:
 };
 
 TEST_F(ThreadMetricsTest, Singleton) {
-    auto& instance1 = utils::ThreadMetrics::Get();
-    auto& instance2 = utils::ThreadMetrics::Get();
+    auto& instance1 = utils::ThreadMetrics::get();
+    auto& instance2 = utils::ThreadMetrics::get();
     EXPECT_EQ(&instance1, &instance2);
 }
 
 TEST_F(ThreadMetricsTest, RegisterAndUnregisterThread) {
-    auto& metrics = utils::ThreadMetrics::Get();
+    auto& metrics = utils::ThreadMetrics::get();
     
     // Create a simple thread
     std::thread worker([]() {
@@ -64,7 +64,7 @@ TEST_F(ThreadMetricsTest, RegisterAndUnregisterThread) {
 }
 
 TEST_F(ThreadMetricsTest, CpuUsageNonNegative) {
-    auto& metrics = utils::ThreadMetrics::Get();
+    auto& metrics = utils::ThreadMetrics::get();
     
     // Create a busy thread
     std::atomic<bool> running{true};
@@ -84,11 +84,11 @@ TEST_F(ThreadMetricsTest, CpuUsageNonNegative) {
     auto stats = metrics.update_and_get();
     for (const auto& s : stats) {
         if (s.name == "BusyWorker") {
-            EXPECT_GE(s.cpu_usage_percent, 0.0);
+            EXPECT_GE(static_cast<double>(s.cpu_usage_percent), 0.0);
             // On Windows, should show some CPU usage
 #if defined(_WIN32)
             // Might be flaky, so just check it's not negative
-            EXPECT_GE(s.cpu_usage_percent, 0.0);
+            EXPECT_GE(static_cast<double>(s.cpu_usage_percent), 0.0);
 #endif
         }
     }
@@ -99,7 +99,7 @@ TEST_F(ThreadMetricsTest, CpuUsageNonNegative) {
 }
 
 TEST_F(ThreadMetricsTest, ThreadSafety) {
-    auto& metrics = utils::ThreadMetrics::Get();
+    auto& metrics = utils::ThreadMetrics::get();
     
     std::vector<std::thread> threads;
     

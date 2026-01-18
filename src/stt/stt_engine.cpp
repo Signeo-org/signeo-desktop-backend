@@ -13,7 +13,7 @@
 namespace stt {
 
 // Factory Method
-core::Result<std::unique_ptr<SttEngine>> SttEngine::create(const SttConfig& config) {
+auto SttEngine::create(const SttConfig& config) -> core::Result<std::unique_ptr<SttEngine>> {
     LOG_SCOPED_TRACE();
     spdlog::debug("SttEngine::create() model_path={}", config.model_path);
 
@@ -35,11 +35,11 @@ SttEngine::SttEngine(SttConfig config) : config_(std::move(config)) {
     // Initialization moved to init_whisper()
 }
 
-core::Status SttEngine::init_whisper() {
+auto SttEngine::init_whisper() -> core::Status {
     LOG_SCOPED_TRACE();
     spdlog::debug("init_whisper() loading model from {}", config_.model_path);
 
-    whisper_context_params cparams = whisper_context_default_params();
+    struct whisper_context_params cparams = whisper_context_default_params();
     cparams.use_gpu = config_.use_gpu;
     cparams.flash_attn = config_.flash_attn;
 
@@ -66,7 +66,7 @@ SttEngine::SttEngine(SttEngine&& other) noexcept : config_(std::move(other.confi
     other.ctx_ = nullptr;
 }
 
-SttEngine& SttEngine::operator=(SttEngine&& other) noexcept {
+auto SttEngine::operator=(SttEngine&& other) noexcept -> SttEngine& {
     if (this != &other) {
         if (ctx_ != nullptr) {
             whisper_free(ctx_);
@@ -78,7 +78,7 @@ SttEngine& SttEngine::operator=(SttEngine&& other) noexcept {
     return *this;
 }
 
-core::Result<SttEngine::TranscriptionResult> SttEngine::transcribe(const std::vector<float>& audio) {
+auto SttEngine::transcribe(const std::vector<float>& audio) -> core::Result<SttEngine::TranscriptionResult> {
     if (ctx_ == nullptr) {
         return core::log_error("SttEngine: Context not initialized");
     }
@@ -90,7 +90,7 @@ core::Result<SttEngine::TranscriptionResult> SttEngine::transcribe(const std::ve
     const auto t_start = std::chrono::high_resolution_clock::now();
 
     // Configure inference parameters
-    whisper_full_params wparams = whisper_full_default_params(WHISPER_SAMPLING_GREEDY);
+    struct whisper_full_params wparams = whisper_full_default_params(WHISPER_SAMPLING_GREEDY);
 
     wparams.print_progress = config_.print_progress;
     wparams.print_special = false;
@@ -158,8 +158,12 @@ core::Result<SttEngine::TranscriptionResult> SttEngine::transcribe(const std::ve
     return result;
 }
 
-bool SttEngine::is_ready() const { return ctx_ != nullptr; }
+auto SttEngine::is_ready() const -> bool {
+    return ctx_ != nullptr;
+}
 
-const std::string& SttEngine::language() const { return config_.language; }
+auto SttEngine::language() const -> const std::string& {
+    return config_.language;
+}
 
-} // namespace stt
+}  // namespace stt

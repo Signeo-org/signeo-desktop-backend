@@ -24,7 +24,9 @@
 
 param (
     [switch]$Gpu,
-    [switch]$Clean
+    [switch]$Clean,
+    [switch]$Tidy,
+    [switch]$Format
 )
 
 $ScriptRoot = $PSScriptRoot
@@ -98,13 +100,26 @@ $CMakeArgs = @("-S", "$ProjectRoot", "-B", "$BuildDir", "-G", "Ninja")
 
 if ($Gpu) {
     $CMakeArgs += "-DENABLE_GPU=ON"
-    # MSVC + Ninja requires explicit compiler specification for CUDA usually
     $CMakeArgs += "-DCMAKE_C_COMPILER=cl"
     $CMakeArgs += "-DCMAKE_CXX_COMPILER=cl"
-    # Disable Clang-Tidy during GPU builds to isolate verify/noise issues unless explicitly wanted
-    $CMakeArgs += "-DENABLE_CLANG_TIDY=OFF"
 } else {
     $CMakeArgs += "-DENABLE_GPU=OFF"
+}
+
+# Tidy Logic
+if ($Tidy) {
+    Write-Host "Enabled: Clang-Tidy" -ForegroundColor DarkGray
+    $CMakeArgs += "-DENABLE_CLANG_TIDY=ON"
+} else {
+    $CMakeArgs += "-DENABLE_CLANG_TIDY=OFF"
+}
+
+# Format Logic
+if ($Format) {
+    Write-Host "Enabled: Clang-Format Target" -ForegroundColor DarkGray
+    $CMakeArgs += "-DENABLE_CLANG_FORMAT=ON"
+} else {
+    $CMakeArgs += "-DENABLE_CLANG_FORMAT=OFF"
 }
 
 Write-Host "Running: cmake $CMakeArgs" -ForegroundColor DarkGray

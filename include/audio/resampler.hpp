@@ -24,7 +24,8 @@ public:
      * @param quality Resampling quality (0-10, higher = better quality, more CPU)
      * @return Result containing unique_ptr to Resampler or error
      */
-    static core::Result<std::unique_ptr<AudioResampler>> create(int input_rate, int output_rate, int quality = 5);
+    static auto create(int input_rate, int output_rate, int quality = 5)
+        -> core::Result<std::unique_ptr<AudioResampler>>;
 
 private:
     AudioResampler(int input_rate, int output_rate, int quality);
@@ -34,7 +35,7 @@ public:
 
     // Disable copy
     AudioResampler(const AudioResampler&) = delete;
-    AudioResampler& operator=(const AudioResampler&) = delete;
+    auto operator=(const AudioResampler&) -> AudioResampler& = delete;
 
     /**
      * @brief Resample audio data
@@ -42,20 +43,24 @@ public:
      * @param input Input samples at source rate
      * @return Resampled output at target rate
      */
-    std::vector<float> process(const std::vector<float>& input);
+    auto process(const std::vector<float>& input) -> std::vector<float>;
 
     /**
      * @brief Reset resampler state (clears internal buffers)
      */
     void reset();
 
-    int input_rate() const { return input_rate_; }
-    int output_rate() const { return output_rate_; }
+    auto input_rate() const -> int {
+        return input_rate_;
+    }
+    auto output_rate() const -> int {
+        return output_rate_;
+    }
 
     /**
      * @brief Calculate expected output size for given input size
      */
-    size_t expected_output_size(size_t input_size) const;
+    auto expected_output_size(size_t input_size) const -> size_t;
 
 private:
     SpeexResamplerState* resampler_ = nullptr;
@@ -63,4 +68,4 @@ private:
     int output_rate_;
 };
 
-} // namespace audio
+}  // namespace audio

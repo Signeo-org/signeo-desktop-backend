@@ -6,13 +6,13 @@
 #include <chrono>
 
 #if !defined(_WIN32)
-#include <pthread.h>
-#include <time.h>
+    #include <pthread.h>
+    #include <time.h>
 #endif
 
 namespace utils {
 
-ThreadMetrics& ThreadMetrics::Get() {
+auto ThreadMetrics::get() -> ThreadMetrics& {
     static ThreadMetrics instance;
     return instance;
 }
@@ -69,7 +69,7 @@ void ThreadMetrics::unregister_thread(const std::string& name) {
     threads_.erase(name);
 }
 
-std::vector<ThreadCpuStats> ThreadMetrics::update_and_get() {
+auto ThreadMetrics::update_and_get() -> std::vector<ThreadCpuStats> {
     std::lock_guard<std::mutex> lock(mutex_);
     std::vector<ThreadCpuStats> results;
 
@@ -163,4 +163,4 @@ std::vector<ThreadCpuStats> ThreadMetrics::update_and_get() {
     return results;
 }
 
-} // namespace utils
+}  // namespace utils

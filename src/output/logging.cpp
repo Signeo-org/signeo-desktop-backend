@@ -29,13 +29,15 @@ ScopedTrace::~ScopedTrace() {
 
 Timer::Timer() : start_(std::chrono::steady_clock::now()) {}
 
-void Timer::reset() { start_ = std::chrono::steady_clock::now(); }
+void Timer::reset() {
+    start_ = std::chrono::steady_clock::now();
+}
 
-int64_t Timer::elapsed_us() const {
+auto Timer::elapsed_us() const -> int64_t {
     return std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - start_).count();
 }
 
-int64_t Timer::elapsed_ms() const {
+auto Timer::elapsed_ms() const -> int64_t {
     return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start_).count();
 }
 
@@ -78,4 +80,4 @@ void init_logging(const std::string& log_file, bool use_console) {
     }
 }
 
-} // namespace core
+}  // namespace core

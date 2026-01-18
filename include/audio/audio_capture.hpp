@@ -44,21 +44,21 @@ public:
      * @param file_path Optional path to WAV file for simulation/testing
      * @return Result containing unique_ptr to AudioCapture, or error message
      */
-    static core::Result<std::unique_ptr<AudioCapture>> create(int sample_rate = 16000, int frames_per_buffer = 512,
-                                                              const std::string& file_path = "");
+    static auto create(int sample_rate = 16000, int frames_per_buffer = 512, const std::string& file_path = "")
+        -> core::Result<std::unique_ptr<AudioCapture>>;
 
     ~AudioCapture();
 
     // Prevent copying
     AudioCapture(const AudioCapture&) = delete;
-    AudioCapture& operator=(const AudioCapture&) = delete;
+    auto operator=(const AudioCapture&) -> AudioCapture& = delete;
 
     /**
      * @brief Start audio capture on specified device
      * @param device_index Device index (-1 for default device)
      * @return Status indicating success or error with message
      */
-    core::Status start(int device_index = -1);
+    auto start(int device_index = -1) -> core::Status;
 
     /**
      * @brief Stop audio capture
@@ -70,50 +70,51 @@ public:
      * @param max_frames Maximum frames to read
      * @return Audio chunk with captured data
      */
-    core::AudioChunk read_chunk(size_t max_frames);
+    auto read_chunk(size_t max_frames) -> core::AudioChunk;
 
     /**
      * @brief List available audio devices
      * @return Result containing device list or error message
      */
-    core::Result<std::vector<AudioDevice>> list_devices();
+    auto list_devices() -> core::Result<std::vector<AudioDevice>>;
 
     /**
      * @brief Check if capture is active
      * @return true if actively capturing
      */
-    bool is_active() const;
+    auto is_active() const -> bool;
 
-    int sample_rate() const;
-    int channels() const;
+    auto sample_rate() const -> int;
+    auto channels() const -> int;
 
     void set_gain(float gain);
-    float get_gain() const;
+    auto get_gain() const -> float;
 
     // Helper methods
-    static bool is_loopback_device(int device_index);
-    core::Status try_open_stream(const PaStreamParameters& params, double sample_rate);
+    static auto is_loopback_device(int device_index) -> bool;
+    auto try_open_stream(const PaStreamParameters& params, double sample_rate) -> core::Status;
 
 private:
     // Private constructor - use create() factory
     AudioCapture(int sample_rate, int frames_per_buffer, const std::string& file_path = "");
 
-    core::Status init_portaudio();
-    core::Status load_wav_file();
+    auto init_portaudio() -> core::Status;
+    auto load_wav_file() -> core::Status;
 
-    static int pa_callback(const void* inputBuffer, void* outputBuffer, unsigned long framesPerBuffer,
-                           const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags, void* userData);
+    static auto pa_callback(const void* inputBuffer, void* outputBuffer, unsigned long framesPerBuffer,
+                            const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags, void* userData)
+        -> int;
 
     // Helpers
-    core::Status open_pa_stream(const PaDeviceInfo* deviceInfo, PaStreamParameters& params);
-    static core::Status read_wav_header(std::ifstream& file, uint16_t& channels, uint32_t& sample_rate,
-                                        uint16_t& bits_per_sample);
+    auto open_pa_stream(const PaDeviceInfo* deviceInfo, PaStreamParameters& params) -> core::Status;
+    static auto read_wav_header(std::ifstream& file, uint16_t& channels, uint32_t& sample_rate,
+                                uint16_t& bits_per_sample) -> core::Status;
 
     // Member variables
     int sample_rate_ = 16000;
     int channels_ = 0;
     int frames_per_buffer_;
-    std::atomic<float> input_gain_{1.0f};
+    std::atomic<float> input_gain_{1.0F};
 
     // File simulation members
     bool file_mode_ = false;
@@ -123,7 +124,7 @@ private:
 
     struct PaStreamDeleter {
         void operator()(PaStream* stream) const {
-            if (stream) {
+            if (stream != nullptr) {
                 Pa_StopStream(stream);
                 Pa_CloseStream(stream);
             }
@@ -137,4 +138,4 @@ private:
     bool pa_initialized_ = false;
 };
 
-} // namespace audio
+}  // namespace audio

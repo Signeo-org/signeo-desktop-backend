@@ -21,8 +21,8 @@ using namespace ftxui;
 // Component SliderWithLabel(...) - Moved to static method
 
 // Helper to create an int slider with callback
-Component intSliderWithLabel(const std::string& label, int* value, int min, int max,
-                             const std::function<void()>& on_change) {
+auto int_slider_with_label(const std::string& label, int* value, int min, int max,
+                           const std::function<void()>& on_change) -> Component {
     auto slider = Slider(label, value, min, max, 1);
 
     // Wrap slider to detect value changes and fire callback
@@ -33,7 +33,7 @@ Component intSliderWithLabel(const std::string& label, int* value, int min, int 
                                       on_change();
                                   }
                               }
-                              return false; // Let slider handle the event
+                              return false;  // Let slider handle the event
                           });
 
     return Container::Vertical({
@@ -47,21 +47,21 @@ Component intSliderWithLabel(const std::string& label, int* value, int min, int 
     });
 }
 
-Component SettingsRenderer::Create(SettingsState* state, const std::function<void()>& on_change,
-                                   std::function<void()> on_close) {
+auto SettingsRenderer::create(SettingsState* state, const std::function<void()>& on_change,
+                              std::function<void()> on_close) -> Component {
     // Tab Controller
     static const auto tab_values = std::vector<std::string>{"🔊 Audio", "🧠 VAD", "📝 STT", "📊 System"};
     auto tab_toggle = Toggle(&tab_values, &state->selected_tab);
 
     auto vad_container = Container::Vertical({
-        SettingsRenderer::CreateSlider("Threshold", &state->vad_threshold, 0.01F, 0.99F, 0.01F, on_change),
-        SettingsRenderer::CreateSlider("Energy Gate", &state->vad_energy_thresh, 0.0001F, 0.01F, 0.0001F, on_change),
-        SettingsRenderer::CreateSlider("Smoothing", &state->vad_smoothing, 0.01F, 0.99F, 0.01F, on_change),
+        SettingsRenderer::create_slider("Threshold", &state->vad_threshold, 0.01F, 0.99F, 0.01F, on_change),
+        SettingsRenderer::create_slider("Energy Gate", &state->vad_energy_thresh, 0.0001F, 0.01F, 0.0001F, on_change),
+        SettingsRenderer::create_slider("Smoothing", &state->vad_smoothing, 0.01F, 0.99F, 0.01F, on_change),
         Renderer([] { return separator(); }),
-        SettingsRenderer::CreateCheckbox("Adaptive Mode", &state->vad_adaptive, on_change),
-        SettingsRenderer::CreateSlider("  Min Thresh", &state->vad_adaptive_min, 0.01F, 0.99F, 0.01F, on_change),
-        SettingsRenderer::CreateSlider("  Max Thresh", &state->vad_adaptive_max, 0.01F, 0.99F, 0.01F, on_change),
-        SettingsRenderer::CreateSlider("  Alpha", &state->vad_adaptive_alpha, 0.01F, 0.99F, 0.01F, on_change),
+        SettingsRenderer::create_checkbox("Adaptive Mode", &state->vad_adaptive, on_change),
+        SettingsRenderer::create_slider("  Min Thresh", &state->vad_adaptive_min, 0.01F, 0.99F, 0.01F, on_change),
+        SettingsRenderer::create_slider("  Max Thresh", &state->vad_adaptive_max, 0.01F, 0.99F, 0.01F, on_change),
+        SettingsRenderer::create_slider("  Alpha", &state->vad_adaptive_alpha, 0.01F, 0.99F, 0.01F, on_change),
     });
 
     // --- MAIN LAYOUT ---
@@ -75,26 +75,26 @@ Component SettingsRenderer::Create(SettingsState* state, const std::function<voi
             {
                 // Audio Tab
                 Container::Vertical({
-                    SettingsRenderer::CreateSlider("Input Gain", &state->input_gain, 0.0F, 5.0F, 0.1F, on_change),
+                    SettingsRenderer::create_slider("Input Gain", &state->input_gain, 0.0F, 5.0F, 0.1F, on_change),
                     // Device selector could go here too but it's complex
                 }),
                 vad_container,
                 // STT Tab
                 Container::Vertical({
-                    SettingsRenderer::CreateCheckbox("Use GPU", &state->stt_use_gpu, on_change),
-                    SettingsRenderer::CreateCheckbox("Flash Attn", &state->stt_flash_attn, on_change),
-                    SettingsRenderer::CreateCheckbox("Token Utils", &state->stt_token_dedup, on_change),
+                    SettingsRenderer::create_checkbox("Use GPU", &state->stt_use_gpu, on_change),
+                    SettingsRenderer::create_checkbox("Flash Attn", &state->stt_flash_attn, on_change),
+                    SettingsRenderer::create_checkbox("Token Utils", &state->stt_token_dedup, on_change),
                     Renderer([] { return separator(); }),
-                    intSliderWithLabel("Step (ms)", &state->stt_step_ms, 500, 5000, on_change),
-                    intSliderWithLabel("Keep (ms)", &state->stt_keep_ms, 0, 1000, on_change),
+                    int_slider_with_label("Step (ms)", &state->stt_step_ms, 500, 5000, on_change),
+                    int_slider_with_label("Keep (ms)", &state->stt_keep_ms, 0, 1000, on_change),
                     Renderer([] { return separator(); }),
-                    intSliderWithLabel("Min Repet.", &state->stt_min_repetition, 4, 30, on_change),
-                    intSliderWithLabel("Hallucination", &state->stt_hallucination_len, 0, 10, on_change),
+                    int_slider_with_label("Min Repet.", &state->stt_min_repetition, 4, 30, on_change),
+                    int_slider_with_label("Hallucination", &state->stt_hallucination_len, 0, 10, on_change),
                 }),
 
                 // System Monitor Tab
                 Renderer([=] {
-                    auto stats = utils::ThreadMetrics::Get().update_and_get();
+                    auto stats = utils::ThreadMetrics::get().update_and_get();
                     Elements list;
                     list.push_back(text("Thread CPU Usage") | bold);
                     list.push_back(separator());
@@ -122,8 +122,8 @@ Component SettingsRenderer::Create(SettingsState* state, const std::function<voi
                border;
     });
 }
-Component SettingsRenderer::CreateSlider(const std::string& label, float* value, float min, float max, float step,
-                                         const std::function<void()>& on_change) {
+auto SettingsRenderer::create_slider(const std::string& label, float* value, float min, float max, float step,
+                                     const std::function<void()>& on_change) -> Component {
     auto slider = Slider(label, value, min, max, step);
 
     // Wrap slider to detect value changes and fire callback
@@ -134,7 +134,7 @@ Component SettingsRenderer::CreateSlider(const std::string& label, float* value,
                                       on_change();
                                   }
                               }
-                              return false; // Let slider handle the event
+                              return false;  // Let slider handle the event
                           });
 
     return Container::Vertical({
@@ -148,8 +148,8 @@ Component SettingsRenderer::CreateSlider(const std::string& label, float* value,
     });
 }
 
-Component SettingsRenderer::CreateCheckbox(const std::string& label, bool* state,
-                                           const std::function<void()>& on_change) {
+auto SettingsRenderer::create_checkbox(const std::string& label, bool* state, const std::function<void()>& on_change)
+    -> Component {
     return Container::Horizontal({
         Renderer([=] { return text(label) | size(WIDTH, GREATER_THAN, 20); }),
         Checkbox("", state) | CatchEvent([=, last_value = *state](const Event&) mutable {
@@ -166,7 +166,8 @@ Component SettingsRenderer::CreateCheckbox(const std::string& label, bool* state
     });
 }
 
-Component SettingsRenderer::CreateInput(const std::string& label, std::string* state, std::function<void()> on_change) {
+auto SettingsRenderer::create_input(const std::string& label, std::string* state, std::function<void()> on_change)
+    -> Component {
     InputOption opt;
     opt.on_change = std::move(on_change);
     return Container::Horizontal({
@@ -175,4 +176,4 @@ Component SettingsRenderer::CreateInput(const std::string& label, std::string* s
     });
 }
 
-} // namespace ui
+}  // namespace ui

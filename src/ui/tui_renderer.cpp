@@ -16,8 +16,8 @@ namespace ui {
 using namespace ftxui;
 
 // Helper for Int Sliders
-static Component intSliderWithLabel(const std::string& label, int* value, int min, int max,
-                                    const std::function<void()>& on_change) {
+static auto int_slider_with_label(const std::string& label, int* value, int min, int max,
+                                  const std::function<void()>& on_change) -> Component {
     auto slider = Slider(label, value, min, max, 1);
 
     // Wrap slider to detect value changes and fire callback
@@ -46,7 +46,7 @@ TuiRenderer::TuiRenderer() : screen_(ScreenInteractive::Fullscreen()) {}
 
 TuiRenderer::~TuiRenderer() = default;
 
-bool TuiRenderer::is_running() const {
+auto TuiRenderer::is_running() const -> bool {
     std::lock_guard<std::mutex> lock(state_mutex_);
     return state_.is_running;
 }
@@ -88,14 +88,14 @@ void TuiRenderer::run() {
     }
 }
 
-Component TuiRenderer::setup_components() {
+auto TuiRenderer::setup_components() -> Component {
     return Container::Tab({create_logs_component(), create_devices_component(), create_audio_settings_component(),
                            create_vad_settings_component(), create_stt_settings_component(),
                            create_system_view_component(), create_help_component()},
                           &tab_index_);
 }
 
-Component TuiRenderer::setup_layout(const Component& tab_content, const Component& tab_toggle) {
+auto TuiRenderer::setup_layout(const Component& tab_content, const Component& tab_toggle) -> Component {
     return Renderer(tab_content, [this, tab_toggle, tab_content] {
         return vbox({render_header(), separator(),
                      // Custom styled tabs
@@ -111,16 +111,16 @@ Component TuiRenderer::setup_layout(const Component& tab_content, const Componen
 // Component Factories
 // -------------------------------------------------------------------------
 
-ftxui::Component TuiRenderer::create_logs_component() {
+auto TuiRenderer::create_logs_component() -> ftxui::Component {
     return Renderer([this] {
         return vbox({
             render_subtitles() | flex, separator(),
-            render_metrics() // Mini Status
+            render_metrics()  // Mini Status
         });
     });
 }
 
-ftxui::Component TuiRenderer::create_devices_component() {
+auto TuiRenderer::create_devices_component() -> ftxui::Component {
     auto device_menu = Menu(&device_menu_entries_, &device_menu_selected_);
 
     auto comp = Renderer(device_menu, [this, device_menu] {
@@ -148,7 +148,8 @@ ftxui::Component TuiRenderer::create_devices_component() {
             int selected_id = -1;
             {
                 std::lock_guard<std::mutex> lock(state_mutex_);
-                if (device_menu_selected_ >= 0 && device_menu_selected_ < (int)state_.available_devices.size()) {
+                if (device_menu_selected_ >= 0 &&
+                    std::cmp_less(device_menu_selected_, state_.available_devices.size())) {
                     selected_id = state_.available_devices[device_menu_selected_].id;
                 }
             }
@@ -161,19 +162,19 @@ ftxui::Component TuiRenderer::create_devices_component() {
     });
 }
 
-ftxui::Component TuiRenderer::create_audio_settings_component() {
+auto TuiRenderer::create_audio_settings_component() -> ftxui::Component {
     return Container::Vertical({
-        SettingsRenderer::CreateInput("Input Gain", &settings_state_.input_gain_str,
-                                      [this] {
-                                          try {
-                                              float val = std::stof(settings_state_.input_gain_str);
-                                              settings_state_.input_gain = val;
-                                              if (on_gain_changed_) {
-                                                  on_gain_changed_(val);
-                                              }
-                                          } catch (...) {
-                                          }
-                                      }),
+        SettingsRenderer::create_input("Input Gain", &settings_state_.input_gain_str,
+                                       [this] {
+                                           try {
+                                               float val = std::stof(settings_state_.input_gain_str);
+                                               settings_state_.input_gain = val;
+                                               if (on_gain_changed_) {
+                                                   on_gain_changed_(val);
+                                               }
+                                           } catch (...) {
+                                           }
+                                       }),
         Renderer([this] {
             return hbox({
                 text("Sample Rate: ") | dim,
@@ -183,145 +184,145 @@ ftxui::Component TuiRenderer::create_audio_settings_component() {
     });
 }
 
-ftxui::Component TuiRenderer::create_vad_settings_component() {
+auto TuiRenderer::create_vad_settings_component() -> ftxui::Component {
     return Container::Vertical({
         Renderer([this] { return render_vad_metrics(); }),
         Renderer([] { return separator(); }),
-        SettingsRenderer::CreateInput("Threshold", &settings_state_.vad_threshold_str,
-                                      [this] {
-                                          try {
-                                              float val = std::stof(settings_state_.vad_threshold_str);
-                                              settings_state_.vad_threshold = val;
-                                              if (on_threshold_changed_) {
-                                                  on_threshold_changed_(val);
-                                              }
-                                          } catch (...) {
-                                          }
-                                      }),
-        SettingsRenderer::CreateInput("Energy Gate", &settings_state_.vad_energy_str,
-                                      [this] {
-                                          try {
-                                              float val = std::stof(settings_state_.vad_energy_str);
-                                              settings_state_.vad_energy_thresh = val;
-                                              if (on_energy_changed_) {
-                                                  on_energy_changed_(val);
-                                              }
-                                          } catch (...) {
-                                          }
-                                      }),
-        SettingsRenderer::CreateInput("Smoothing", &settings_state_.vad_smoothing_str,
-                                      [this] {
-                                          try {
-                                              float val = std::stof(settings_state_.vad_smoothing_str);
-                                              settings_state_.vad_smoothing = val;
-                                              if (on_smoothing_changed_) {
-                                                  on_smoothing_changed_(val);
-                                              }
-                                          } catch (...) {
-                                          }
-                                      }),
+        SettingsRenderer::create_input("Threshold", &settings_state_.vad_threshold_str,
+                                       [this] {
+                                           try {
+                                               float val = std::stof(settings_state_.vad_threshold_str);
+                                               settings_state_.vad_threshold = val;
+                                               if (on_threshold_changed_) {
+                                                   on_threshold_changed_(val);
+                                               }
+                                           } catch (...) {
+                                           }
+                                       }),
+        SettingsRenderer::create_input("Energy Gate", &settings_state_.vad_energy_str,
+                                       [this] {
+                                           try {
+                                               float val = std::stof(settings_state_.vad_energy_str);
+                                               settings_state_.vad_energy_thresh = val;
+                                               if (on_energy_changed_) {
+                                                   on_energy_changed_(val);
+                                               }
+                                           } catch (...) {
+                                           }
+                                       }),
+        SettingsRenderer::create_input("Smoothing", &settings_state_.vad_smoothing_str,
+                                       [this] {
+                                           try {
+                                               float val = std::stof(settings_state_.vad_smoothing_str);
+                                               settings_state_.vad_smoothing = val;
+                                               if (on_smoothing_changed_) {
+                                                   on_smoothing_changed_(val);
+                                               }
+                                           } catch (...) {
+                                           }
+                                       }),
         Renderer([] { return separator(); }),
-        SettingsRenderer::CreateInput("Hangover Frames", &settings_state_.vad_hangover_str,
-                                      [this] {
-                                          try {
-                                              settings_state_.vad_hangover =
-                                                  std::stoi(settings_state_.vad_hangover_str);
-                                          } catch (...) {
-                                          }
-                                      }),
+        SettingsRenderer::create_input("Hangover Frames", &settings_state_.vad_hangover_str,
+                                       [this] {
+                                           try {
+                                               settings_state_.vad_hangover =
+                                                   std::stoi(settings_state_.vad_hangover_str);
+                                           } catch (...) {
+                                           }
+                                       }),
         Renderer([] { return separator(); }),
-        SettingsRenderer::CreateCheckbox("Adaptive Mode", &settings_state_.vad_adaptive,
-                                         [this] {
-                                             if (on_vad_adaptive_changed_) {
-                                                 on_vad_adaptive_changed_(settings_state_.vad_adaptive,
-                                                                          settings_state_.vad_adaptive_min,
-                                                                          settings_state_.vad_adaptive_max,
-                                                                          settings_state_.vad_adaptive_alpha);
-                                             }
-                                         }),
-        SettingsRenderer::CreateSlider("  Min Thresh", &settings_state_.vad_adaptive_min, 0.01F, 0.99F, 0.01F,
-                                       [this] {
-                                           if (on_vad_adaptive_changed_) {
-                                               on_vad_adaptive_changed_(settings_state_.vad_adaptive,
-                                                                        settings_state_.vad_adaptive_min,
-                                                                        settings_state_.vad_adaptive_max,
-                                                                        settings_state_.vad_adaptive_alpha);
-                                           }
-                                       }),
-        SettingsRenderer::CreateSlider("  Max Thresh", &settings_state_.vad_adaptive_max, 0.01F, 0.99F, 0.01F,
-                                       [this] {
-                                           if (on_vad_adaptive_changed_) {
-                                               on_vad_adaptive_changed_(settings_state_.vad_adaptive,
-                                                                        settings_state_.vad_adaptive_min,
-                                                                        settings_state_.vad_adaptive_max,
-                                                                        settings_state_.vad_adaptive_alpha);
-                                           }
-                                       }),
-        SettingsRenderer::CreateSlider("  Alpha", &settings_state_.vad_adaptive_alpha, 0.01F, 0.99F, 0.01F,
-                                       [this] {
-                                           if (on_vad_adaptive_changed_) {
-                                               on_vad_adaptive_changed_(settings_state_.vad_adaptive,
-                                                                        settings_state_.vad_adaptive_min,
-                                                                        settings_state_.vad_adaptive_max,
-                                                                        settings_state_.vad_adaptive_alpha);
-                                           }
-                                       }),
+        SettingsRenderer::create_checkbox("Adaptive Mode", &settings_state_.vad_adaptive,
+                                          [this] {
+                                              if (on_vad_adaptive_changed_) {
+                                                  on_vad_adaptive_changed_(settings_state_.vad_adaptive,
+                                                                           settings_state_.vad_adaptive_min,
+                                                                           settings_state_.vad_adaptive_max,
+                                                                           settings_state_.vad_adaptive_alpha);
+                                              }
+                                          }),
+        SettingsRenderer::create_slider("  Min Thresh", &settings_state_.vad_adaptive_min, 0.01F, 0.99F, 0.01F,
+                                        [this] {
+                                            if (on_vad_adaptive_changed_) {
+                                                on_vad_adaptive_changed_(settings_state_.vad_adaptive,
+                                                                         settings_state_.vad_adaptive_min,
+                                                                         settings_state_.vad_adaptive_max,
+                                                                         settings_state_.vad_adaptive_alpha);
+                                            }
+                                        }),
+        SettingsRenderer::create_slider("  Max Thresh", &settings_state_.vad_adaptive_max, 0.01F, 0.99F, 0.01F,
+                                        [this] {
+                                            if (on_vad_adaptive_changed_) {
+                                                on_vad_adaptive_changed_(settings_state_.vad_adaptive,
+                                                                         settings_state_.vad_adaptive_min,
+                                                                         settings_state_.vad_adaptive_max,
+                                                                         settings_state_.vad_adaptive_alpha);
+                                            }
+                                        }),
+        SettingsRenderer::create_slider("  Alpha", &settings_state_.vad_adaptive_alpha, 0.01F, 0.99F, 0.01F,
+                                        [this] {
+                                            if (on_vad_adaptive_changed_) {
+                                                on_vad_adaptive_changed_(settings_state_.vad_adaptive,
+                                                                         settings_state_.vad_adaptive_min,
+                                                                         settings_state_.vad_adaptive_max,
+                                                                         settings_state_.vad_adaptive_alpha);
+                                            }
+                                        }),
     });
 }
 
-ftxui::Component TuiRenderer::create_stt_settings_component() {
+auto TuiRenderer::create_stt_settings_component() -> ftxui::Component {
     return Container::Vertical({
-        SettingsRenderer::CreateInput("Threads", &settings_state_.stt_threads_str,
-                                      [this] {
-                                          try {
-                                              int val = std::stoi(settings_state_.stt_threads_str);
-                                              settings_state_.stt_threads = val;
-                                              if (on_stt_params_changed_) {
-                                                  on_stt_params_changed_(val, settings_state_.stt_language);
+        SettingsRenderer::create_input("Threads", &settings_state_.stt_threads_str,
+                                       [this] {
+                                           try {
+                                               int val = std::stoi(settings_state_.stt_threads_str);
+                                               settings_state_.stt_threads = val;
+                                               if (on_stt_params_changed_) {
+                                                   on_stt_params_changed_(val, settings_state_.stt_language);
+                                               }
+                                           } catch (...) {
+                                           }
+                                       }),
+        SettingsRenderer::create_input("Language", &settings_state_.stt_language,
+                                       [this] {
+                                           if (on_stt_params_changed_) {
+                                               on_stt_params_changed_(settings_state_.stt_threads,
+                                                                      settings_state_.stt_language);
+                                           }
+                                       }),
+        Renderer([] { return separator(); }),
+        SettingsRenderer::create_checkbox("Use GPU (CUDA)", &settings_state_.stt_use_gpu,
+                                          [this] {
+                                              if (on_stt_gpu_changed_) {
+                                                  on_stt_gpu_changed_(settings_state_.stt_use_gpu);
                                               }
-                                          } catch (...) {
-                                          }
-                                      }),
-        SettingsRenderer::CreateInput("Language", &settings_state_.stt_language,
-                                      [this] {
-                                          if (on_stt_params_changed_) {
-                                              on_stt_params_changed_(settings_state_.stt_threads,
-                                                                     settings_state_.stt_language);
-                                          }
-                                      }),
+                                          }),
+        SettingsRenderer::create_checkbox("Flash Attn", &settings_state_.stt_flash_attn, nullptr),
         Renderer([] { return separator(); }),
-        SettingsRenderer::CreateCheckbox("Use GPU (CUDA)", &settings_state_.stt_use_gpu,
-                                         [this] {
-                                             if (on_stt_gpu_changed_) {
-                                                 on_stt_gpu_changed_(settings_state_.stt_use_gpu);
-                                             }
-                                         }),
-        SettingsRenderer::CreateCheckbox("Flash Attn", &settings_state_.stt_flash_attn, nullptr),
+        SettingsRenderer::create_checkbox("Token Dedup", &settings_state_.stt_token_dedup, nullptr),
+        SettingsRenderer::create_checkbox("No Context", &settings_state_.stt_no_context, nullptr),
         Renderer([] { return separator(); }),
-        SettingsRenderer::CreateCheckbox("Token Dedup", &settings_state_.stt_token_dedup, nullptr),
-        SettingsRenderer::CreateCheckbox("No Context", &settings_state_.stt_no_context, nullptr),
+        int_slider_with_label("Step (ms)", &settings_state_.stt_step_ms, 500, 5000, nullptr),
+        int_slider_with_label("Keep (ms)", &settings_state_.stt_keep_ms, 0, 1000, nullptr),
         Renderer([] { return separator(); }),
-        intSliderWithLabel("Step (ms)", &settings_state_.stt_step_ms, 500, 5000, nullptr),
-        intSliderWithLabel("Keep (ms)", &settings_state_.stt_keep_ms, 0, 1000, nullptr),
-        Renderer([] { return separator(); }),
-        intSliderWithLabel("Min Repet.", &settings_state_.stt_min_repetition, 4, 30,
-                           [this] {
-                               if (on_stt_heuristics_changed_) {
-                                   on_stt_heuristics_changed_(settings_state_.stt_min_repetition,
-                                                              settings_state_.stt_hallucination_len);
-                               }
-                           }),
-        intSliderWithLabel("Hallucinat.", &settings_state_.stt_hallucination_len, 0, 10,
-                           [this] {
-                               if (on_stt_heuristics_changed_) {
-                                   on_stt_heuristics_changed_(settings_state_.stt_min_repetition,
-                                                              settings_state_.stt_hallucination_len);
-                               }
-                           }),
+        int_slider_with_label("Min Repet.", &settings_state_.stt_min_repetition, 4, 30,
+                              [this] {
+                                  if (on_stt_heuristics_changed_) {
+                                      on_stt_heuristics_changed_(settings_state_.stt_min_repetition,
+                                                                 settings_state_.stt_hallucination_len);
+                                  }
+                              }),
+        int_slider_with_label("Hallucinat.", &settings_state_.stt_hallucination_len, 0, 10,
+                              [this] {
+                                  if (on_stt_heuristics_changed_) {
+                                      on_stt_heuristics_changed_(settings_state_.stt_min_repetition,
+                                                                 settings_state_.stt_hallucination_len);
+                                  }
+                              }),
     });
 }
 
-ftxui::Component TuiRenderer::create_help_component() {
+auto TuiRenderer::create_help_component() -> ftxui::Component {
     return Renderer([] {
         return vbox({
                    text("Help & Info") | bold | hcenter | color(Color::Cyan),
@@ -343,13 +344,17 @@ ftxui::Component TuiRenderer::create_help_component() {
     });
 }
 
-ftxui::Component TuiRenderer::create_system_view_component() {
+auto TuiRenderer::create_system_view_component() -> ftxui::Component {
     return Renderer([this] { return render_system_metrics(); });
 }
 
-void TuiRenderer::stop() { screen_.ExitLoopClosure()(); }
+void TuiRenderer::stop() {
+    screen_.ExitLoopClosure()();
+}
 
-void TuiRenderer::post_redraw() { screen_.PostEvent(Event::Custom); }
+void TuiRenderer::post_redraw() {
+    screen_.PostEvent(Event::Custom);
+}
 
 void TuiRenderer::update_state(const std::function<void(AppState&)>& update_fn) {
     std::lock_guard<std::mutex> lock(state_mutex_);
@@ -372,7 +377,9 @@ void TuiRenderer::set_on_threshold_changed(std::function<void(float)> callback) 
     on_threshold_changed_ = std::move(callback);
 }
 
-void TuiRenderer::set_on_gain_changed(std::function<void(float)> callback) { on_gain_changed_ = std::move(callback); }
+void TuiRenderer::set_on_gain_changed(std::function<void(float)> callback) {
+    on_gain_changed_ = std::move(callback);
+}
 
 void TuiRenderer::set_on_energy_changed(std::function<void(float)> callback) {
     on_energy_changed_ = std::move(callback);
@@ -402,7 +409,7 @@ void TuiRenderer::set_on_stt_heuristics_changed(std::function<void(int, int)> ca
     on_stt_heuristics_changed_ = std::move(callback);
 }
 
-Element TuiRenderer::render_header() const {
+auto TuiRenderer::render_header() const -> Element {
     // Header is now integrated into the main layout as the Tab Bar
     // We keep this for the "Logo" part if needed, but the main navigation is separate.
     return hbox({
@@ -415,7 +422,7 @@ Element TuiRenderer::render_header() const {
            borderEmpty;
 }
 
-Element TuiRenderer::render_subtitles() {
+auto TuiRenderer::render_subtitles() -> Element {
     std::lock_guard<std::mutex> lock(state_mutex_);
 
     Elements list;
@@ -451,7 +458,7 @@ Element TuiRenderer::render_subtitles() {
     return vbox(std::move(list)) | vscroll_indicator | frame | flex;
 }
 
-Element TuiRenderer::render_metrics() {
+auto TuiRenderer::render_metrics() -> Element {
     // Legacy / Mini Status
     std::lock_guard<std::mutex> lock(state_mutex_);
     return hbox({
@@ -463,7 +470,7 @@ Element TuiRenderer::render_metrics() {
            borderEmpty;
 }
 
-Element TuiRenderer::render_vad_metrics() {
+auto TuiRenderer::render_vad_metrics() -> Element {
     std::lock_guard<std::mutex> lock(state_mutex_);
     auto make_gauge = [](const std::string& label, float val, Color c) {
         return hbox({
@@ -485,7 +492,7 @@ Element TuiRenderer::render_vad_metrics() {
            border;
 }
 
-Element TuiRenderer::render_system_metrics() {
+auto TuiRenderer::render_system_metrics() -> Element {
     std::lock_guard<std::mutex> lock(state_mutex_);
     auto make_gauge = [](const std::string& label, float val, Color c) {
         return hbox({
@@ -515,7 +522,7 @@ Element TuiRenderer::render_system_metrics() {
            border;
 }
 
-Element TuiRenderer::render_footer() {
+auto TuiRenderer::render_footer() -> Element {
     return hbox({
         text(" [Esc] Exit ") | color(Color::GrayLight),
         filler(),
@@ -523,4 +530,4 @@ Element TuiRenderer::render_footer() {
     });
 }
 
-} // namespace ui
+}  // namespace ui

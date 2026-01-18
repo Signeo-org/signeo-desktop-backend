@@ -15,23 +15,19 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # --- Static Analysis (Clang-Tidy) ---
-option(ENABLE_CLANG_TIDY "Enable static analysis with clang-tidy" OFF)
+option(ENABLE_CLANG_TIDY "Enable static analysis with clang-tidy" ON)
 
 if(ENABLE_CLANG_TIDY)
     find_program(CLANG_TIDY_EXE NAMES "clang-tidy")
     if(CLANG_TIDY_EXE)
         message(STATUS "Clang-Tidy found: ${CLANG_TIDY_EXE}")
-        # Default checks if not specified by user
-        if(NOT CLANG_TIDY_CHECKS)
-            set(CLANG_TIDY_CHECKS "-*,readability-*,bugprone-*,performance-*,modernize-*")
-        endif()
     else()
         message(WARNING "Clang-Tidy requested but not found.")
     endif()
 endif()
 
 # --- Code Formatting (Clang-Format) ---
-option(ENABLE_CLANG_FORMAT "Enable code formatting with clang-format" OFF)
+option(ENABLE_CLANG_FORMAT "Enable code formatting with clang-format" ON)
 
 if(ENABLE_CLANG_FORMAT)
     find_program(CLANG_FORMAT_EXE NAMES "clang-format")
@@ -443,9 +439,9 @@ target_link_libraries(realtime-subtitler-core PUBLIC
 
 if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
     if(MSVC)
-        set_target_properties(realtime-subtitler-core PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE};-checks=${CLANG_TIDY_CHECKS};--extra-arg=/EHsc")
+        set_target_properties(realtime-subtitler-core PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE};--extra-arg=/EHsc")
     else()
-        set_target_properties(realtime-subtitler-core PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE};-checks=${CLANG_TIDY_CHECKS}")
+        set_target_properties(realtime-subtitler-core PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
     endif()
 endif()
 
@@ -467,9 +463,9 @@ target_link_libraries(realtime-subtitler PRIVATE
 
 if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
     if(MSVC)
-        set_target_properties(realtime-subtitler properties CXX_CLANG_TIDY "${CLANG_TIDY_EXE};-checks=${CLANG_TIDY_CHECKS};--extra-arg=/EHsc")
+        set_target_properties(realtime-subtitler PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE};--extra-arg=/EHsc")
     else()
-        set_target_properties(realtime-subtitler PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE};-checks=${CLANG_TIDY_CHECKS}")
+        set_target_properties(realtime-subtitler PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
     endif()
 endif()
 

@@ -1,12 +1,12 @@
 // Windows.h must be included BEFORE onnxruntime headers to avoid macro conflicts
 #ifdef _WIN32
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif
-#ifndef NOMINMAX
-#define NOMINMAX
-#endif
-#include <Windows.h>
+    #ifndef WIN32_LEAN_AND_MEAN
+        #define WIN32_LEAN_AND_MEAN
+    #endif
+    #ifndef NOMINMAX
+        #define NOMINMAX
+    #endif
+    #include <Windows.h>
 #endif
 
 #include <spdlog/spdlog.h>
@@ -21,8 +21,8 @@
 namespace vad {
 
 // Factory Method
-core::Result<std::unique_ptr<VadProcessor>> VadProcessor::create(const std::string& model_path, int sample_rate,
-                                                                 int frame_size, const VadConfig& config) {
+auto VadProcessor::create(const std::string& model_path, int sample_rate, int frame_size, const VadConfig& config)
+    -> core::Result<std::unique_ptr<VadProcessor>> {
     LOG_SCOPED_TRACE();
     spdlog::debug("VadProcessor::create() model_path={}", model_path);
 
@@ -57,29 +57,29 @@ VadProcessor::VadProcessor(int sample_rate, int frame_size, const VadConfig& con
     input_node_dims_[0] = 1;
     input_node_dims_[1] = effective_window_size_;
 
-    _state.resize(2 * 1 * 128);
-    _context.assign(context_samples_, 0.0F);
-    _sr.resize(1);
-    _sr[0] = sample_rate;
+    state_.resize(2 * 1 * 128);
+    context_.assign(context_samples_, 0.0F);
+    sr_.resize(1);
+    sr_[0] = sample_rate;
 
     // Pre-allocate input buffer
-    _input_buffer.resize(effective_window_size_);
+    input_buffer_.resize(effective_window_size_);
 }
 
 VadProcessor::~VadProcessor() {
     spdlog::debug("VadProcessor: Destructor called, cleaning up...");
-    session.reset();
+    session_.reset();
     spdlog::debug("VadProcessor: Cleanup complete.");
 }
 
-core::Status VadProcessor::init_session(const std::string& model_path) {
+auto VadProcessor::init_session(const std::string& model_path) -> core::Status {
     LOG_SCOPED_TRACE();
     spdlog::debug("init_session() loading model from {}", model_path);
 
     try {
-        session_options.SetIntraOpNumThreads(1);
-        session_options.SetInterOpNumThreads(1);
-        session_options.SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_ALL);
+        session_options_.SetIntraOpNumThreads(1);
+        session_options_.SetInterOpNumThreads(1);
+        session_options_.SetGraphOptimizationLevel(GraphOptimizationLevel::ORT_ENABLE_ALL);
 
         const char* model_path_cstr = nullptr;
 #ifdef _WIN32
@@ -90,7 +90,7 @@ core::Status VadProcessor::init_session(const std::string& model_path) {
         MultiByteToWideChar(CP_UTF8, 0, model_path.c_str(), static_cast<int>(model_path.size()), w_model_path.data(),
                             size_needed);
 
-        session = std::make_unique<Ort::Session>(env, w_model_path.c_str(), session_options);
+        session_ = std::make_unique<Ort::Session>(env_, w_model_path.c_str(), session_options_);
 #else
         session = std::make_unique<Ort::Session>(env, model_path.c_str(), session_options);
 #endif
@@ -103,8 +103,8 @@ core::Status VadProcessor::init_session(const std::string& model_path) {
 }
 
 void VadProcessor::reset_states() {
-    std::ranges::fill(_state, 0.0F);
-    std::ranges::fill(_context, 0.0F);
+    std::ranges::fill(state_, 0.0F);
+    std::ranges::fill(context_, 0.0F);
     smoothed_prob_ = 0.0F;
     noise_floor_ = 0.1F;
     adaptive_threshold_ = config_.threshold;
@@ -118,7 +118,7 @@ void VadProcessor::reset() {
     spdlog::debug("VadProcessor state reset.");
 }
 
-float VadProcessor::calculate_rms(const std::vector<float>& frame) {
+auto VadProcessor::calculate_rms(const std::vector<float>& frame) -> float {
     if (frame.empty()) {
         return 0.0F;
     }
@@ -129,17 +129,17 @@ float VadProcessor::calculate_rms(const std::vector<float>& frame) {
     return std::sqrt(sum_squares / static_cast<float>(frame.size()));
 }
 
-float VadProcessor::run_inference(const std::vector<float>& frame) {
+auto VadProcessor::run_inference(const std::vector<float>& frame) -> float {
     // Prepare input with context (using pre-allocated buffer)
-    std::ranges::copy(_context, _input_buffer.begin());
-    std::ranges::copy(frame, _input_buffer.begin() + context_samples_);
+    std::ranges::copy(context_, input_buffer_.begin());
+    std::ranges::copy(frame, input_buffer_.begin() + context_samples_);
 
     // Create tensors
     Ort::Value input_ort =
-        Ort::Value::CreateTensor<float>(memory_info, _input_buffer.data(), _input_buffer.size(), input_node_dims_, 2);
+        Ort::Value::CreateTensor<float>(memory_info_, input_buffer_.data(), input_buffer_.size(), input_node_dims_, 2);
     Ort::Value state_ort =
-        Ort::Value::CreateTensor<float>(memory_info, _state.data(), _state.size(), state_node_dims_, 3);
-    Ort::Value sr_ort = Ort::Value::CreateTensor<int64_t>(memory_info, _sr.data(), _sr.size(), sr_node_dims_, 1);
+        Ort::Value::CreateTensor<float>(memory_info_, state_.data(), state_.size(), state_node_dims_, 3);
+    Ort::Value sr_ort = Ort::Value::CreateTensor<int64_t>(memory_info_, sr_.data(), sr_.size(), sr_node_dims_, 1);
 
     std::vector<Ort::Value> ort_inputs;
     ort_inputs.push_back(std::move(input_ort));
@@ -147,21 +147,21 @@ float VadProcessor::run_inference(const std::vector<float>& frame) {
     ort_inputs.push_back(std::move(sr_ort));
 
     // Run inference
-    auto ort_outputs = session->Run(Ort::RunOptions{nullptr}, input_node_names_.data(), ort_inputs.data(),
-                                    ort_inputs.size(), output_node_names_.data(), output_node_names_.size());
+    auto ort_outputs = session_->Run(Ort::RunOptions{nullptr}, input_node_names_.data(), ort_inputs.data(),
+                                     ort_inputs.size(), output_node_names_.data(), output_node_names_.size());
 
     float speech_prob = ort_outputs[0].GetTensorMutableData<float>()[0];
 
     // Update state for next frame
     auto* state_n = ort_outputs[1].GetTensorMutableData<float>();
-    std::copy(state_n, state_n + _state.size(), _state.begin());
-    std::copy(_input_buffer.end() - context_samples_, _input_buffer.end(), _context.begin());
+    std::copy(state_n, state_n + state_.size(), state_.begin());
+    std::copy(input_buffer_.end() - context_samples_, input_buffer_.end(), context_.begin());
 
     return speech_prob;
 }
 
-core::Result<bool> VadProcessor::process(const std::vector<float>& frame, float& raw_probability,
-                                         float& smoothed_probability) {
+auto VadProcessor::process(const std::vector<float>& frame, float& raw_probability, float& smoothed_probability)
+    -> core::Result<bool> {
     if (frame.size() != static_cast<size_t>(window_size_samples_)) {
         return core::log_error(
             std::format("VadProcessor frame size mismatch. Expected {}, got {}", window_size_samples_, frame.size()));
@@ -171,8 +171,8 @@ core::Result<bool> VadProcessor::process(const std::vector<float>& frame, float&
     float rms = calculate_rms(frame);
     if (!check_energy_gate(rms)) {
         raw_probability = 0.0F;
-        smoothed_probability = smoothed_prob_; // check_energy_gate updates smoothed_prob_
-        return false;
+        smoothed_probability = smoothed_prob_;  // check_energy_gate updates smoothed_prob_
+        return 0;
     }
 
     // === STAGE 2: Neural VAD Inference ===
@@ -191,10 +191,10 @@ core::Result<bool> VadProcessor::process(const std::vector<float>& frame, float&
     // === STAGE 6: Pre-Roll Buffer Management ===
     update_pre_roll(frame);
 
-    return effective_speech;
+    return static_cast<int>(effective_speech);
 }
 
-bool VadProcessor::check_energy_gate(float rms) {
+auto VadProcessor::check_energy_gate(float rms) -> bool {
     if (rms < config_.energy_threshold) {
         // Decay smoothed probability towards 0
         smoothed_prob_ = config_.smoothing_alpha * 0.0F + (1.0F - config_.smoothing_alpha) * smoothed_prob_;
@@ -215,9 +215,9 @@ bool VadProcessor::check_energy_gate(float rms) {
         } else {
             is_speaking_ = false;
         }
-        return false; // Gate closed
+        return false;  // Gate closed
     }
-    return true; // Gate open
+    return true;  // Gate open
 }
 
 void VadProcessor::update_probability_state(float raw_probability, float& smoothed_probability) {
@@ -240,7 +240,7 @@ void VadProcessor::update_pre_roll(const std::vector<float>& frame) {
     }
 }
 
-float VadProcessor::update_adaptive_threshold(float raw_probability) {
+auto VadProcessor::update_adaptive_threshold(float raw_probability) -> float {
     if (!is_speaking_) {
         // Update noise floor with configurable alpha
         noise_floor_ = config_.adaptive_alpha * noise_floor_ + (1.0F - config_.adaptive_alpha) * raw_probability;
@@ -248,23 +248,37 @@ float VadProcessor::update_adaptive_threshold(float raw_probability) {
         // Clamp threshold between min/max config
         return std::max(config_.adaptive_min_threshold, std::min(config_.adaptive_max_threshold, noise_floor_ + 0.25F));
     }
-    return adaptive_threshold_; // Keep existing if speaking
+    return adaptive_threshold_;  // Keep existing if speaking
 }
 
-const std::deque<std::vector<float>>& VadProcessor::get_pre_roll_buffer() const { return pre_roll_buffer_; }
+auto VadProcessor::get_pre_roll_buffer() const -> const std::deque<std::vector<float>>& {
+    return pre_roll_buffer_;
+}
 
-void VadProcessor::consume_pre_roll() { pre_roll_buffer_.clear(); }
+void VadProcessor::consume_pre_roll() {
+    pre_roll_buffer_.clear();
+}
 
 // Runtime Tuning
-void VadProcessor::set_threshold(float threshold) { config_.threshold = threshold; }
+void VadProcessor::set_threshold(float threshold) {
+    config_.threshold = threshold;
+}
 
-float VadProcessor::get_threshold() const { return config_.threshold; }
+auto VadProcessor::get_threshold() const -> float {
+    return config_.threshold;
+}
 
-void VadProcessor::set_energy_threshold(float val) { config_.energy_threshold = val; }
+void VadProcessor::set_energy_threshold(float val) {
+    config_.energy_threshold = val;
+}
 
-void VadProcessor::set_smoothing_alpha(float val) { config_.smoothing_alpha = val; }
+void VadProcessor::set_smoothing_alpha(float val) {
+    config_.smoothing_alpha = val;
+}
 
-void VadProcessor::set_adaptive_enabled(bool enabled) { config_.adaptive_enabled = enabled; }
+void VadProcessor::set_adaptive_enabled(bool enabled) {
+    config_.adaptive_enabled = enabled;
+}
 
 void VadProcessor::set_adaptive_params(float min_th, float max_th, float alpha) {
     config_.adaptive_min_threshold = min_th;
@@ -272,9 +286,13 @@ void VadProcessor::set_adaptive_params(float min_th, float max_th, float alpha) 
     config_.adaptive_alpha = alpha;
 }
 
-float VadProcessor::get_adaptive_threshold() const { return adaptive_threshold_; }
+auto VadProcessor::get_adaptive_threshold() const -> float {
+    return adaptive_threshold_;
+}
 
-float VadProcessor::get_noise_floor() const { return noise_floor_; }
+auto VadProcessor::get_noise_floor() const -> float {
+    return noise_floor_;
+}
 
 void VadProcessor::update_hangover(bool is_speech_now) {
     if (is_speech_now) {
@@ -285,4 +303,4 @@ void VadProcessor::update_hangover(bool is_speech_now) {
     is_speaking_ = is_speech_now || (hangover_counter_ > 0);
 }
 
-} // namespace vad
+}  // namespace vad

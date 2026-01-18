@@ -6,7 +6,7 @@ namespace audio {
 
 RingBuffer::RingBuffer(size_t capacity) : capacity_(capacity), buffer_(capacity) {}
 
-size_t RingBuffer::write(const float* data, size_t count) {
+auto RingBuffer::write(const float* data, size_t count) -> size_t {
     std::lock_guard<std::mutex> lock(mutex_);
 
     const size_t available = capacity_ - size_;
@@ -29,7 +29,7 @@ size_t RingBuffer::write(const float* data, size_t count) {
     return count;
 }
 
-size_t RingBuffer::read(float* dest, size_t count) {
+auto RingBuffer::read(float* dest, size_t count) -> size_t {
     std::lock_guard<std::mutex> lock(mutex_);
 
     count = std::min(count, size_);
@@ -50,17 +50,19 @@ size_t RingBuffer::read(float* dest, size_t count) {
     return count;
 }
 
-size_t RingBuffer::available_read() const {
+auto RingBuffer::available_read() const -> size_t {
     std::lock_guard<std::mutex> lock(mutex_);
     return size_;
 }
 
-size_t RingBuffer::available_write() const {
+auto RingBuffer::available_write() const -> size_t {
     std::lock_guard<std::mutex> lock(mutex_);
     return capacity_ - size_;
 }
 
-size_t RingBuffer::capacity() const noexcept { return capacity_; }
+auto RingBuffer::capacity() const noexcept -> size_t {
+    return capacity_;
+}
 
 void RingBuffer::clear() {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -69,4 +71,4 @@ void RingBuffer::clear() {
     size_ = 0;
 }
 
-} // namespace audio
+}  // namespace audio

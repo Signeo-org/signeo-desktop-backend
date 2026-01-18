@@ -7,7 +7,7 @@
 
 struct AppConfig {
     // Audio
-    int device_index = -1; // -1 = default device
+    int device_index = -1;  // -1 = default device
 
     // STT
     std::string model_path = "models/ggml-base.bin";
@@ -18,23 +18,23 @@ struct AppConfig {
 
     // VAD Core
     std::string vad_model_path = "models/silero_vad.onnx";
-    float vad_threshold = 0.5f;          // Lowered from 0.6f
-    float vad_energy_threshold = 0.001f; // Lowered from 0.01f
+    float vad_threshold = 0.5F;           // Lowered from 0.6f
+    float vad_energy_threshold = 0.001F;  // Lowered from 0.01f
 
     // VAD Advanced
-    float vad_smoothing_alpha = 0.3f;
+    float vad_smoothing_alpha = 0.3F;
     int vad_hangover_frames = 20;
     int vad_pre_roll_frames = 6;
     bool vad_adaptive_threshold = true;
-    float vad_adaptive_min_threshold = 0.35f;
-    float vad_adaptive_max_threshold = 0.6f;
-    float vad_adaptive_alpha = 0.95f; // Noise floor update rate
+    float vad_adaptive_min_threshold = 0.35F;
+    float vad_adaptive_max_threshold = 0.6F;
+    float vad_adaptive_alpha = 0.95F;  // Noise floor update rate
 
     // Streaming Transcription
-    int stt_step_ms = 2000;        // Transcribe every N ms
-    int stt_keep_ms = 500;         // Context keep buffer
-    int stt_max_length_ms = 10000; // Max audio window
-    bool stt_token_dedup = true;   // Token overlap detection
+    int stt_step_ms = 2000;         // Transcribe every N ms
+    int stt_keep_ms = 500;          // Context keep buffer
+    int stt_max_length_ms = 10000;  // Max audio window
+    bool stt_token_dedup = true;    // Token overlap detection
 
     // STT Quality / Filter
     int stt_min_repetition_len = 10;
@@ -52,8 +52,8 @@ struct AppConfig {
 
     // Actions
     bool list_devices_requested = false;
-    bool use_ui = false; // Enable TUI mode
+    bool use_ui = false;  // Enable TUI mode
 
     // Helper to load all configuration sources
-    static AppConfig parse(int argc, char* argv[]);
+    static auto parse(int argc, char* argv[]) -> AppConfig;
 };

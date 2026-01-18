@@ -13,7 +13,7 @@
 
 // Forward declarations
 struct whisper_context;
-struct whisper_full_params;
+struct WhisperFullParams;
 
 namespace stt {
 
@@ -30,8 +30,8 @@ struct SttConfig {
     // Quality settings
     bool print_progress = false;
     bool print_timestamps = false;
-    bool single_segment = true; ///< For VAD-gated approach
-    bool no_context = false;    ///< Keep context for accuracy
+    bool single_segment = true;  ///< For VAD-gated approach
+    bool no_context = false;     ///< Keep context for accuracy
 };
 
 /**
@@ -44,8 +44,8 @@ class SttEngine {
 public:
     struct TranscriptionResult {
         std::string text;
-        int64_t duration_ms = 0; ///< Processing time
-        float avg_probability = 0.0f;
+        int64_t duration_ms = 0;  ///< Processing time
+        float avg_probability = 0.0F;
     };
 
     /**
@@ -53,43 +53,43 @@ public:
      * @param config Engine configuration
      * @return Result containing unique_ptr to SttEngine, or error message
      */
-    static core::Result<std::unique_ptr<SttEngine>> create(const SttConfig& config = SttConfig{});
+    static auto create(const SttConfig& config = SttConfig{}) -> core::Result<std::unique_ptr<SttEngine>>;
 
     ~SttEngine();
 
     // Non-copyable
     SttEngine(const SttEngine&) = delete;
-    SttEngine& operator=(const SttEngine&) = delete;
+    auto operator=(const SttEngine&) -> SttEngine& = delete;
 
     // Move-enabled
-    SttEngine(SttEngine&&) noexcept;
-    SttEngine& operator=(SttEngine&&) noexcept;
+    SttEngine(SttEngine&& /*other*/) noexcept;
+    auto operator=(SttEngine&& /*other*/) noexcept -> SttEngine&;
 
     /**
      * @brief Transcribe audio buffer (16kHz mono float32)
      * @param audio Audio samples at 16kHz
      * @return Result containing TranscriptionResult, or error message
      */
-    core::Result<TranscriptionResult> transcribe(const std::vector<float>& audio);
+    auto transcribe(const std::vector<float>& audio) -> core::Result<TranscriptionResult>;
 
     /**
      * @brief Check if engine is ready for transcription
      */
-    bool is_ready() const;
+    auto is_ready() const -> bool;
 
     /**
      * @brief Get the configured language
      */
-    const std::string& language() const;
+    auto language() const -> const std::string&;
 
 private:
     // Private constructor - use create() factory
     explicit SttEngine(SttConfig config);
 
-    core::Status init_whisper();
+    auto init_whisper() -> core::Status;
 
     SttConfig config_;
     whisper_context* ctx_ = nullptr;
 };
 
-} // namespace stt
+}  // namespace stt
