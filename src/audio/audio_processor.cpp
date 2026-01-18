@@ -67,16 +67,16 @@ void AudioProcessor::reset() {
     }
 }
 
-std::vector<float> AudioProcessor::downmix_to_mono(const std::vector<float>& interleaved) {
+std::vector<float> AudioProcessor::downmix_to_mono(const std::vector<float>& interleaved) const {
     size_t num_frames = interleaved.size() / input_channels_;
     std::vector<float> mono(num_frames);
 
-    float inv_channels = 1.0f / static_cast<float>(input_channels_);
+    float inv_channels = 1.0F / static_cast<float>(input_channels_);
 
     for (size_t i = 0; i < num_frames; ++i) {
-        float sum = 0.0f;
+        float sum = 0.0F;
         for (int ch = 0; ch < input_channels_; ++ch) {
-            sum += interleaved[i * input_channels_ + ch];
+            sum += interleaved[(i * input_channels_) + ch];
         }
         mono[i] = sum * inv_channels;
     }

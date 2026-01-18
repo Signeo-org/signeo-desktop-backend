@@ -21,8 +21,47 @@ if(ENABLE_CLANG_TIDY)
     find_program(CLANG_TIDY_EXE NAMES "clang-tidy")
     if(CLANG_TIDY_EXE)
         message(STATUS "Clang-Tidy found: ${CLANG_TIDY_EXE}")
+        # Default checks if not specified by user
+        if(NOT CLANG_TIDY_CHECKS)
+            set(CLANG_TIDY_CHECKS "-*,readability-*,bugprone-*,performance-*,modernize-*")
+        endif()
     else()
         message(WARNING "Clang-Tidy requested but not found.")
+    endif()
+endif()
+
+# --- Code Formatting (Clang-Format) ---
+option(ENABLE_CLANG_FORMAT "Enable code formatting with clang-format" OFF)
+
+if(ENABLE_CLANG_FORMAT)
+    find_program(CLANG_FORMAT_EXE NAMES "clang-format")
+    if(CLANG_FORMAT_EXE)
+        message(STATUS "Clang-Format found: ${CLANG_FORMAT_EXE}")
+        
+        # Collect all source files
+        file(GLOB_RECURSE ALL_SOURCES
+            RELATIVE "${CMAKE_SOURCE_DIR}"
+            "src/*.cpp" "src/*.hpp" "include/*.hpp" "tests/*.cpp"
+        )
+        
+        # Exclude build/ and external/ directories from formatting if they were accidentally picked up
+        # (GLOB_RECURSE with relative path usually respects source dir, but be careful of generated files)
+        
+        # 1. Format Target (Apply changes)
+        add_custom_target(format
+            COMMAND "${CLANG_FORMAT_EXE}" -i -style=file ${ALL_SOURCES}
+            WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+            COMMENT "Running clang-format on all source files..."
+        )
+
+        # 2. Check Format Target (Dry run, fail on changes)
+        add_custom_target(check-format
+            COMMAND "${CLANG_FORMAT_EXE}" --dry-run --Werror -style=file ${ALL_SOURCES}
+            WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+            COMMENT "Checking code formatting..."
+        )
+    else()
+        message(WARNING "Clang-Format requested but not found.")
     endif()
 endif()
 
@@ -80,8 +119,16 @@ FetchContent_MakeAvailable(ftxui)
 # 4. Whisper.cpp (Speech-to-Text)
 message(STATUS "Fetching whisper.cpp...")
 
-# Optimization: Enable CUDA if available and requested
-option(GGML_CUDA "Enable CUDA support" OFF)
+# Unified GPU Option
+option(ENABLE_GPU "Enable GPU support (CUDA for Whisper & ONNX Runtime)" OFF)
+
+if(ENABLE_GPU)
+    set(GGML_CUDA ON CACHE BOOL "Enable CUDA support" FORCE)
+    message(STATUS "GPU Support ENABLED: CUDA will be used for Whisper.cpp and ONNX Runtime")
+else()
+    set(GGML_CUDA OFF CACHE BOOL "Enable CUDA support" FORCE)
+    message(STATUS "GPU Support DISABLED: CPU-only build")
+endif()
 
 if(GGML_CUDA)
     include(CheckLanguage)
@@ -112,11 +159,11 @@ if(GGML_CUDA)
         enable_language(CUDA)
         message(STATUS "CUDA compiler found: ${CMAKE_CUDA_COMPILER}")
     else()
-        message(WARNING "CUDA requested but not found. Falling back to CPU.")
+        message(WARNING "CUDA requested but not found. Falling back to CPU for Whisper.")
         set(GGML_CUDA OFF CACHE BOOL "" FORCE)
     endif()
 else()
-    message(STATUS "CUDA disabled. Building CPU-only.")
+    message(STATUS "CUDA disabled for Whisper.")
 endif()
 
 FetchContent_Declare(
@@ -265,14 +312,34 @@ endif()
 message(STATUS "Fetching ONNX Runtime v1.23.2 (Binary)...")
 
 if(WIN32)
-    set(ONNX_URL "https://github.com/microsoft/onnxruntime/releases/download/v1.23.2/onnxruntime-win-x64-1.23.2.zip")
+    if(ENABLE_GPU)
+        message(STATUS "Selecting ONNX Runtime GPU (CUDA) build for Windows")
+        set(ONNX_URL "https://github.com/microsoft/onnxruntime/releases/download/v1.23.2/onnxruntime-win-x64-gpu-1.23.2.zip")
+    else()
+        message(STATUS "Selecting ONNX Runtime CPU build for Windows")
+        set(ONNX_URL "https://github.com/microsoft/onnxruntime/releases/download/v1.23.2/onnxruntime-win-x64-1.23.2.zip")
+    endif()
+
     set(ONNX_LIB_REL_PATH "lib/onnxruntime.lib")
     set(ONNX_BIN_REL_PATH "lib/onnxruntime.dll")
+    if(ENABLE_GPU)
+         # GPU version has extra provider DLLs that we might want to track or install
+         set(ONNX_PROVIDERS_CUDA_BIN_REL_PATH "lib/onnxruntime_providers_cuda.dll")
+         set(ONNX_PROVIDERS_SHARED_BIN_REL_PATH "lib/onnxruntime_providers_shared.dll")
+    endif()
+
 elseif(UNIX)
-    set(ONNX_URL "https://github.com/microsoft/onnxruntime/releases/download/v1.23.2/onnxruntime-linux-x64-1.23.2.tgz")
+    if(ENABLE_GPU)
+        message(STATUS "Selecting ONNX Runtime GPU (CUDA) build for Linux")
+        set(ONNX_URL "https://github.com/microsoft/onnxruntime/releases/download/v1.23.2/onnxruntime-linux-x64-gpu-1.23.2.tgz")
+    else()
+         message(STATUS "Selecting ONNX Runtime CPU build for Linux")
+        set(ONNX_URL "https://github.com/microsoft/onnxruntime/releases/download/v1.23.2/onnxruntime-linux-x64-1.23.2.tgz")
+    endif()
+
     set(ONNX_LIB_REL_PATH "lib/libonnxruntime.so.1.23.2")
     set(ONNX_BIN_REL_PATH "lib/libonnxruntime.so.1.23.2")
-    set(ONNX_SO_LINK "lib/libonnxruntime.so") # Symlink usually
+    set(ONNX_SO_LINK "lib/libonnxruntime.so") 
 else()
     message(FATAL_ERROR "Unsupported platform for ONNX Runtime")
 endif()
@@ -374,11 +441,11 @@ target_link_libraries(realtime-subtitler-core PUBLIC
     speexdsp
 )
 
-if(CLANG_TIDY_EXE)
+if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
     if(MSVC)
-        set_target_properties(realtime-subtitler-core PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE};--extra-arg=/EHsc")
+        set_target_properties(realtime-subtitler-core PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE};-checks=${CLANG_TIDY_CHECKS};--extra-arg=/EHsc")
     else()
-        set_target_properties(realtime-subtitler-core PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
+        set_target_properties(realtime-subtitler-core PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE};-checks=${CLANG_TIDY_CHECKS}")
     endif()
 endif()
 
@@ -398,11 +465,11 @@ target_link_libraries(realtime-subtitler PRIVATE
     realtime-subtitler-core
 )
 
-if(CLANG_TIDY_EXE)
+if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
     if(MSVC)
-        set_target_properties(realtime-subtitler PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE};--extra-arg=/EHsc")
+        set_target_properties(realtime-subtitler properties CXX_CLANG_TIDY "${CLANG_TIDY_EXE};-checks=${CLANG_TIDY_CHECKS};--extra-arg=/EHsc")
     else()
-        set_target_properties(realtime-subtitler PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
+        set_target_properties(realtime-subtitler PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE};-checks=${CLANG_TIDY_CHECKS}")
     endif()
 endif()
 
@@ -417,6 +484,7 @@ endif()
 
 # 1. Copy ONNX Runtime Library to executable directory
 if(WIN32)
+    # Copy main DLL
     if(EXISTS "${onnxruntime_bin_SOURCE_DIR}/${ONNX_BIN_REL_PATH}")
         add_custom_command(TARGET realtime-subtitler POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
@@ -425,6 +493,27 @@ if(WIN32)
             COMMENT "Copying onnxruntime.dll to executable directory"
         )
     endif()
+
+    # Copy CUDA Provider DLLs if GPU enabled
+    if(ENABLE_GPU)
+        if(EXISTS "${onnxruntime_bin_SOURCE_DIR}/${ONNX_PROVIDERS_CUDA_BIN_REL_PATH}")
+            add_custom_command(TARGET realtime-subtitler POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${onnxruntime_bin_SOURCE_DIR}/${ONNX_PROVIDERS_CUDA_BIN_REL_PATH}"
+                $<TARGET_FILE_DIR:realtime-subtitler>
+                COMMENT "Copying onnxruntime_providers_cuda.dll"
+            )
+        endif()
+        if(EXISTS "${onnxruntime_bin_SOURCE_DIR}/${ONNX_PROVIDERS_SHARED_BIN_REL_PATH}")
+            add_custom_command(TARGET realtime-subtitler POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${onnxruntime_bin_SOURCE_DIR}/${ONNX_PROVIDERS_SHARED_BIN_REL_PATH}"
+                $<TARGET_FILE_DIR:realtime-subtitler>
+                COMMENT "Copying onnxruntime_providers_shared.dll"
+            )
+        endif()
+    endif()
+
 elseif(UNIX)
     # Copy .so file
     if(EXISTS "${onnxruntime_bin_SOURCE_DIR}/${ONNX_BIN_REL_PATH}")
@@ -574,6 +663,7 @@ endif()
 # ============================================================================
 
 # Install rules
+# Install rules
 install(TARGETS realtime-subtitler
     DESTINATION .
     COMPONENT Application
@@ -585,6 +675,15 @@ if(WIN32)
         DESTINATION .
         COMPONENT Application
     )
+    if(ENABLE_GPU)
+        install(FILES 
+            "${onnxruntime_bin_SOURCE_DIR}/${ONNX_PROVIDERS_CUDA_BIN_REL_PATH}"
+            "${onnxruntime_bin_SOURCE_DIR}/${ONNX_PROVIDERS_SHARED_BIN_REL_PATH}"
+            DESTINATION .
+            COMPONENT Application
+        )
+    endif()
+    
 elseif(UNIX)
     install(FILES "${onnxruntime_bin_SOURCE_DIR}/${ONNX_BIN_REL_PATH}"
         DESTINATION lib

@@ -58,7 +58,7 @@ VadProcessor::VadProcessor(int sample_rate, int frame_size, const VadConfig& con
     input_node_dims_[1] = effective_window_size_;
 
     _state.resize(2 * 1 * 128);
-    _context.assign(context_samples_, 0.0f);
+    _context.assign(context_samples_, 0.0F);
     _sr.resize(1);
     _sr[0] = sample_rate;
 
@@ -87,7 +87,7 @@ core::Status VadProcessor::init_session(const std::string& model_path) {
         int size_needed =
             MultiByteToWideChar(CP_UTF8, 0, model_path.c_str(), static_cast<int>(model_path.size()), nullptr, 0);
         std::wstring w_model_path(static_cast<size_t>(size_needed), 0);
-        MultiByteToWideChar(CP_UTF8, 0, model_path.c_str(), static_cast<int>(model_path.size()), &w_model_path[0],
+        MultiByteToWideChar(CP_UTF8, 0, model_path.c_str(), static_cast<int>(model_path.size()), w_model_path.data(),
                             size_needed);
 
         session = std::make_unique<Ort::Session>(env, w_model_path.c_str(), session_options);
@@ -103,10 +103,10 @@ core::Status VadProcessor::init_session(const std::string& model_path) {
 }
 
 void VadProcessor::reset_states() {
-    std::fill(_state.begin(), _state.end(), 0.0f);
-    std::fill(_context.begin(), _context.end(), 0.0f);
-    smoothed_prob_ = 0.0f;
-    noise_floor_ = 0.1f;
+    std::ranges::fill(_state, 0.0F);
+    std::ranges::fill(_context, 0.0F);
+    smoothed_prob_ = 0.0F;
+    noise_floor_ = 0.1F;
     adaptive_threshold_ = config_.threshold;
     hangover_counter_ = 0;
     is_speaking_ = false;
@@ -119,9 +119,10 @@ void VadProcessor::reset() {
 }
 
 float VadProcessor::calculate_rms(const std::vector<float>& frame) {
-    if (frame.empty())
-        return 0.0f;
-    float sum_squares = 0.0f;
+    if (frame.empty()) {
+        return 0.0F;
+    }
+    float sum_squares = 0.0F;
     for (float x : frame) {
         sum_squares += x * x;
     }
@@ -130,8 +131,8 @@ float VadProcessor::calculate_rms(const std::vector<float>& frame) {
 
 float VadProcessor::run_inference(const std::vector<float>& frame) {
     // Prepare input with context (using pre-allocated buffer)
-    std::copy(_context.begin(), _context.end(), _input_buffer.begin());
-    std::copy(frame.begin(), frame.end(), _input_buffer.begin() + context_samples_);
+    std::ranges::copy(_context, _input_buffer.begin());
+    std::ranges::copy(frame, _input_buffer.begin() + context_samples_);
 
     // Create tensors
     Ort::Value input_ort =
@@ -152,8 +153,8 @@ float VadProcessor::run_inference(const std::vector<float>& frame) {
     float speech_prob = ort_outputs[0].GetTensorMutableData<float>()[0];
 
     // Update state for next frame
-    float* stateN = ort_outputs[1].GetTensorMutableData<float>();
-    std::copy(stateN, stateN + _state.size(), _state.begin());
+    auto* state_n = ort_outputs[1].GetTensorMutableData<float>();
+    std::copy(state_n, state_n + _state.size(), _state.begin());
     std::copy(_input_buffer.end() - context_samples_, _input_buffer.end(), _context.begin());
 
     return speech_prob;
@@ -169,7 +170,7 @@ core::Result<bool> VadProcessor::process(const std::vector<float>& frame, float&
     // === STAGE 1: RMS Energy Gate ===
     float rms = calculate_rms(frame);
     if (!check_energy_gate(rms)) {
-        raw_probability = 0.0f;
+        raw_probability = 0.0F;
         smoothed_probability = smoothed_prob_; // check_energy_gate updates smoothed_prob_
         return false;
     }
@@ -196,11 +197,11 @@ core::Result<bool> VadProcessor::process(const std::vector<float>& frame, float&
 bool VadProcessor::check_energy_gate(float rms) {
     if (rms < config_.energy_threshold) {
         // Decay smoothed probability towards 0
-        smoothed_prob_ = config_.smoothing_alpha * 0.0f + (1.0f - config_.smoothing_alpha) * smoothed_prob_;
+        smoothed_prob_ = config_.smoothing_alpha * 0.0F + (1.0F - config_.smoothing_alpha) * smoothed_prob_;
 
         if (config_.adaptive_enabled) {
             // Slowly decay noise floor
-            noise_floor_ = config_.adaptive_alpha * noise_floor_ + (1.0f - config_.adaptive_alpha) * smoothed_prob_;
+            noise_floor_ = config_.adaptive_alpha * noise_floor_ + (1.0F - config_.adaptive_alpha) * smoothed_prob_;
         }
 
         // Handle hangover decay if we early exit
@@ -221,7 +222,7 @@ bool VadProcessor::check_energy_gate(float rms) {
 
 void VadProcessor::update_probability_state(float raw_probability, float& smoothed_probability) {
     // EMA Smoothing
-    smoothed_prob_ = config_.smoothing_alpha * raw_probability + (1.0f - config_.smoothing_alpha) * smoothed_prob_;
+    smoothed_prob_ = config_.smoothing_alpha * raw_probability + (1.0F - config_.smoothing_alpha) * smoothed_prob_;
     smoothed_probability = smoothed_prob_;
 
     // Adaptive Threshold
@@ -242,10 +243,10 @@ void VadProcessor::update_pre_roll(const std::vector<float>& frame) {
 float VadProcessor::update_adaptive_threshold(float raw_probability) {
     if (!is_speaking_) {
         // Update noise floor with configurable alpha
-        noise_floor_ = config_.adaptive_alpha * noise_floor_ + (1.0f - config_.adaptive_alpha) * raw_probability;
+        noise_floor_ = config_.adaptive_alpha * noise_floor_ + (1.0F - config_.adaptive_alpha) * raw_probability;
 
         // Clamp threshold between min/max config
-        return std::max(config_.adaptive_min_threshold, std::min(config_.adaptive_max_threshold, noise_floor_ + 0.25f));
+        return std::max(config_.adaptive_min_threshold, std::min(config_.adaptive_max_threshold, noise_floor_ + 0.25F));
     }
     return adaptive_threshold_; // Keep existing if speaking
 }

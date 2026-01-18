@@ -3,6 +3,7 @@
 
 param (
     [switch]$Clean,
+    [switch]$Gpu,
     [string]$Generator = "Ninja"
 )
 
@@ -14,11 +15,24 @@ Set-Location $RepoRoot
 
 # Configuration
 $BuildDir = "build"
+if ($Gpu) { 
+    $BuildDir = "build_gpu" 
+    $PackageName = "Signeo-Backend-Win64-GPU"
+} else {
+    $PackageName = "Signeo-Backend-Win64"
+}
+
 $DistDir = "dist"
-$PackageName = "Signeo-Backend-Win64"
 $InstallPrefix = "$DistDir/$PackageName"
 
-Write-Host "🚀 Starting Release Process..." -ForegroundColor Cyan
+Write-Host "🚀 Starting Release Process for $PackageName..." -ForegroundColor Cyan
+
+# 0. Check MSVC for GPU (reuse same logic or assume user has it, or call build.ps1?)
+# For simplicity, we assume user environment is correct OR we pass correct flags.
+# To be safe, let's just pass ENABLE_GPU=ON and assume environment is set (or rely on cmake to find it)
+# Best practice: Re-use build.ps1/bat logic or just require environment.
+# Given build.ps1 automates it, we could call it, but release cleans/installs differently.
+# We'll just set flags.
 
 # 1. Clean
 if ($Clean -or !(Test-Path $BuildDir)) {
@@ -29,7 +43,18 @@ if ($Clean -or !(Test-Path $BuildDir)) {
 
 # 2. Configure (Release)
 Write-Host "🔧 Configuring..." -ForegroundColor Cyan
-& cmake -S . -B $BuildDir -G $Generator -DCMAKE_BUILD_TYPE=Release
+$CMakeBaseArgs = @("-S", ".", "-B", "$BuildDir", "-G", "$Generator", "-DCMAKE_BUILD_TYPE=Release")
+
+if ($Gpu) {
+    $CMakeBaseArgs += "-DENABLE_GPU=ON"
+    $CMakeBaseArgs += "-DCMAKE_C_COMPILER=cl"
+    $CMakeBaseArgs += "-DCMAKE_CXX_COMPILER=cl"
+    # Ensure MSVC env is active if not already? 
+    # The user might be running this from a normal shell. 
+    # Ideally release script uses build.ps1 logic or simply fails if nvcc can't compile.
+}
+
+& cmake $CMakeBaseArgs
 if ($LASTEXITCODE -ne 0) { exit 1 }
 
 # 3. Build

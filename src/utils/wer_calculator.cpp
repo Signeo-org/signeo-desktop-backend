@@ -40,10 +40,12 @@ WerResult WerCalculator::calculate_wer(const std::vector<std::string>& reference
     std::vector<std::vector<int>> dp(m + 1, std::vector<int>(n + 1, 0));
 
     // Initialize base cases
-    for (size_t i = 0; i <= m; ++i)
+    for (size_t i = 0; i <= m; ++i) {
         dp[i][0] = static_cast<int>(i); // Deletions
-    for (size_t j = 0; j <= n; ++j)
+    }
+    for (size_t j = 0; j <= n; ++j) {
         dp[0][j] = static_cast<int>(j); // Insertions
+    }
 
     // Fill DP matrix
     for (size_t i = 1; i <= m; ++i) {
@@ -61,7 +63,8 @@ WerResult WerCalculator::calculate_wer(const std::vector<std::string>& reference
     }
 
     // Traceback to classify errors
-    size_t i = m, j = n;
+    size_t i = m;
+    size_t j = n;
     while (i > 0 || j > 0) {
         if (i > 0 && j > 0 && reference[i - 1] == hypothesis[j - 1]) {
             // Match - no error
@@ -98,10 +101,10 @@ std::string WerCalculator::normalize(const std::string& text) {
 
     bool last_was_space = true; // Trim leading
     for (char c : text) {
-        if (std::isalnum(static_cast<unsigned char>(c))) {
+        if (std::isalnum(static_cast<unsigned char>(c)) != 0) {
             result += static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
             last_was_space = false;
-        } else if (std::isspace(static_cast<unsigned char>(c))) {
+        } else if (std::isspace(static_cast<unsigned char>(c)) != 0) {
             if (!last_was_space) {
                 result += ' ';
                 last_was_space = true;

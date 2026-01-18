@@ -1,6 +1,8 @@
 # Build directories
 build/
+build_gpu/
 build_release/
+build_gpu_release/
 dist/
 release/
 coverage/

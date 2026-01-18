@@ -50,7 +50,7 @@ public:
      * @param engine Reference to initialized SttEngine
      * @param config Configuration parameters
      */
-    StreamingTranscriber(SttEngine& engine, const TranscriberConfig& config = TranscriberConfig{});
+    StreamingTranscriber(SttEngine& engine, TranscriberConfig config = TranscriberConfig{});
 
     /**
      * @brief Update configuration at runtime
@@ -105,10 +105,10 @@ private:
     Segment transcribe_buffer();
     std::string deduplicate_text(const std::string& new_text);
     // Helper methods
-    std::string remove_repetition(const std::string& text);
-    int find_overlap(const std::vector<std::string>& prev, const std::vector<std::string>& curr);
+    std::string remove_repetition(const std::string& text) const;
+    static int find_overlap(const std::vector<std::string>& prev, const std::vector<std::string>& curr);
     bool is_hallucination(const std::string& text);
-    std::vector<std::string> tokenize(const std::string& text);
+    static std::vector<std::string> tokenize(const std::string& text);
 
     // Helper methods
     std::string post_process_text(const std::string& raw_text);

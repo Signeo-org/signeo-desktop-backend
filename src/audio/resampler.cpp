@@ -31,7 +31,7 @@ AudioResampler::AudioResampler(int input_rate, int output_rate, int quality)
     : input_rate_(input_rate), output_rate_(output_rate) {}
 
 AudioResampler::~AudioResampler() {
-    if (resampler_) {
+    if (resampler_ != nullptr) {
         speex_resampler_destroy(resampler_);
         resampler_ = nullptr;
     }
@@ -46,8 +46,8 @@ std::vector<float> AudioResampler::process(const std::vector<float>& input) {
     size_t out_size = expected_output_size(input.size()) + 16;
     std::vector<float> output(out_size);
 
-    spx_uint32_t in_len = static_cast<spx_uint32_t>(input.size());
-    spx_uint32_t out_len = static_cast<spx_uint32_t>(out_size);
+    auto in_len = static_cast<spx_uint32_t>(input.size());
+    auto out_len = static_cast<spx_uint32_t>(out_size);
 
     int err = speex_resampler_process_float(resampler_,
                                             0, // channel index (mono)
@@ -64,7 +64,7 @@ std::vector<float> AudioResampler::process(const std::vector<float>& input) {
 }
 
 void AudioResampler::reset() {
-    if (resampler_) {
+    if (resampler_ != nullptr) {
         speex_resampler_reset_mem(resampler_);
     }
 }

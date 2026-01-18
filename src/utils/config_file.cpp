@@ -68,8 +68,9 @@ std::string ConfigFile::get(const std::string& key, const std::string& default_v
 
 int ConfigFile::get_int(const std::string& key, int default_value) const {
     auto it = values_.find(key);
-    if (it == values_.end())
+    if (it == values_.end()) {
         return default_value;
+    }
     try {
         return std::stoi(it->second);
     } catch (...) {
@@ -79,8 +80,9 @@ int ConfigFile::get_int(const std::string& key, int default_value) const {
 
 float ConfigFile::get_float(const std::string& key, float default_value) const {
     auto it = values_.find(key);
-    if (it == values_.end())
+    if (it == values_.end()) {
         return default_value;
+    }
     try {
         return std::stof(it->second);
     } catch (...) {
@@ -90,11 +92,12 @@ float ConfigFile::get_float(const std::string& key, float default_value) const {
 
 bool ConfigFile::get_bool(const std::string& key, bool default_value) const {
     auto it = values_.find(key);
-    if (it == values_.end())
+    if (it == values_.end()) {
         return default_value;
+    }
 
     std::string val = it->second;
-    std::transform(val.begin(), val.end(), val.begin(), [](unsigned char c) { return std::tolower(c); });
+    std::ranges::transform(val, val.begin(), [](unsigned char c) { return std::tolower(c); });
 
     return val == "true" || val == "yes" || val == "1" || val == "on";
 }
@@ -103,8 +106,9 @@ std::string ConfigFile::get_default_path() { return "config.ini"; }
 
 std::string ConfigFile::trim(const std::string& str) {
     size_t start = str.find_first_not_of(" \t\r\n");
-    if (start == std::string::npos)
+    if (start == std::string::npos) {
         return "";
+    }
     size_t end = str.find_last_not_of(" \t\r\n");
     return str.substr(start, end - start + 1);
 }

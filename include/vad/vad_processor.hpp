@@ -100,7 +100,7 @@ private:
 
     core::Status init_session(const std::string& model_path);
     void reset_states();
-    float calculate_rms(const std::vector<float>& frame);
+    static float calculate_rms(const std::vector<float>& frame);
     float run_inference(const std::vector<float>& frame);
     float update_adaptive_threshold(float raw_probability);
     void update_hangover(bool is_speech_now);

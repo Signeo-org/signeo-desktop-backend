@@ -5,6 +5,7 @@
 #include <chrono>
 #include <cstring>
 #include <format>
+#include <utility>
 
 #include "output/logging.hpp"
 #include "whisper.h"
@@ -30,7 +31,7 @@ core::Result<std::unique_ptr<SttEngine>> SttEngine::create(const SttConfig& conf
 }
 
 // Private Constructor
-SttEngine::SttEngine(const SttConfig& config) : config_(config) {
+SttEngine::SttEngine(SttConfig config) : config_(std::move(config)) {
     // Initialization moved to init_whisper()
 }
 
@@ -54,7 +55,7 @@ core::Status SttEngine::init_whisper() {
 
 SttEngine::~SttEngine() {
     spdlog::debug("SttEngine: Destructor called, freeing Whisper context...");
-    if (ctx_) {
+    if (ctx_ != nullptr) {
         whisper_free(ctx_);
         ctx_ = nullptr;
     }
@@ -67,7 +68,7 @@ SttEngine::SttEngine(SttEngine&& other) noexcept : config_(std::move(other.confi
 
 SttEngine& SttEngine::operator=(SttEngine&& other) noexcept {
     if (this != &other) {
-        if (ctx_) {
+        if (ctx_ != nullptr) {
             whisper_free(ctx_);
         }
         config_ = std::move(other.config_);
@@ -78,7 +79,7 @@ SttEngine& SttEngine::operator=(SttEngine&& other) noexcept {
 }
 
 core::Result<SttEngine::TranscriptionResult> SttEngine::transcribe(const std::vector<float>& audio) {
-    if (!ctx_) {
+    if (ctx_ == nullptr) {
         return core::log_error("SttEngine: Context not initialized");
     }
 
@@ -111,9 +112,9 @@ core::Result<SttEngine::TranscriptionResult> SttEngine::transcribe(const std::ve
     // Anti-hallucination settings
     wparams.suppress_blank = true;
     wparams.suppress_nst = true;
-    wparams.no_speech_thold = 0.6f;
-    wparams.entropy_thold = 2.4f;
-    wparams.logprob_thold = -1.0f;
+    wparams.no_speech_thold = 0.6F;
+    wparams.entropy_thold = 2.4F;
+    wparams.logprob_thold = -1.0F;
 
     // Run inference
     if (whisper_full(ctx_, wparams, audio.data(), static_cast<int>(audio.size())) != 0) {
@@ -123,12 +124,12 @@ core::Result<SttEngine::TranscriptionResult> SttEngine::transcribe(const std::ve
     // Extract transcription
     const int n_segments = whisper_full_n_segments(ctx_);
     std::string full_text;
-    float prob_sum = 0.0f;
+    float prob_sum = 0.0F;
     int token_count = 0;
 
     for (int i = 0; i < n_segments; ++i) {
         const char* segment_text = whisper_full_get_segment_text(ctx_, i);
-        if (segment_text) {
+        if (segment_text != nullptr) {
             full_text += segment_text;
         }
 
@@ -145,11 +146,11 @@ core::Result<SttEngine::TranscriptionResult> SttEngine::transcribe(const std::ve
     TranscriptionResult result;
     result.text = full_text;
     result.duration_ms = std::chrono::duration_cast<std::chrono::milliseconds>(t_end - t_start).count();
-    result.avg_probability = token_count > 0 ? prob_sum / token_count : 0.0f;
+    result.avg_probability = token_count > 0 ? prob_sum / token_count : 0.0F;
 
     // Log audio duration vs processing time
-    float audio_duration_s = static_cast<float>(audio.size()) / 16000.0f;
-    float rtf = static_cast<float>(result.duration_ms) / 1000.0f / audio_duration_s;
+    float audio_duration_s = static_cast<float>(audio.size()) / 16000.0F;
+    float rtf = static_cast<float>(result.duration_ms) / 1000.0F / audio_duration_s;
 
     spdlog::debug("SttEngine: Transcribed {:.2f}s audio in {}ms (RTF: {:.2f})", audio_duration_s, result.duration_ms,
                   rtf);

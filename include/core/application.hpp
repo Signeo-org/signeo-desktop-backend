@@ -36,7 +36,7 @@ class VadProcessor;
  */
 class Application {
 public:
-    explicit Application(const AppConfig& config);
+    explicit Application(AppConfig config);
     ~Application();
 
     /// @brief Run the main application loop. Returns exit code.
@@ -52,14 +52,14 @@ private:
 
     // Helpers
     void print_startup_banner();
-    void handle_cli_device_selection();
-    void initialize_ui_state(ui::TuiRenderer* tui);
+    static void handle_cli_device_selection();
+    void initialize_ui_state(ui::TuiRenderer* tui) const;
     void setup_ui_callbacks(ui::TuiRenderer* tui);
     void run_main_loop(ui::TuiRenderer* tui);
 
     // Refactored Worker Helpers
     bool initialize_audio_system(std::unique_ptr<audio::AudioCapture>& capture,
-                                 std::unique_ptr<audio::AudioProcessor>& processor, ui::TuiRenderer* tui);
+                                 std::unique_ptr<audio::AudioProcessor>& processor, ui::TuiRenderer* tui) const;
     void handle_audio_device_switch(std::unique_ptr<audio::AudioCapture>& capture,
                                     std::unique_ptr<audio::AudioProcessor>& processor, ui::TuiRenderer* tui);
 

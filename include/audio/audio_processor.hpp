@@ -71,7 +71,7 @@ private:
      * @param interleaved Interleaved multi-channel samples
      * @return Mono samples
      */
-    std::vector<float> downmix_to_mono(const std::vector<float>& interleaved);
+    std::vector<float> downmix_to_mono(const std::vector<float>& interleaved) const;
 };
 
 } // namespace audio

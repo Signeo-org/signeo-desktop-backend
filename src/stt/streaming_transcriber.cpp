@@ -5,11 +5,12 @@
 #include <algorithm>
 #include <cctype>
 #include <sstream>
+#include <utility>
 
 namespace stt {
 
-StreamingTranscriber::StreamingTranscriber(SttEngine& engine, const TranscriberConfig& config)
-    : engine_(engine), config_(config) {
+StreamingTranscriber::StreamingTranscriber(SttEngine& engine, TranscriberConfig config)
+    : engine_(engine), config_(std::move(config)) {
     spdlog::info("StreamingTranscriber initialized");
     spdlog::info("  Step: {}ms, Keep: {}ms, MaxLen: {}ms", config_.step_ms, config_.keep_ms, config_.max_length_ms);
     spdlog::info("  Token dedup: {}, Timestamp merge: {}", config_.token_dedup ? "on" : "off",
@@ -132,7 +133,7 @@ std::vector<float> StreamingTranscriber::prepare_combined_buffer() {
 
 void StreamingTranscriber::append_to_full_text(const std::string& final_text) {
     if (!final_text.empty()) {
-        if (!full_text_.empty() && !std::isspace(full_text_.back()) && !std::isspace(final_text.front())) {
+        if (!full_text_.empty() && (std::isspace(full_text_.back()) == 0) && (std::isspace(final_text.front()) == 0)) {
             full_text_ += " ";
         }
         full_text_ += final_text;
@@ -198,7 +199,7 @@ std::vector<std::string> StreamingTranscriber::tokenize(const std::string& text)
         // Normalize: lowercase and remove punctuation for comparison
         std::string normalized;
         for (char c : word) {
-            if (std::isalnum(static_cast<unsigned char>(c))) {
+            if (std::isalnum(static_cast<unsigned char>(c)) != 0) {
                 normalized += static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
             }
         }
@@ -210,8 +211,9 @@ std::vector<std::string> StreamingTranscriber::tokenize(const std::string& text)
 }
 
 int StreamingTranscriber::find_overlap(const std::vector<std::string>& prev, const std::vector<std::string>& curr) {
-    if (prev.empty() || curr.empty())
+    if (prev.empty() || curr.empty()) {
         return 0;
+    }
 
     // Find longest suffix of prev that is prefix of curr
     size_t max_overlap = std::min(prev.size(), curr.size());
@@ -253,8 +255,9 @@ std::string StreamingTranscriber::deduplicate_text(const std::string& new_text) 
 
     while (iss >> word) {
         if (word_idx >= overlap) {
-            if (!result.empty())
+            if (!result.empty()) {
                 result += " ";
+            }
             result += word;
         }
         word_idx++;
@@ -263,9 +266,10 @@ std::string StreamingTranscriber::deduplicate_text(const std::string& new_text) 
     return result;
 }
 
-std::string StreamingTranscriber::remove_repetition(const std::string& text) {
-    if (text.empty())
+std::string StreamingTranscriber::remove_repetition(const std::string& text) const {
+    if (text.empty()) {
         return text;
+    }
 
     std::string current = text;
     bool changed = true;
@@ -276,7 +280,7 @@ std::string StreamingTranscriber::remove_repetition(const std::string& text) {
         // We use config_.min_repetition_len to avoid merging short valid repetitions like "No, no."
         for (size_t i = config_.min_repetition_len; i <= n / 2; ++i) {
             std::string sub = current.substr(n - i, i);
-            std::string prev = current.substr(n - 2 * i, i);
+            std::string prev = current.substr(n - (2 * i), i);
 
             if (sub == prev) {
                 // Found repetition "A A" at end, reduce to "A"
@@ -293,26 +297,29 @@ std::string StreamingTranscriber::remove_repetition(const std::string& text) {
 }
 
 bool StreamingTranscriber::is_hallucination(const std::string& text) {
-    if (text.empty())
+    if (text.empty()) {
         return true;
+    }
 
     // Length filter: Ignore short noise
-    if (text.length() < static_cast<size_t>(config_.hallucination_min_len))
+    if (text.length() < static_cast<size_t>(config_.hallucination_min_len)) {
         return true;
+    }
 
     // Normalize for case-insensitive check
     std::string lower = text;
-    std::transform(lower.begin(), lower.end(), lower.begin(), [](unsigned char c) { return std::tolower(c); });
+    std::ranges::transform(lower, lower.begin(), [](unsigned char c) { return std::tolower(c); });
 
     // Trim punctuation
-    while (!lower.empty() && std::ispunct(lower.back())) {
+    while (!lower.empty() && (std::ispunct(lower.back()) != 0)) {
         lower.pop_back();
     }
 
     // Blacklist check (using configurable list)
     for (const auto& phrase : config_.hallucination_blacklist) {
-        if (lower == phrase)
+        if (lower == phrase) {
             return true;
+        }
     }
 
     return false;

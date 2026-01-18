@@ -168,7 +168,7 @@ public:
 
     // Helper methods for run()
     ftxui::Component setup_components();
-    ftxui::Component setup_layout(ftxui::Component tab_content, ftxui::Component tab_toggle);
+    ftxui::Component setup_layout(const ftxui::Component& tab_content, const ftxui::Component& tab_toggle);
 
 private:
     ftxui::ScreenInteractive screen_;
@@ -190,12 +190,12 @@ private:
     std::function<void(int, int)> on_stt_heuristics_changed_;
 
     // Render helpers
-    ftxui::Element render_header();
+    ftxui::Element render_header() const;
     ftxui::Element render_subtitles();
     ftxui::Element render_metrics(); // Mini summary
     ftxui::Element render_vad_metrics();
     ftxui::Element render_system_metrics();
-    ftxui::Element render_footer();
+    static ftxui::Element render_footer();
 
     // Component factories
     ftxui::Component create_logs_component();
@@ -204,7 +204,7 @@ private:
     ftxui::Component create_vad_settings_component();
     ftxui::Component create_stt_settings_component();
     ftxui::Component create_system_view_component();
-    ftxui::Component create_help_component();
+    static ftxui::Component create_help_component();
 
     // Pages
     // (Logic implemented inline in run() for closure access)

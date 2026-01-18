@@ -18,7 +18,7 @@ void MetricsCollector::on_audio_chunk(size_t samples) {
         // Exponential moving average for smoother rate calculation
         double instant_rate = static_cast<double>(samples) / elapsed.count();
         double alpha = 0.1; // Smoothing factor
-        audio_fill_rate_ = alpha * instant_rate + (1.0 - alpha) * audio_fill_rate_.load();
+        audio_fill_rate_ = (alpha * instant_rate) + ((1.0 - alpha) * audio_fill_rate_.load());
     }
     last_audio_chunk_time_ = now;
 }
@@ -58,8 +58,9 @@ double MetricsCollector::get_audio_fill_rate() const { return audio_fill_rate_; 
 double MetricsCollector::get_throughput_char_per_sec() const {
     auto now = std::chrono::steady_clock::now();
     std::chrono::duration<double> elapsed = now - start_time_;
-    if (elapsed.count() < 0.001)
+    if (elapsed.count() < 0.001) {
         return 0.0;
+    }
 
     // Assuming 1 token ~ 4 chars for approximation, or just return tokens/sec?
     // Method name says "char_per_sec".

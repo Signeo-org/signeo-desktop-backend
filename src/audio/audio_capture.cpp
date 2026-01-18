@@ -77,22 +77,23 @@ core::Status AudioCapture::load_wav_file() {
     uint16_t bits_per_sample = 0;
     auto header_res = read_wav_header(file, reinterpret_cast<uint16_t&>(this->channels_),
                                       reinterpret_cast<uint32_t&>(this->sample_rate_), bits_per_sample);
-    if (!header_res)
+    if (!header_res) {
         return header_res;
+    }
 
     if (bits_per_sample != 16) {
         return core::log_error("Unsupported bit depth (only 16-bit supported currently)");
     }
 
     // Find data chunk
-    char chunkId[4];
-    uint32_t chunkSize;
+    char chunk_id[4];
+    uint32_t chunk_size;
 
-    while (file.read(chunkId, 4) && file.read(reinterpret_cast<char*>(&chunkSize), 4)) {
-        if (std::strncmp(chunkId, "data", 4) == 0) {
+    while (file.read(chunk_id, 4) && file.read(reinterpret_cast<char*>(&chunk_size), 4)) {
+        if (std::strncmp(chunk_id, "data", 4) == 0) {
             break;
         }
-        file.seekg(chunkSize, std::ios::cur);
+        file.seekg(chunk_size, std::ios::cur);
     }
 
     if (file.eof()) {
@@ -100,14 +101,14 @@ core::Status AudioCapture::load_wav_file() {
     }
 
     // Read samples
-    size_t num_samples = chunkSize / 2; // 16-bit = 2 bytes
+    size_t num_samples = chunk_size / 2; // 16-bit = 2 bytes
     std::vector<int16_t> pcm_data(num_samples);
-    file.read(reinterpret_cast<char*>(pcm_data.data()), chunkSize);
+    file.read(reinterpret_cast<char*>(pcm_data.data()), chunk_size);
 
     // Convert to float [-1.0, 1.0]
     wav_data_.resize(num_samples);
     for (size_t i = 0; i < num_samples; ++i) {
-        wav_data_[i] = static_cast<float>(pcm_data[i]) / 32768.0f;
+        wav_data_[i] = static_cast<float>(pcm_data[i]) / 32768.0F;
     }
 
     spdlog::info("Loaded WAV: {} Hz, {} ch, {} samples", sample_rate_, channels_, num_samples);
@@ -172,39 +173,39 @@ core::Status AudioCapture::start(int device_index) {
         return {};
     }
 
-    PaStreamParameters inputParameters = {};
+    PaStreamParameters input_parameters = {};
 
     if (device_index < 0) {
-        inputParameters.device = Pa_GetDefaultInputDevice();
+        input_parameters.device = Pa_GetDefaultInputDevice();
     } else {
-        inputParameters.device = device_index;
+        input_parameters.device = device_index;
     }
 
-    if (inputParameters.device == paNoDevice) {
+    if (input_parameters.device == paNoDevice) {
         return core::log_error("No default input device found");
     }
 
-    const PaDeviceInfo* deviceInfo = Pa_GetDeviceInfo(inputParameters.device);
-    if (!deviceInfo) {
-        return core::log_error(std::format("Failed to get device info for device index {}", inputParameters.device));
+    const PaDeviceInfo* device_info = Pa_GetDeviceInfo(input_parameters.device);
+    if (device_info == nullptr) {
+        return core::log_error(std::format("Failed to get device info for device index {}", input_parameters.device));
     }
 
-    spdlog::info("Device info: name='{}', maxInputChannels={}, defaultSampleRate={}", deviceInfo->name,
-                 deviceInfo->maxInputChannels, deviceInfo->defaultSampleRate);
+    spdlog::info("Device info: name='{}', maxInputChannels={}, defaultSampleRate={}", device_info->name,
+                 device_info->maxInputChannels, device_info->defaultSampleRate);
 
     // Use device-native settings for maximum compatibility
-    sample_rate_ = static_cast<int>(deviceInfo->defaultSampleRate);
-    channels_ = deviceInfo->maxInputChannels;
-    inputParameters.sampleFormat = paFloat32;
-    inputParameters.hostApiSpecificStreamInfo = nullptr;
+    sample_rate_ = static_cast<int>(device_info->defaultSampleRate);
+    channels_ = device_info->maxInputChannels;
+    input_parameters.sampleFormat = paFloat32;
+    input_parameters.hostApiSpecificStreamInfo = nullptr;
 
 // Check for WASAPI Loopback on Windows
 #ifdef _WIN32
-    int loopback_state = PaWasapi_IsLoopback(inputParameters.device);
+    int loopback_state = PaWasapi_IsLoopback(input_parameters.device);
     if (loopback_state == 1) {
-        spdlog::info("Configuring device '{}' as WASAPI Loopback", deviceInfo->name);
-        if (channels_ == 0 && deviceInfo->maxOutputChannels > 0) {
-            channels_ = deviceInfo->maxOutputChannels;
+        spdlog::info("Configuring device '{}' as WASAPI Loopback", device_info->name);
+        if (channels_ == 0 && device_info->maxOutputChannels > 0) {
+            channels_ = device_info->maxOutputChannels;
         }
     }
 #endif
@@ -212,15 +213,16 @@ core::Status AudioCapture::start(int device_index) {
     // Validate channels
     if (channels_ <= 0) {
         return core::log_error(std::format("Device '{}' has no channels available for capture (IN: {}, OUT: {})",
-                                           deviceInfo->name, deviceInfo->maxInputChannels,
-                                           deviceInfo->maxOutputChannels));
+                                           device_info->name, device_info->maxInputChannels,
+                                           device_info->maxOutputChannels));
     }
 
-    auto open_res = open_pa_stream(deviceInfo, inputParameters);
-    if (!open_res)
+    auto open_res = open_pa_stream(device_info, input_parameters);
+    if (!open_res) {
         return open_res;
+    }
 
-    spdlog::info("Opening input device: {} (Rate: {}, Channels: {})", deviceInfo->name, sample_rate_, channels_);
+    spdlog::info("Opening input device: {} (Rate: {}, Channels: {})", device_info->name, sample_rate_, channels_);
 
     // Allocate ring buffer: 10 seconds of interleaved audio
     ring_buffer_ = std::make_unique<RingBuffer>(sample_rate_ * channels_ * 10);
@@ -259,8 +261,9 @@ core::Status AudioCapture::open_pa_stream(const PaDeviceInfo* deviceInfo, PaStre
 
         // Try opening with current parameters
         auto status = try_open_stream(params, sample_rate_);
-        if (status)
+        if (status) {
             return {}; // Success
+        }
 
         // If failed, adjust strategy
         if (!try_high_latency) {
@@ -278,8 +281,9 @@ core::Status AudioCapture::open_pa_stream(const PaDeviceInfo* deviceInfo, PaStre
 }
 
 void AudioCapture::stop() {
-    if (!active_)
+    if (!active_) {
         return;
+    }
 
     if (file_mode_) {
         active_ = false;
@@ -287,8 +291,9 @@ void AudioCapture::stop() {
         return;
     }
 
-    if (!stream_)
+    if (!stream_) {
         return;
+    }
 
     // PaStreamDeleter handles Stop/Close automatically
     stream_.reset();
@@ -300,8 +305,9 @@ core::AudioChunk AudioCapture::read_chunk(size_t max_frames) {
     core::AudioChunk chunk;
 
     if (file_mode_) {
-        if (!active_)
+        if (!active_) {
             return chunk;
+        }
 
         size_t samples_to_read = max_frames * channels_;
         size_t samples_remaining = wav_data_.size() - wav_playback_pos_;
@@ -328,7 +334,7 @@ core::AudioChunk AudioCapture::read_chunk(size_t max_frames) {
     return chunk;
 }
 
-bool AudioCapture::is_loopback_device(int device_index) const {
+bool AudioCapture::is_loopback_device(int device_index) {
 #ifdef _WIN32
     return PaWasapi_IsLoopback(device_index) == 1;
 #else
@@ -352,37 +358,45 @@ core::Result<std::vector<AudioDevice>> AudioCapture::list_devices() {
     spdlog::debug("AudioCapture::list_devices() called");
 
     if (file_mode_) {
-        return std::vector<AudioDevice>{
-            {0, "Virtual WAV File Device", channels_, static_cast<double>(sample_rate_), true, false}};
+        return std::vector<AudioDevice>{{.index = 0,
+                                         .name = "Virtual WAV File Device",
+                                         .max_input_channels = channels_,
+                                         .default_sample_rate = static_cast<double>(sample_rate_),
+                                         .is_default = true,
+                                         .is_loopback = false}};
     }
 
     std::vector<AudioDevice> devices;
-    int numDevices = Pa_GetDeviceCount();
-    if (numDevices < 0) {
-        return core::log_error(std::format("PortAudio Pa_GetDeviceCount error: {}", numDevices));
+    int num_devices = Pa_GetDeviceCount();
+    if (num_devices < 0) {
+        return core::log_error(std::format("PortAudio Pa_GetDeviceCount error: {}", num_devices));
     }
 
-    int defaultInput = Pa_GetDefaultInputDevice();
+    int default_input = Pa_GetDefaultInputDevice();
 
-    for (int i = 0; i < numDevices; i++) {
-        const PaDeviceInfo* deviceInfo = Pa_GetDeviceInfo(i);
-        bool is_valid = deviceInfo->maxInputChannels > 0;
+    for (int i = 0; i < num_devices; i++) {
+        const PaDeviceInfo* device_info = Pa_GetDeviceInfo(i);
+        bool is_valid = device_info->maxInputChannels > 0;
         bool is_loopback = is_loopback_device(i);
 
         if (is_valid || is_loopback) {
-            std::string name = deviceInfo->name;
-            const PaHostApiInfo* apiInfo = Pa_GetHostApiInfo(deviceInfo->hostApi);
-            if (apiInfo) {
-                name += " [" + std::string(apiInfo->name) + "]";
+            std::string name = device_info->name;
+            const PaHostApiInfo* api_info = Pa_GetHostApiInfo(device_info->hostApi);
+            if (api_info != nullptr) {
+                name += " [" + std::string(api_info->name) + "]";
             }
             if (is_loopback) {
                 name += " [Loopback]";
             }
 
-            int effective_channels = is_valid ? deviceInfo->maxInputChannels : deviceInfo->maxOutputChannels;
+            int effective_channels = is_valid ? device_info->maxInputChannels : device_info->maxOutputChannels;
 
-            devices.push_back(
-                {i, name, effective_channels, deviceInfo->defaultSampleRate, (i == defaultInput), is_loopback});
+            devices.push_back({.index = i,
+                               .name = name,
+                               .max_input_channels = effective_channels,
+                               .default_sample_rate = device_info->defaultSampleRate,
+                               .is_default = (i == default_input),
+                               .is_loopback = is_loopback});
         }
     }
 
@@ -404,7 +418,7 @@ int AudioCapture::pa_callback(const void* inputBuffer, void* outputBuffer, unsig
                               const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags,
                               void* userData) {
     auto* self = static_cast<AudioCapture*>(userData);
-    const float* in = static_cast<const float*>(inputBuffer);
+    const auto* in = static_cast<const float*>(inputBuffer);
 
     (void)outputBuffer; // Unused
     (void)timeInfo;
@@ -418,7 +432,7 @@ int AudioCapture::pa_callback(const void* inputBuffer, void* outputBuffer, unsig
     size_t samples = framesPerBuffer * self->channels_;
     float current_gain = self->input_gain_.load();
 
-    if (std::abs(current_gain - 1.0f) > 0.001f) {
+    if (std::abs(current_gain - 1.0F) > 0.001F) {
         // Apply gain
         if (self->temp_buffer_.size() < samples) {
             self->temp_buffer_.resize(samples);

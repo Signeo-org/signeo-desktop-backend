@@ -1,7 +1,7 @@
 ---
 Checks:          'clang-diagnostic-*,clang-analyzer-*,bugprone-*,modernize-*,performance-*,readability-*,portability-*,-modernize-use-trailing-return-type'
 WarningsAsErrors: ''
-HeaderFilterRegex: 'signeo_backend[\\/](src|include).*'
+HeaderFilterRegex: 'backend[\\/](src|include).*'
 FormatStyle:     file
 CheckOptions:
   - key:             readability-identifier-naming.ClassCase

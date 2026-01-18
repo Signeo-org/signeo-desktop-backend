@@ -4,8 +4,7 @@
 
 namespace audio {
 
-RingBuffer::RingBuffer(size_t capacity)
-    : capacity_(capacity), buffer_(capacity), write_pos_(0), read_pos_(0), size_(0) {}
+RingBuffer::RingBuffer(size_t capacity) : capacity_(capacity), buffer_(capacity) {}
 
 size_t RingBuffer::write(const float* data, size_t count) {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -13,8 +12,9 @@ size_t RingBuffer::write(const float* data, size_t count) {
     const size_t available = capacity_ - size_;
     count = std::min(count, available);
 
-    if (count == 0)
+    if (count == 0) {
         return 0;
+    }
 
     const size_t first_chunk = std::min(count, capacity_ - write_pos_);
     std::copy_n(data, first_chunk, buffer_.begin() + write_pos_);
@@ -33,8 +33,9 @@ size_t RingBuffer::read(float* dest, size_t count) {
     std::lock_guard<std::mutex> lock(mutex_);
 
     count = std::min(count, size_);
-    if (count == 0)
+    if (count == 0) {
         return 0;
+    }
 
     const size_t first_chunk = std::min(count, capacity_ - read_pos_);
     std::copy_n(buffer_.begin() + read_pos_, first_chunk, dest);

@@ -7,6 +7,7 @@
 
 #include <iomanip>
 #include <sstream>
+#include <utility>
 
 #include "ui/tui_settings.hpp"
 
@@ -15,15 +16,17 @@ namespace ui {
 using namespace ftxui;
 
 // Helper for Int Sliders
-static Component IntSliderWithLabel(std::string label, int* value, int min, int max, std::function<void()> on_change) {
+static Component intSliderWithLabel(const std::string& label, int* value, int min, int max,
+                                    const std::function<void()>& on_change) {
     auto slider = Slider(label, value, min, max, 1);
 
     // Wrap slider to detect value changes and fire callback
-    auto wrapped_slider = slider | CatchEvent([=, last_value = *value](Event) mutable {
+    auto wrapped_slider = slider | CatchEvent([=, last_value = *value](const Event&) mutable {
                               if (*value != last_value) {
                                   last_value = *value;
-                                  if (on_change)
+                                  if (on_change) {
                                       on_change();
+                                  }
                               }
                               return false;
                           });
@@ -41,7 +44,7 @@ static Component IntSliderWithLabel(std::string label, int* value, int min, int 
 
 TuiRenderer::TuiRenderer() : screen_(ScreenInteractive::Fullscreen()) {}
 
-TuiRenderer::~TuiRenderer() {}
+TuiRenderer::~TuiRenderer() = default;
 
 bool TuiRenderer::is_running() const {
     std::lock_guard<std::mutex> lock(state_mutex_);
@@ -58,7 +61,7 @@ void TuiRenderer::run() {
     auto main_layout = setup_layout(components, tab_toggle);
 
     // 3. Global Event Handler
-    auto main_api = CatchEvent(main_layout, [&](Event event) {
+    auto main_api = CatchEvent(main_layout, [&](const Event& event) {
         if (event == Event::Escape) {
             screen_.ExitLoopClosure()();
             return true;
@@ -92,7 +95,7 @@ Component TuiRenderer::setup_components() {
                           &tab_index_);
 }
 
-Component TuiRenderer::setup_layout(Component tab_content, Component tab_toggle) {
+Component TuiRenderer::setup_layout(const Component& tab_content, const Component& tab_toggle) {
     return Renderer(tab_content, [this, tab_toggle, tab_content] {
         return vbox({render_header(), separator(),
                      // Custom styled tabs
@@ -140,7 +143,7 @@ ftxui::Component TuiRenderer::create_devices_component() {
                borderEmpty;
     });
 
-    return CatchEvent(comp, [this](Event event) {
+    return CatchEvent(comp, [this](const Event& event) {
         if (event == Event::Return) {
             int selected_id = -1;
             {
@@ -149,8 +152,9 @@ ftxui::Component TuiRenderer::create_devices_component() {
                     selected_id = state_.available_devices[device_menu_selected_].id;
                 }
             }
-            if (selected_id != -1 && on_device_selected_)
+            if (selected_id != -1 && on_device_selected_) {
                 on_device_selected_(selected_id);
+            }
             return true;
         }
         return false;
@@ -164,8 +168,9 @@ ftxui::Component TuiRenderer::create_audio_settings_component() {
                                           try {
                                               float val = std::stof(settings_state_.input_gain_str);
                                               settings_state_.input_gain = val;
-                                              if (on_gain_changed_)
+                                              if (on_gain_changed_) {
                                                   on_gain_changed_(val);
+                                              }
                                           } catch (...) {
                                           }
                                       }),
@@ -187,8 +192,9 @@ ftxui::Component TuiRenderer::create_vad_settings_component() {
                                           try {
                                               float val = std::stof(settings_state_.vad_threshold_str);
                                               settings_state_.vad_threshold = val;
-                                              if (on_threshold_changed_)
+                                              if (on_threshold_changed_) {
                                                   on_threshold_changed_(val);
+                                              }
                                           } catch (...) {
                                           }
                                       }),
@@ -197,8 +203,9 @@ ftxui::Component TuiRenderer::create_vad_settings_component() {
                                           try {
                                               float val = std::stof(settings_state_.vad_energy_str);
                                               settings_state_.vad_energy_thresh = val;
-                                              if (on_energy_changed_)
+                                              if (on_energy_changed_) {
                                                   on_energy_changed_(val);
+                                              }
                                           } catch (...) {
                                           }
                                       }),
@@ -207,8 +214,9 @@ ftxui::Component TuiRenderer::create_vad_settings_component() {
                                           try {
                                               float val = std::stof(settings_state_.vad_smoothing_str);
                                               settings_state_.vad_smoothing = val;
-                                              if (on_smoothing_changed_)
+                                              if (on_smoothing_changed_) {
                                                   on_smoothing_changed_(val);
+                                              }
                                           } catch (...) {
                                           }
                                       }),
@@ -224,35 +232,39 @@ ftxui::Component TuiRenderer::create_vad_settings_component() {
         Renderer([] { return separator(); }),
         SettingsRenderer::CreateCheckbox("Adaptive Mode", &settings_state_.vad_adaptive,
                                          [this] {
-                                             if (on_vad_adaptive_changed_)
+                                             if (on_vad_adaptive_changed_) {
                                                  on_vad_adaptive_changed_(settings_state_.vad_adaptive,
                                                                           settings_state_.vad_adaptive_min,
                                                                           settings_state_.vad_adaptive_max,
                                                                           settings_state_.vad_adaptive_alpha);
+                                             }
                                          }),
-        SettingsRenderer::CreateSlider("  Min Thresh", &settings_state_.vad_adaptive_min, 0.01f, 0.99f, 0.01f,
+        SettingsRenderer::CreateSlider("  Min Thresh", &settings_state_.vad_adaptive_min, 0.01F, 0.99F, 0.01F,
                                        [this] {
-                                           if (on_vad_adaptive_changed_)
+                                           if (on_vad_adaptive_changed_) {
                                                on_vad_adaptive_changed_(settings_state_.vad_adaptive,
                                                                         settings_state_.vad_adaptive_min,
                                                                         settings_state_.vad_adaptive_max,
                                                                         settings_state_.vad_adaptive_alpha);
+                                           }
                                        }),
-        SettingsRenderer::CreateSlider("  Max Thresh", &settings_state_.vad_adaptive_max, 0.01f, 0.99f, 0.01f,
+        SettingsRenderer::CreateSlider("  Max Thresh", &settings_state_.vad_adaptive_max, 0.01F, 0.99F, 0.01F,
                                        [this] {
-                                           if (on_vad_adaptive_changed_)
+                                           if (on_vad_adaptive_changed_) {
                                                on_vad_adaptive_changed_(settings_state_.vad_adaptive,
                                                                         settings_state_.vad_adaptive_min,
                                                                         settings_state_.vad_adaptive_max,
                                                                         settings_state_.vad_adaptive_alpha);
+                                           }
                                        }),
-        SettingsRenderer::CreateSlider("  Alpha", &settings_state_.vad_adaptive_alpha, 0.01f, 0.99f, 0.01f,
+        SettingsRenderer::CreateSlider("  Alpha", &settings_state_.vad_adaptive_alpha, 0.01F, 0.99F, 0.01F,
                                        [this] {
-                                           if (on_vad_adaptive_changed_)
+                                           if (on_vad_adaptive_changed_) {
                                                on_vad_adaptive_changed_(settings_state_.vad_adaptive,
                                                                         settings_state_.vad_adaptive_min,
                                                                         settings_state_.vad_adaptive_max,
                                                                         settings_state_.vad_adaptive_alpha);
+                                           }
                                        }),
     });
 }
@@ -264,42 +276,47 @@ ftxui::Component TuiRenderer::create_stt_settings_component() {
                                           try {
                                               int val = std::stoi(settings_state_.stt_threads_str);
                                               settings_state_.stt_threads = val;
-                                              if (on_stt_params_changed_)
+                                              if (on_stt_params_changed_) {
                                                   on_stt_params_changed_(val, settings_state_.stt_language);
+                                              }
                                           } catch (...) {
                                           }
                                       }),
         SettingsRenderer::CreateInput("Language", &settings_state_.stt_language,
                                       [this] {
-                                          if (on_stt_params_changed_)
+                                          if (on_stt_params_changed_) {
                                               on_stt_params_changed_(settings_state_.stt_threads,
                                                                      settings_state_.stt_language);
+                                          }
                                       }),
         Renderer([] { return separator(); }),
         SettingsRenderer::CreateCheckbox("Use GPU (CUDA)", &settings_state_.stt_use_gpu,
                                          [this] {
-                                             if (on_stt_gpu_changed_)
+                                             if (on_stt_gpu_changed_) {
                                                  on_stt_gpu_changed_(settings_state_.stt_use_gpu);
+                                             }
                                          }),
         SettingsRenderer::CreateCheckbox("Flash Attn", &settings_state_.stt_flash_attn, nullptr),
         Renderer([] { return separator(); }),
         SettingsRenderer::CreateCheckbox("Token Dedup", &settings_state_.stt_token_dedup, nullptr),
         SettingsRenderer::CreateCheckbox("No Context", &settings_state_.stt_no_context, nullptr),
         Renderer([] { return separator(); }),
-        IntSliderWithLabel("Step (ms)", &settings_state_.stt_step_ms, 500, 5000, nullptr),
-        IntSliderWithLabel("Keep (ms)", &settings_state_.stt_keep_ms, 0, 1000, nullptr),
+        intSliderWithLabel("Step (ms)", &settings_state_.stt_step_ms, 500, 5000, nullptr),
+        intSliderWithLabel("Keep (ms)", &settings_state_.stt_keep_ms, 0, 1000, nullptr),
         Renderer([] { return separator(); }),
-        IntSliderWithLabel("Min Repet.", &settings_state_.stt_min_repetition, 4, 30,
+        intSliderWithLabel("Min Repet.", &settings_state_.stt_min_repetition, 4, 30,
                            [this] {
-                               if (on_stt_heuristics_changed_)
+                               if (on_stt_heuristics_changed_) {
                                    on_stt_heuristics_changed_(settings_state_.stt_min_repetition,
                                                               settings_state_.stt_hallucination_len);
+                               }
                            }),
-        IntSliderWithLabel("Hallucinat.", &settings_state_.stt_hallucination_len, 0, 10,
+        intSliderWithLabel("Hallucinat.", &settings_state_.stt_hallucination_len, 0, 10,
                            [this] {
-                               if (on_stt_heuristics_changed_)
+                               if (on_stt_heuristics_changed_) {
                                    on_stt_heuristics_changed_(settings_state_.stt_min_repetition,
                                                               settings_state_.stt_hallucination_len);
+                               }
                            }),
     });
 }
@@ -351,31 +368,41 @@ void TuiRenderer::set_settings(const SettingsState& settings) {
     settings_state_.input_gain_str = std::to_string(settings.input_gain);
 }
 
-void TuiRenderer::set_on_threshold_changed(std::function<void(float)> callback) { on_threshold_changed_ = callback; }
+void TuiRenderer::set_on_threshold_changed(std::function<void(float)> callback) {
+    on_threshold_changed_ = std::move(callback);
+}
 
-void TuiRenderer::set_on_gain_changed(std::function<void(float)> callback) { on_gain_changed_ = callback; }
+void TuiRenderer::set_on_gain_changed(std::function<void(float)> callback) { on_gain_changed_ = std::move(callback); }
 
-void TuiRenderer::set_on_energy_changed(std::function<void(float)> callback) { on_energy_changed_ = callback; }
+void TuiRenderer::set_on_energy_changed(std::function<void(float)> callback) {
+    on_energy_changed_ = std::move(callback);
+}
 
-void TuiRenderer::set_on_smoothing_changed(std::function<void(float)> callback) { on_smoothing_changed_ = callback; }
+void TuiRenderer::set_on_smoothing_changed(std::function<void(float)> callback) {
+    on_smoothing_changed_ = std::move(callback);
+}
 
-void TuiRenderer::set_on_device_selected(std::function<void(int)> callback) { on_device_selected_ = callback; }
+void TuiRenderer::set_on_device_selected(std::function<void(int)> callback) {
+    on_device_selected_ = std::move(callback);
+}
 
-void TuiRenderer::set_on_stt_gpu_changed(std::function<void(bool)> callback) { on_stt_gpu_changed_ = callback; }
+void TuiRenderer::set_on_stt_gpu_changed(std::function<void(bool)> callback) {
+    on_stt_gpu_changed_ = std::move(callback);
+}
 
 void TuiRenderer::set_on_stt_params_changed(std::function<void(int, std::string)> callback) {
-    on_stt_params_changed_ = callback;
+    on_stt_params_changed_ = std::move(callback);
 }
 
 void TuiRenderer::set_on_vad_adaptive_changed(std::function<void(bool, float, float, float)> callback) {
-    on_vad_adaptive_changed_ = callback;
+    on_vad_adaptive_changed_ = std::move(callback);
 }
 
 void TuiRenderer::set_on_stt_heuristics_changed(std::function<void(int, int)> callback) {
-    on_stt_heuristics_changed_ = callback;
+    on_stt_heuristics_changed_ = std::move(callback);
 }
 
-Element TuiRenderer::render_header() {
+Element TuiRenderer::render_header() const {
     // Header is now integrated into the main layout as the Tab Bar
     // We keep this for the "Logo" part if needed, but the main navigation is separate.
     return hbox({
@@ -397,10 +424,12 @@ Element TuiRenderer::render_subtitles() {
     int index = 0;
     for (auto it = state_.subtitles.rbegin(); it != state_.subtitles.rend(); ++it) {
         auto style = Color::White;
-        if (index >= 3)
+        if (index >= 3) {
             style = Color::GrayLight;
-        if (index >= 6)
+        }
+        if (index >= 6) {
             style = Color::GrayDark;
+        }
 
         list.push_back(hbox({
             text("[" + it->timestamp + "] ") | color(Color::GrayDark) | dim,
@@ -447,7 +476,7 @@ Element TuiRenderer::render_vad_metrics() {
     return vbox({
                text("VAD Real-Time Metrics") | bold | hcenter | color(Color::Yellow),
                separator(),
-               make_gauge("Energy", std::min(1.0f, state_.vad_energy * 100.0f), Color::Green),
+               make_gauge("Energy", std::min(1.0F, state_.vad_energy * 100.0F), Color::Green),
                make_gauge("Prob  ", state_.vad_probability, state_.is_speech ? Color::Red : Color::Blue),
                separator(),
                text("Stats: ") | bold,
@@ -469,8 +498,8 @@ Element TuiRenderer::render_system_metrics() {
     return vbox({
                text("System Performance") | bold | hcenter | color(Color::Magenta),
                separator(),
-               make_gauge("Audio Queue", std::min(1.0f, state_.audio_queue_depth / 50.0f), Color::Yellow),
-               make_gauge("Infer Queue", std::min(1.0f, state_.inference_queue_depth / 50.0f), Color::Magenta),
+               make_gauge("Audio Queue", std::min(1.0F, state_.audio_queue_depth / 50.0F), Color::Yellow),
+               make_gauge("Infer Queue", std::min(1.0F, state_.inference_queue_depth / 50.0F), Color::Magenta),
                separator(),
                text("Latency: ") | bold,
                text("STT Inference:  " + std::to_string(state_.inference_latency_ms).substr(0, 6) + "ms"),

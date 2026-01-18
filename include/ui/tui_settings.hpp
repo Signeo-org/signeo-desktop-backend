@@ -29,7 +29,7 @@ public:
     // ─────────────────────────────────────────────────────────────
 
     /// @brief Create the complete settings panel with tabs
-    static ftxui::Component Create(SettingsState* state, std::function<void()> on_change,
+    static ftxui::Component Create(SettingsState* state, const std::function<void()>& on_change,
                                    std::function<void()> on_close);
 
     // ─────────────────────────────────────────────────────────────
@@ -37,14 +37,15 @@ public:
     // ─────────────────────────────────────────────────────────────
 
     /// @brief Create a labeled slider for float values
-    static ftxui::Component CreateSlider(std::string label, float* value, float min, float max, float step,
-                                         std::function<void()> on_change);
+    static ftxui::Component CreateSlider(const std::string& label, float* value, float min, float max, float step,
+                                         const std::function<void()>& on_change);
 
     /// @brief Create a labeled checkbox for boolean values
-    static ftxui::Component CreateCheckbox(std::string label, bool* state, std::function<void()> on_change);
+    static ftxui::Component CreateCheckbox(const std::string& label, bool* state,
+                                           const std::function<void()>& on_change);
 
     /// @brief Create a labeled text input for string values
-    static ftxui::Component CreateInput(std::string label, std::string* state, std::function<void()> on_change);
+    static ftxui::Component CreateInput(const std::string& label, std::string* state, std::function<void()> on_change);
 };
 
 } // namespace ui

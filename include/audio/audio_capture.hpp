@@ -91,7 +91,7 @@ public:
     float get_gain() const;
 
     // Helper methods
-    bool is_loopback_device(int device_index) const;
+    static bool is_loopback_device(int device_index);
     core::Status try_open_stream(const PaStreamParameters& params, double sample_rate);
 
 private:
@@ -106,8 +106,8 @@ private:
 
     // Helpers
     core::Status open_pa_stream(const PaDeviceInfo* deviceInfo, PaStreamParameters& params);
-    core::Status read_wav_header(std::ifstream& file, uint16_t& channels, uint32_t& sample_rate,
-                                 uint16_t& bits_per_sample);
+    static core::Status read_wav_header(std::ifstream& file, uint16_t& channels, uint32_t& sample_rate,
+                                        uint16_t& bits_per_sample);
 
     // Member variables
     int sample_rate_ = 16000;

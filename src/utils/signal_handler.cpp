@@ -28,7 +28,7 @@ void SignalHandler::handle_signal(int signal) {
 }
 
 #ifdef _WIN32
-static BOOL WINAPI console_handler(DWORD signal) {
+static BOOL WINAPI consoleHandler(DWORD signal) {
     if (signal == CTRL_C_EVENT || signal == CTRL_BREAK_EVENT) {
         SignalHandler::trigger_shutdown(); // Just trigger shutdown, let loop handle it
         // Or call handle_signal(SIGINT) directly?
@@ -53,7 +53,7 @@ void SignalHandler::init() {
     std::signal(SIGTERM, handle_signal);
 
 #ifdef _WIN32
-    SetConsoleCtrlHandler(console_handler, TRUE);
+    SetConsoleCtrlHandler(consoleHandler, TRUE);
     SetConsoleOutputCP(CP_UTF8);
     SetConsoleCP(CP_UTF8);
 #endif

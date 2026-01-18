@@ -2,6 +2,7 @@
 
 #include <spdlog/spdlog.h>
 
+#include <algorithm>
 #include <chrono>
 
 #if !defined(_WIN32)
@@ -24,17 +25,21 @@ void ThreadMetrics::register_thread(const std::string& name, std::thread::native
 
     // Initialize timestamps
 #if defined(_WIN32)
-    FILETIME ftCreation, ftExit, ftKernel, ftUser;
-    HANDLE hThread = (HANDLE)handle;
-    if (GetThreadTimes(hThread, &ftCreation, &ftExit, &ftKernel, &ftUser)) {
-        ULARGE_INTEGER uKernel, uUser;
-        uKernel.LowPart = ftKernel.dwLowDateTime;
-        uKernel.HighPart = ftKernel.dwHighDateTime;
-        uUser.LowPart = ftUser.dwLowDateTime;
-        uUser.HighPart = ftUser.dwHighDateTime;
+    FILETIME ft_creation;
+    FILETIME ft_exit;
+    FILETIME ft_kernel;
+    FILETIME ft_user;
+    auto* h_thread = (HANDLE)handle;
+    if (GetThreadTimes(h_thread, &ft_creation, &ft_exit, &ft_kernel, &ft_user) != 0) {
+        ULARGE_INTEGER u_kernel;
+        ULARGE_INTEGER u_user;
+        u_kernel.LowPart = ft_kernel.dwLowDateTime;
+        u_kernel.HighPart = ft_kernel.dwHighDateTime;
+        u_user.LowPart = ft_user.dwLowDateTime;
+        u_user.HighPart = ft_user.dwHighDateTime;
 
-        info.stats.last_user_time = uUser.QuadPart;
-        info.stats.last_system_time = uKernel.QuadPart;
+        info.stats.last_user_time = u_user.QuadPart;
+        info.stats.last_system_time = u_kernel.QuadPart;
     }
     info.stats.last_check_time =
         std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch())
@@ -81,18 +86,22 @@ std::vector<ThreadCpuStats> ThreadMetrics::update_and_get() {
 
     for (auto& [name, info] : threads_) {
         // Prepare handles
-        HANDLE hThread = (HANDLE)info.handle;
-        FILETIME ftCreation, ftExit, ftKernel, ftUser;
+        auto* h_thread = (HANDLE)info.handle;
+        FILETIME ft_creation;
+        FILETIME ft_exit;
+        FILETIME ft_kernel;
+        FILETIME ft_user;
 
-        if (GetThreadTimes(hThread, &ftCreation, &ftExit, &ftKernel, &ftUser)) {
-            ULARGE_INTEGER uKernel, uUser;
-            uKernel.LowPart = ftKernel.dwLowDateTime;
-            uKernel.HighPart = ftKernel.dwHighDateTime;
-            uUser.LowPart = ftUser.dwLowDateTime;
-            uUser.HighPart = ftUser.dwHighDateTime;
+        if (GetThreadTimes(h_thread, &ft_creation, &ft_exit, &ft_kernel, &ft_user) != 0) {
+            ULARGE_INTEGER u_kernel;
+            ULARGE_INTEGER u_user;
+            u_kernel.LowPart = ft_kernel.dwLowDateTime;
+            u_kernel.HighPart = ft_kernel.dwHighDateTime;
+            u_user.LowPart = ft_user.dwLowDateTime;
+            u_user.HighPart = ft_user.dwHighDateTime;
 
-            uint64_t current_system = uKernel.QuadPart;
-            uint64_t current_user = uUser.QuadPart;
+            uint64_t current_system = u_kernel.QuadPart;
+            uint64_t current_user = u_user.QuadPart;
 
             uint64_t delta_system = current_system - info.stats.last_system_time;
             uint64_t delta_user = current_user - info.stats.last_user_time;
@@ -106,8 +115,7 @@ std::vector<ThreadCpuStats> ThreadMetrics::update_and_get() {
                 double cpu_percent = (double)total_delta_100ns / (delta_time_ms * 10000.0) * 100.0;
 
                 // Clamp and smooth
-                if (cpu_percent < 0)
-                    cpu_percent = 0;
+                cpu_percent = std::max<double>(cpu_percent, 0);
                 // if (cpu_percent > 100) cpu_percent = 100; // Can exceed 100% on multi-core? No, thread is single core
                 // execution context.
 

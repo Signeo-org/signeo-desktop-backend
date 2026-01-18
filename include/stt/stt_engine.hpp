@@ -84,7 +84,7 @@ public:
 
 private:
     // Private constructor - use create() factory
-    explicit SttEngine(const SttConfig& config);
+    explicit SttEngine(SttConfig config);
 
     core::Status init_whisper();
 
