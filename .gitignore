@@ -12,6 +12,9 @@ cmake-build-*/
 .vscode/
 .idea/
 
+# Environment variables
+.env
+
 # OS specific
 .DS_Store
 Thumbs.db

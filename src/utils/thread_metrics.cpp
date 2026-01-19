@@ -12,6 +12,12 @@
 
 namespace utils {
 
+namespace {
+constexpr uint64_t kNanosecondsPerMillisecond = 1000000;
+constexpr double kWindowsTimeUnit = 10000.0;  // 100ns units per ms
+constexpr double kPercentMultiplier = 100.0;
+}  // namespace
+
 auto ThreadMetrics::get() -> ThreadMetrics& {
     static ThreadMetrics instance;
     return instance;
@@ -82,7 +88,7 @@ auto ThreadMetrics::update_and_get() -> std::vector<ThreadCpuStats> {
     // but the existing windows logic is self-contained.
     // Let's keep existing Windows logic as is, but note that now_ms was used there.
     // The previous code calculated now_ms. Let's restore that for Windows block.
-    uint64_t now_ms = now_ns / 1000000;
+    uint64_t now_ms = now_ns / kNanosecondsPerMillisecond;
 
     for (auto& [name, info] : threads_) {
         // Prepare handles
@@ -112,7 +118,7 @@ auto ThreadMetrics::update_and_get() -> std::vector<ThreadCpuStats> {
                 // Total (100ns) / (Duration_ms * 10000) * 100%
                 // 1ms = 10,000 * 100ns
                 uint64_t total_delta_100ns = delta_system + delta_user;
-                double cpu_percent = (double)total_delta_100ns / (delta_time_ms * 10000.0) * 100.0;
+                double cpu_percent = static_cast<double>(total_delta_100ns) / (static_cast<double>(delta_time_ms) * kWindowsTimeUnit) * kPercentMultiplier;
 
                 // Clamp and smooth
                 cpu_percent = std::max<double>(cpu_percent, 0);

@@ -13,16 +13,24 @@ namespace stt {
  * @brief Configuration for Streaming Transcriber
  */
 struct TranscriberConfig {
-    int step_ms = 2000;           // Transcribe every N ms of new audio
-    int keep_ms = 500;            // Keep N ms of audio for context
-    int max_length_ms = 10000;    // Maximum audio window size
+    // Named constants for defaults
+    static constexpr int kDefaultStepMs = 2000;
+    static constexpr int kDefaultKeepMs = 500;
+    static constexpr int kDefaultMaxLengthMs = 10000;
+    static constexpr int kDefaultMinAudioMs = 200;
+    static constexpr int kDefaultMinRepetitionLen = 10;
+    static constexpr int kDefaultHallucinationMinLen = 2;
+
+    int step_ms = kDefaultStepMs;           // Transcribe every N ms of new audio
+    int keep_ms = kDefaultKeepMs;           // Keep N ms of audio for context
+    int max_length_ms = kDefaultMaxLengthMs;    // Maximum audio window size
     bool token_dedup = true;      // Enable token-based deduplication
     bool timestamp_merge = true;  // Enable timestamp-based merging
-    int min_audio_ms = 200;       // Minimum audio length to transcribe (reduced for short words)
+    int min_audio_ms = kDefaultMinAudioMs;       // Minimum audio length to transcribe (reduced for short words)
 
     // Quality / Filter
-    int min_repetition_len = 10;
-    int hallucination_min_len = 2;
+    int min_repetition_len = kDefaultMinRepetitionLen;
+    int hallucination_min_len = kDefaultHallucinationMinLen;
     std::vector<std::string> hallucination_blacklist = {"thank you", "thank you very much", "you", "bye",
                                                         "the following is a transcription"};
 };
@@ -78,7 +86,7 @@ public:
     /**
      * @brief Check if enough audio has accumulated for transcription
      */
-    auto should_transcribe() const -> bool;
+    [[nodiscard]] auto should_transcribe() const -> bool;
 
     /**
      * @brief Process and transcribe if ready
@@ -94,18 +102,18 @@ public:
     /**
      * @brief Get accumulated audio length in ms
      */
-    auto audio_length_ms() const -> int;
+    [[nodiscard]] auto audio_length_ms() const -> int;
 
     /**
      * @brief Get complete transcription history (for final output)
      */
-    auto get_full_text() const -> const std::string&;
+    [[nodiscard]] auto get_full_text() const -> const std::string&;
 
 private:
     auto transcribe_buffer() -> Segment;
     auto deduplicate_text(const std::string& new_text) -> std::string;
     // Helper methods
-    auto remove_repetition(const std::string& text) const -> std::string;
+    [[nodiscard]] auto remove_repetition(const std::string& text) const -> std::string;
     static auto find_overlap(const std::vector<std::string>& prev, const std::vector<std::string>& curr) -> int;
     auto is_hallucination(const std::string& text) -> bool;
     static auto tokenize(const std::string& text) -> std::vector<std::string>;
@@ -118,6 +126,7 @@ private:
     void append_to_full_text(const std::string& final_text);
     void update_state_after_transcription(const SttEngine::TranscriptionResult& result, int audio_len_ms);
 
+    // NOLINTNEXTLINE(cppcoreguidelines-avoid-const-or-ref-data-members)
     SttEngine& engine_;
     TranscriberConfig config_;
 
@@ -134,7 +143,7 @@ private:
     // Timing
     int64_t last_transcription_ms_ = 0;
 
-    static constexpr int SampleRate = 16000;
+    static constexpr int kSampleRate = 16000;
 };
 
 }  // namespace stt

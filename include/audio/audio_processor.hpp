@@ -16,6 +16,16 @@ namespace audio {
  */
 class AudioProcessor {
 public:
+    static constexpr int kDefaultOutputRate = 16000;
+    static constexpr int kMaxInputChannels = 8;
+    static constexpr int kResamplerQuality = 5;
+
+    struct Config {
+        int input_rate;
+        int input_channels;
+        int output_rate;
+    };
+
     /**
      * @brief Create an audio processor
      *
@@ -24,18 +34,20 @@ public:
      * @param output_rate Target sample rate (default: 16000 for VAD/STT)
      * @return Result containing unique_ptr to processor or error
      */
-    static auto create(int input_rate, int input_channels, int output_rate = 16000)
+    static auto create(int input_rate, int input_channels, int output_rate = kDefaultOutputRate)
         -> core::Result<std::unique_ptr<AudioProcessor>>;
 
 private:
-    AudioProcessor(int input_rate, int input_channels, int output_rate);
+    explicit AudioProcessor(const Config& config);
 
 public:
     ~AudioProcessor() = default;
 
-    // Disable copy
+    // Disable copy and move
     AudioProcessor(const AudioProcessor&) = delete;
     auto operator=(const AudioProcessor&) -> AudioProcessor& = delete;
+    AudioProcessor(AudioProcessor&&) = delete;
+    auto operator=(AudioProcessor&&) -> AudioProcessor& = delete;
 
     /**
      * @brief Process interleaved audio data
@@ -52,13 +64,13 @@ public:
      */
     void reset();
 
-    auto input_rate() const -> int {
+    [[nodiscard]] auto input_rate() const -> int {
         return input_rate_;
     }
-    auto input_channels() const -> int {
+    [[nodiscard]] auto input_channels() const -> int {
         return input_channels_;
     }
-    auto output_rate() const -> int {
+    [[nodiscard]] auto output_rate() const -> int {
         return output_rate_;
     }
 
@@ -77,7 +89,7 @@ private:
      * @param interleaved Interleaved multi-channel samples
      * @return Mono samples
      */
-    auto downmix_to_mono(const std::vector<float>& interleaved) const -> std::vector<float>;
+    [[nodiscard]] auto downmix_to_mono(const std::vector<float>& interleaved) const -> std::vector<float>;
 };
 
 }  // namespace audio

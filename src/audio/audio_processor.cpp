@@ -8,17 +8,27 @@ namespace audio {
 
 auto AudioProcessor::create(int input_rate, int input_channels, int output_rate)
     -> core::Result<std::unique_ptr<AudioProcessor>> {
-    if (input_channels < 1 || input_channels > 8) {
-        return core::log_error("Invalid channel count (must be 1-8)");
+    if (input_channels < 1 || input_channels > kMaxInputChannels) {
+        return core::log_error(std::format("Invalid channel count (must be 1-{})", kMaxInputChannels));
     }
+
+    Config config{
+        .input_rate = input_rate,
+        .input_channels = input_channels,
+        .output_rate = output_rate,
+    };
 
     // Use unique_ptr with private constructor (need to access private ctor so can't use make_unique directly without
     // friend)
-    std::unique_ptr<AudioProcessor> processor(new AudioProcessor(input_rate, input_channels, output_rate));
+    std::unique_ptr<AudioProcessor> processor(new AudioProcessor(config));
 
     // Only create resampler if rate conversion is needed
     if (input_rate != output_rate) {
-        auto res_result = AudioResampler::create(input_rate, output_rate, 5);
+        auto res_result = AudioResampler::create(AudioResampler::Config{
+            .input_rate = input_rate,
+            .output_rate = output_rate,
+            .quality = kResamplerQuality,
+        });
         if (!res_result) {
             return std::unexpected(res_result.error());
         }
@@ -37,8 +47,8 @@ auto AudioProcessor::create(int input_rate, int input_channels, int output_rate)
     return processor;
 }
 
-AudioProcessor::AudioProcessor(int input_rate, int input_channels, int output_rate)
-    : input_rate_(input_rate), input_channels_(input_channels), output_rate_(output_rate) {}
+AudioProcessor::AudioProcessor(const Config& config)
+    : input_rate_(config.input_rate), input_channels_(config.input_channels), output_rate_(config.output_rate) {}
 
 auto AudioProcessor::process(const std::vector<float>& interleaved_input) -> std::vector<float> {
     if (interleaved_input.empty()) {

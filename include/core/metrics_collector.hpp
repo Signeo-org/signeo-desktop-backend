@@ -33,6 +33,9 @@ public:
     // Non-copyable (metrics should be unique per application instance)
     MetricsCollector(const MetricsCollector&) = delete;
     auto operator=(const MetricsCollector&) -> MetricsCollector& = delete;
+    MetricsCollector(MetricsCollector&&) = delete;
+    auto operator=(MetricsCollector&&) -> MetricsCollector& = delete;
+    ~MetricsCollector() = default;
 
     // =========================================================================
     // Audio Pipeline Event Tracking
@@ -111,32 +114,37 @@ public:
 
     /**
      * @brief Record pipeline latency (end-to-end)
-     * @param ms Latency in milliseconds
+     * @param latency_ms Latency in milliseconds
      */
-    void record_pipeline_latency(double ms);
+    void record_pipeline_latency(double latency_ms);
 
     /**
      * @brief Reset all collected metrics
      */
     void reset();
 
+private:
+    static constexpr double kSmoothingAlpha = 0.1;
+    static constexpr double kMinElapsedSec = 0.001;
+    static constexpr double kCharsPerToken = 4.0;
+
     // Timestamps
-    std::chrono::steady_clock::time_point vad_start_time;
-    std::chrono::steady_clock::time_point inference_start_time;
+    std::chrono::steady_clock::time_point vad_start_time_;
+    std::chrono::steady_clock::time_point inference_start_time_;
 
     // Thread-safe atomic metrics
-    std::atomic<double> last_vad_latency_ms{0.0};
-    std::atomic<double> last_inference_latency_ms{0.0};
-    std::atomic<double> last_pipeline_latency_ms{0.0};
-    std::atomic<double> current_rtf{1.0};
+    std::atomic<double> last_vad_latency_ms_{0.0};
+    std::atomic<double> last_inference_latency_ms_{0.0};
+    std::atomic<double> last_pipeline_latency_ms_{0.0};
+    std::atomic<double> current_rtf_{1.0};
 
     // Throughput tracking
-    std::atomic<size_t> total_tokens{0};
-    std::atomic<size_t> total_audio_samples{0};
-    std::atomic<double> audio_fill_rate{0.0};
+    std::atomic<size_t> total_tokens_{0};
+    std::atomic<size_t> total_audio_samples_{0};
+    std::atomic<double> audio_fill_rate_{0.0};
 
-    std::chrono::steady_clock::time_point start_time = std::chrono::steady_clock::now();
-    std::chrono::steady_clock::time_point last_audio_chunk_time = std::chrono::steady_clock::now();
+    std::chrono::steady_clock::time_point start_time_ = std::chrono::steady_clock::now();
+    std::chrono::steady_clock::time_point last_audio_chunk_time_ = std::chrono::steady_clock::now();
 };
 
 }  // namespace core

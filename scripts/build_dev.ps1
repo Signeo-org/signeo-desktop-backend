@@ -36,7 +36,8 @@ $BuildDir = "$ProjectRoot\build"
 if ($Gpu) {
     $BuildDir = "$ProjectRoot\build_gpu"
     Write-Host "Building with GPU Support..." -ForegroundColor Cyan
-} else {
+}
+else {
     Write-Host "Building for CPU..." -ForegroundColor Cyan
 }
 
@@ -84,11 +85,13 @@ if ($Gpu) {
                 }
             }
             Remove-Item $tempFile
-        } else {
+        }
+        else {
             Write-Error "Could not find vcvars64.bat. Please run this script from a Visual Studio Developer Command Prompt."
             exit 1
         }
-    } else {
+    }
+    else {
         Write-Host "MSVC environment detected." -ForegroundColor Green
     }
 }
@@ -102,7 +105,8 @@ if ($Gpu) {
     $CMakeArgs += "-DENABLE_GPU=ON"
     $CMakeArgs += "-DCMAKE_C_COMPILER=cl"
     $CMakeArgs += "-DCMAKE_CXX_COMPILER=cl"
-} else {
+}
+else {
     $CMakeArgs += "-DENABLE_GPU=OFF"
 }
 
@@ -110,7 +114,8 @@ if ($Gpu) {
 if ($Tidy) {
     Write-Host "Enabled: Clang-Tidy" -ForegroundColor DarkGray
     $CMakeArgs += "-DENABLE_CLANG_TIDY=ON"
-} else {
+}
+else {
     $CMakeArgs += "-DENABLE_CLANG_TIDY=OFF"
 }
 
@@ -118,7 +123,8 @@ if ($Tidy) {
 if ($Format) {
     Write-Host "Enabled: Clang-Format Target" -ForegroundColor DarkGray
     $CMakeArgs += "-DENABLE_CLANG_FORMAT=ON"
-} else {
+}
+else {
     $CMakeArgs += "-DENABLE_CLANG_FORMAT=OFF"
 }
 
@@ -136,7 +142,8 @@ cmake --build "$BuildDir"
 
 if ($LASTEXITCODE -eq 0) {
     Write-Host "`nBuild Successful!" -ForegroundColor Green
-} else {
+}
+else {
     Write-Error "Build failed."
     exit 1
 }

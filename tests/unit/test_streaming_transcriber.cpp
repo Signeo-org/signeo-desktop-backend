@@ -1,17 +1,18 @@
 /**
  * @file test_streaming_transcriber.cpp
  * @brief Unit tests for StreamingTranscriber logic
- * 
+ *
  * Note: Full integration tests require a real SttEngine. These tests focus on
  * the testable pure logic: audio buffering, timing, and text processing helpers.
  */
 
 #include <gtest/gtest.h>
-#include <vector>
-#include <string>
-#include <sstream>
+
 #include <algorithm>
 #include <cctype>
+#include <sstream>
+#include <string>
+#include <vector>
 
 // Since StreamingTranscriber's helper methods are private, we test the logic
 // by extracting it to standalone functions for unit testing.
@@ -22,7 +23,7 @@ namespace test_utils {
 
 /**
  * @brief Normalize and split text into tokens
- * 
+ *
  * Removes punctuation and converts to lowercase.
  * Example: "Hello, World!" -> {"hello", "world"}
  */
@@ -46,16 +47,17 @@ std::vector<std::string> tokenize(const std::string& text) {
 
 /**
  * @brief Find overlapping suffix/prefix between two token lists
- * 
+ *
  * @param prev Previous segment tokens
  * @param curr Current segment tokens
  * @return Number of tokens in the overlap
  */
 int find_overlap(const std::vector<std::string>& prev, const std::vector<std::string>& curr) {
-    if (prev.empty() || curr.empty()) return 0;
-    
+    if (prev.empty() || curr.empty())
+        return 0;
+
     size_t max_overlap = std::min(prev.size(), curr.size());
-    
+
     for (size_t overlap = max_overlap; overlap >= 1; --overlap) {
         bool match = true;
         for (size_t i = 0; i < overlap; ++i) {
@@ -73,27 +75,28 @@ int find_overlap(const std::vector<std::string>& prev, const std::vector<std::st
 
 /**
  * @brief Remove repetitive phrases from text
- * 
+ *
  * Detects and removes immediate suffix repetitions (e.g. "text text" -> "text").
  * Minimum repetition length is 10 characters.
  */
 std::string remove_repetition(const std::string& text) {
-    if (text.empty()) return text;
-    
+    if (text.empty())
+        return text;
+
     std::string current = text;
     bool changed = true;
     while (changed) {
         changed = false;
         size_t n = current.length();
-        for (size_t i = 10; i <= n / 2; ++i) { 
-             std::string sub = current.substr(n - i, i);
-             std::string prev = current.substr(n - 2 * i, i);
-             
-             if (sub == prev) {
-                 current = current.substr(0, n - i);
-                 changed = true;
-                 break;
-             }
+        for (size_t i = 10; i <= n / 2; ++i) {
+            std::string sub = current.substr(n - i, i);
+            std::string prev = current.substr(n - 2 * i, i);
+
+            if (sub == prev) {
+                current = current.substr(0, n - i);
+                changed = true;
+                break;
+            }
         }
     }
     return current;
@@ -101,36 +104,33 @@ std::string remove_repetition(const std::string& text) {
 
 /**
  * @brief Check if text is a common STT hallucination
- * 
+ *
  * Detects common Whisper hallucinations like "Thank you", "Bye", etc.
  */
 bool is_hallucination(const std::string& text) {
-    if (text.empty()) return true;
-    if (text.length() < 2) return true;
-    
+    if (text.empty())
+        return true;
+    if (text.length() < 2)
+        return true;
+
     std::string lower = text;
-    std::transform(lower.begin(), lower.end(), lower.begin(), 
-        [](unsigned char c){ return std::tolower(c); });
-        
+    std::transform(lower.begin(), lower.end(), lower.begin(), [](unsigned char c) { return std::tolower(c); });
+
     while (!lower.empty() && std::ispunct(lower.back())) {
         lower.pop_back();
     }
-    
-    static const std::vector<std::string> blacklist = {
-        "thank you",
-        "thank you very much",
-        "you",
-        "bye"
-    };
-    
+
+    static const std::vector<std::string> blacklist = {"thank you", "thank you very much", "you", "bye"};
+
     for (const auto& phrase : blacklist) {
-        if (lower == phrase) return true;
+        if (lower == phrase)
+            return true;
     }
-    
+
     return false;
 }
 
-} // namespace test_utils
+}  // namespace test_utils
 
 // ============================================================================
 // Tests for tokenize()

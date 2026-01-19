@@ -31,10 +31,13 @@ template <typename T>
 class ThreadSafeQueue {
 public:
     ThreadSafeQueue() : stopped_(false) {}
+    ~ThreadSafeQueue() = default;
 
-    // Non-copyable
+    // Non-copyable/movable
     ThreadSafeQueue(const ThreadSafeQueue&) = delete;
     auto operator=(const ThreadSafeQueue&) -> ThreadSafeQueue& = delete;
+    ThreadSafeQueue(ThreadSafeQueue&&) = delete;
+    auto operator=(ThreadSafeQueue&&) -> ThreadSafeQueue& = delete;
 
     /**
      * @brief Push a value into the queue

@@ -12,6 +12,13 @@
 
 namespace stt {
 
+namespace {
+constexpr float kNoSpeechThreshold = 0.6F;
+constexpr float kEntropyThreshold = 2.4F;
+constexpr float kSampleRateFloat = 16000.0F;
+constexpr float kMillisecondsPerSecondFloat = 1000.0F;
+}  // namespace
+
 // Factory Method
 auto SttEngine::create(const SttConfig& config) -> core::Result<std::unique_ptr<SttEngine>> {
     LOG_SCOPED_TRACE();
@@ -112,8 +119,8 @@ auto SttEngine::transcribe(const std::vector<float>& audio) -> core::Result<SttE
     // Anti-hallucination settings
     wparams.suppress_blank = true;
     wparams.suppress_nst = true;
-    wparams.no_speech_thold = 0.6F;
-    wparams.entropy_thold = 2.4F;
+    wparams.no_speech_thold = kNoSpeechThreshold;
+    wparams.entropy_thold = kEntropyThreshold;
     wparams.logprob_thold = -1.0F;
 
     // Run inference
@@ -146,11 +153,11 @@ auto SttEngine::transcribe(const std::vector<float>& audio) -> core::Result<SttE
     TranscriptionResult result;
     result.text = full_text;
     result.duration_ms = std::chrono::duration_cast<std::chrono::milliseconds>(t_end - t_start).count();
-    result.avg_probability = token_count > 0 ? prob_sum / token_count : 0.0F;
+    result.avg_probability = token_count > 0 ? prob_sum / static_cast<float>(token_count) : 0.0F;
 
     // Log audio duration vs processing time
-    float audio_duration_s = static_cast<float>(audio.size()) / 16000.0F;
-    float rtf = static_cast<float>(result.duration_ms) / 1000.0F / audio_duration_s;
+    float audio_duration_s = static_cast<float>(audio.size()) / kSampleRateFloat;
+    float rtf = static_cast<float>(result.duration_ms) / kMillisecondsPerSecondFloat / audio_duration_s;
 
     spdlog::debug("SttEngine: Transcribed {:.2f}s audio in {}ms (RTF: {:.2f})", audio_duration_s, result.duration_ms,
                   rtf);

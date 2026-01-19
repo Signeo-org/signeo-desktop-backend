@@ -33,56 +33,56 @@ auto WerCalculator::calculate_wer(const std::vector<std::string>& reference, con
     }
 
     // Levenshtein distance with traceback for error classification
-    size_t m = reference.size();
-    size_t n = hypothesis.size();
+    size_t ref_len = reference.size();
+    size_t hyp_len = hypothesis.size();
 
-    // DP matrix: dp[i][j] = min edits to transform ref[0..i) to hyp[0..j)
-    std::vector<std::vector<int>> dp(m + 1, std::vector<int>(n + 1, 0));
+    // DP matrix: distance[i][j] = min edits to transform ref[0..i) to hyp[0..j)
+    std::vector<std::vector<int>> distance(ref_len + 1, std::vector<int>(hyp_len + 1, 0));
 
     // Initialize base cases
-    for (size_t i = 0; i <= m; ++i) {
-        dp[i][0] = static_cast<int>(i);  // Deletions
+    for (size_t row = 0; row <= ref_len; ++row) {
+        distance[row][0] = static_cast<int>(row);  // Deletions
     }
-    for (size_t j = 0; j <= n; ++j) {
-        dp[0][j] = static_cast<int>(j);  // Insertions
+    for (size_t col = 0; col <= hyp_len; ++col) {
+        distance[0][col] = static_cast<int>(col);  // Insertions
     }
 
     // Fill DP matrix
-    for (size_t i = 1; i <= m; ++i) {
-        for (size_t j = 1; j <= n; ++j) {
-            if (reference[i - 1] == hypothesis[j - 1]) {
-                dp[i][j] = dp[i - 1][j - 1];  // Match
+    for (size_t row = 1; row <= ref_len; ++row) {
+        for (size_t col = 1; col <= hyp_len; ++col) {
+            if (reference[row - 1] == hypothesis[col - 1]) {
+                distance[row][col] = distance[row - 1][col - 1];  // Match
             } else {
-                dp[i][j] = 1 + std::min({
-                                   dp[i - 1][j],     // Deletion
-                                   dp[i][j - 1],     // Insertion
-                                   dp[i - 1][j - 1]  // Substitution
+                distance[row][col] = 1 + std::min({
+                                   distance[row - 1][col],     // Deletion
+                                   distance[row][col - 1],     // Insertion
+                                   distance[row - 1][col - 1]  // Substitution
                                });
             }
         }
     }
 
     // Traceback to classify errors
-    size_t i = m;
-    size_t j = n;
-    while (i > 0 || j > 0) {
-        if (i > 0 && j > 0 && reference[i - 1] == hypothesis[j - 1]) {
+    size_t row = ref_len;
+    size_t col = hyp_len;
+    while (row > 0 || col > 0) {
+        if (row > 0 && col > 0 && reference[row - 1] == hypothesis[col - 1]) {
             // Match - no error
-            --i;
-            --j;
-        } else if (i > 0 && j > 0 && dp[i][j] == dp[i - 1][j - 1] + 1) {
+            --row;
+            --col;
+        } else if (row > 0 && col > 0 && distance[row][col] == distance[row - 1][col - 1] + 1) {
             // Substitution
             result.substitutions++;
-            --i;
-            --j;
-        } else if (j > 0 && dp[i][j] == dp[i][j - 1] + 1) {
+            --row;
+            --col;
+        } else if (col > 0 && distance[row][col] == distance[row][col - 1] + 1) {
             // Insertion
             result.insertions++;
-            --j;
-        } else if (i > 0 && dp[i][j] == dp[i - 1][j] + 1) {
+            --col;
+        } else if (row > 0 && distance[row][col] == distance[row - 1][col] + 1) {
             // Deletion
             result.deletions++;
-            --i;
+            --row;
         } else {
             // Shouldn't happen, but safety break
             break;
@@ -100,11 +100,11 @@ auto WerCalculator::normalize(const std::string& text) -> std::string {
     result.reserve(text.size());
 
     bool last_was_space = true;  // Trim leading
-    for (char c : text) {
-        if (std::isalnum(static_cast<unsigned char>(c)) != 0) {
-            result += static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+    for (char chr : text) {
+        if (std::isalnum(static_cast<unsigned char>(chr)) != 0) {
+            result += static_cast<char>(std::tolower(static_cast<unsigned char>(chr)));
             last_was_space = false;
-        } else if (std::isspace(static_cast<unsigned char>(c)) != 0) {
+        } else if (std::isspace(static_cast<unsigned char>(chr)) != 0) {
             if (!last_was_space) {
                 result += ' ';
                 last_was_space = true;

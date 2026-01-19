@@ -1,6 +1,7 @@
 #include "audio/ringbuffer.hpp"
 
 #include <algorithm>
+#include <span>
 
 namespace audio {
 
@@ -16,11 +17,16 @@ auto RingBuffer::write(const float* data, size_t count) -> size_t {
         return 0;
     }
 
+    std::span<const float> input_span(data, count);
     const size_t first_chunk = std::min(count, capacity_ - write_pos_);
-    std::copy_n(data, first_chunk, buffer_.begin() + write_pos_);
+
+    // Fix narrowing conversion warning by casting to ptrdiff_t
+    auto write_iter = buffer_.begin() + static_cast<std::ptrdiff_t>(write_pos_);
+    std::copy_n(input_span.begin(), first_chunk, write_iter);
 
     if (first_chunk < count) {
-        std::copy_n(data + first_chunk, count - first_chunk, buffer_.begin());
+        std::copy_n(input_span.begin() + static_cast<std::ptrdiff_t>(first_chunk), count - first_chunk,
+                    buffer_.begin());
     }
 
     write_pos_ = (write_pos_ + count) % capacity_;
@@ -37,11 +43,16 @@ auto RingBuffer::read(float* dest, size_t count) -> size_t {
         return 0;
     }
 
+    std::span<float> output_span(dest, count);
     const size_t first_chunk = std::min(count, capacity_ - read_pos_);
-    std::copy_n(buffer_.begin() + read_pos_, first_chunk, dest);
+
+    // Fix narrowing conversion warning by casting to ptrdiff_t
+    auto read_iter = buffer_.begin() + static_cast<std::ptrdiff_t>(read_pos_);
+    std::copy_n(read_iter, first_chunk, output_span.begin());
 
     if (first_chunk < count) {
-        std::copy_n(buffer_.begin(), count - first_chunk, dest + first_chunk);
+        std::copy_n(buffer_.begin(), count - first_chunk,
+                    output_span.begin() + static_cast<std::ptrdiff_t>(first_chunk));
     }
 
     read_pos_ = (read_pos_ + count) % capacity_;

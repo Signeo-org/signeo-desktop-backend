@@ -2,10 +2,12 @@
 
 #include <spdlog/spdlog.h>
 
+#include <array>
 #include <cstring>
 #include <format>
 #include <fstream>
 #include <iostream>
+#include <span>
 #include <vector>
 
 #include "core/result.hpp"
@@ -16,6 +18,19 @@
     #include <windows.h>
 #endif
 
+namespace {
+template <typename T>
+void read_pod(std::ifstream& file, T& value) {
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+    file.read(reinterpret_cast<char*>(&value), sizeof(T));
+}
+
+void read_bytes(std::ifstream& file, void* data, size_t size) {
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+    file.read(reinterpret_cast<char*>(data), static_cast<std::streamsize>(size));
+}
+}  // namespace
+
 namespace audio {
 
 // Factory Method
@@ -25,8 +40,15 @@ auto AudioCapture::create(int sample_rate, int frames_per_buffer, const std::str
     spdlog::debug("AudioCapture::create() called with sample_rate={}, frames_per_buffer={}, file={}", sample_rate,
                   frames_per_buffer, file_path);
 
+    // Create config object
+    Config config{
+        .sample_rate = sample_rate,
+        .frames_per_buffer = frames_per_buffer,
+        .file_path = file_path,
+    };
+
     // We can't use make_unique with private constructor easily, so we use raw new
-    std::unique_ptr<AudioCapture> capture(new AudioCapture(sample_rate, frames_per_buffer, file_path));
+    std::unique_ptr<AudioCapture> capture(new AudioCapture(config));
 
     if (capture->file_mode_) {
         auto load_res = capture->load_wav_file();
@@ -47,11 +69,11 @@ auto AudioCapture::create(int sample_rate, int frames_per_buffer, const std::str
 }
 
 // Private Constructor
-AudioCapture::AudioCapture(int sample_rate, int frames_per_buffer, const std::string& file_path)
-    : sample_rate_(sample_rate)
-    , frames_per_buffer_(frames_per_buffer)
-    , file_mode_(!file_path.empty())
-    , wav_path_(file_path) {
+AudioCapture::AudioCapture(const Config& config)
+    : sample_rate_(config.sample_rate)
+    , frames_per_buffer_(config.frames_per_buffer)
+    , file_mode_(!config.file_path.empty())
+    , wav_path_(config.file_path) {
     // Ring buffer will be allocated in start() for PA mode, or we don't use it for file mode
 }
 
@@ -74,23 +96,36 @@ auto AudioCapture::load_wav_file() -> core::Status {
         return core::log_error(std::format("Failed to open WAV file: {}", wav_path_));
     }
 
-    uint16_t bits_per_sample = 0;
-    auto header_res = read_wav_header(file, reinterpret_cast<uint16_t&>(this->channels_),
-                                      reinterpret_cast<uint32_t&>(this->sample_rate_), bits_per_sample);
+    WavAudioFormat format{};
+    auto header_res = read_wav_header(file, format);
     if (!header_res) {
         return header_res;
     }
 
-    if (bits_per_sample != 16) {
+    // Assign to members after successful read
+    this->channels_ = format.channels;
+    this->sample_rate_ = static_cast<int>(format.sample_rate);
+
+    if (format.bits_per_sample != kBitsPerSample) {
         return core::log_error("Unsupported bit depth (only 16-bit supported currently)");
     }
 
     // Find data chunk
-    char chunk_id[4];
-    uint32_t chunk_size;
+    std::array<char, 4> chunk_id{};
+    uint32_t chunk_size = 0;
 
-    while (file.read(chunk_id, 4) && file.read(reinterpret_cast<char*>(&chunk_size), 4)) {
-        if (std::strncmp(chunk_id, "data", 4) == 0) {
+    while (true) {
+        read_bytes(file, chunk_id.data(), chunk_id.size());
+        if (!file) {
+            break;
+        }
+
+        read_pod(file, chunk_size);
+        if (!file) {
+            break;
+        }
+
+        if (std::strncmp(chunk_id.data(), "data", 4) == 0) {
             break;
         }
         file.seekg(chunk_size, std::ios::cur);
@@ -103,25 +138,24 @@ auto AudioCapture::load_wav_file() -> core::Status {
     // Read samples
     size_t num_samples = chunk_size / 2;  // 16-bit = 2 bytes
     std::vector<int16_t> pcm_data(num_samples);
-    file.read(reinterpret_cast<char*>(pcm_data.data()), chunk_size);
+    read_bytes(file, pcm_data.data(), chunk_size);
 
     // Convert to float [-1.0, 1.0]
     wav_data_.resize(num_samples);
     for (size_t i = 0; i < num_samples; ++i) {
-        wav_data_[i] = static_cast<float>(pcm_data[i]) / 32768.0F;
+        wav_data_[i] = static_cast<float>(pcm_data[i]) / kPcmToFloat;
     }
 
     spdlog::info("Loaded WAV: {} Hz, {} ch, {} samples", sample_rate_, channels_, num_samples);
     return {};
 }
 
-auto AudioCapture::read_wav_header(std::ifstream& file, uint16_t& channels, uint32_t& sample_rate,
-                                   uint16_t& bits_per_sample) -> core::Status {
+auto AudioCapture::read_wav_header(std::ifstream& file, WavAudioFormat& format) -> core::Status {
     struct WavHeader {
-        char riff[4];
+        std::array<char, 4> riff;
         uint32_t file_size;
-        char wave[4];
-        char fmt[4];
+        std::array<char, 4> wave;
+        std::array<char, 4> fmt;
         uint32_t fmt_size;
         uint16_t audio_format;
         uint16_t num_channels;
@@ -129,11 +163,11 @@ auto AudioCapture::read_wav_header(std::ifstream& file, uint16_t& channels, uint
         uint32_t byte_rate;
         uint16_t block_align;
         uint16_t bits_per_sample;
-    } header;
+    } header{};
 
-    file.read(reinterpret_cast<char*>(&header), sizeof(header));
+    read_pod(file, header);
 
-    if (std::strncmp(header.riff, "RIFF", 4) != 0 || std::strncmp(header.wave, "WAVE", 4) != 0) {
+    if (std::strncmp(header.riff.data(), "RIFF", 4) != 0 || std::strncmp(header.wave.data(), "WAVE", 4) != 0) {
         return core::log_error("Invalid WAV file format");
     }
 
@@ -141,9 +175,9 @@ auto AudioCapture::read_wav_header(std::ifstream& file, uint16_t& channels, uint
         return core::log_error("Unsupported WAV format (only PCM supported)");
     }
 
-    channels = header.num_channels;
-    sample_rate = header.sample_rate;
-    bits_per_sample = header.bits_per_sample;
+    format.channels = header.num_channels;
+    format.sample_rate = header.sample_rate;
+    format.bits_per_sample = header.bits_per_sample;
 
     return {};
 }
@@ -225,7 +259,7 @@ auto AudioCapture::start(int device_index) -> core::Status {
     spdlog::info("Opening input device: {} (Rate: {}, Channels: {})", device_info->name, sample_rate_, channels_);
 
     // Allocate ring buffer: 10 seconds of interleaved audio
-    ring_buffer_ = std::make_unique<RingBuffer>(sample_rate_ * channels_ * 10);
+    ring_buffer_ = std::make_unique<RingBuffer>(sample_rate_ * channels_ * kRingBufferDurationSeconds);
 
     PaError err = Pa_StartStream(stream_.get());
     if (err != paNoError) {
@@ -424,11 +458,12 @@ auto AudioCapture::get_gain() const -> float {
     return input_gain_.load();
 }
 
+// NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 auto AudioCapture::pa_callback(const void* inputBuffer, void* outputBuffer, unsigned long framesPerBuffer,
                                const PaStreamCallbackTimeInfo* timeInfo, PaStreamCallbackFlags statusFlags,
                                void* userData) -> int {
     auto* self = static_cast<AudioCapture*>(userData);
-    const auto* in = static_cast<const float*>(inputBuffer);
+    const auto* input_data = static_cast<const float*>(inputBuffer);
 
     (void)outputBuffer;  // Unused
     (void)timeInfo;
@@ -439,24 +474,25 @@ auto AudioCapture::pa_callback(const void* inputBuffer, void* outputBuffer, unsi
         return paContinue;
     }
 
-    size_t samples = framesPerBuffer * self->channels_;
+    size_t samples = static_cast<size_t>(framesPerBuffer) * self->channels_;
     float current_gain = self->input_gain_.load();
 
-    if (std::abs(current_gain - 1.0F) > 0.001F) {
+    // Safety check for input buffer access
+    std::span<const float> input_span(input_data, samples);
+
+    if (std::abs(current_gain - 1.0F) > kGainThreshold) {
         // Apply gain
         if (self->temp_buffer_.size() < samples) {
             self->temp_buffer_.resize(samples);
         }
 
-        // Copy and scale
-        // Simple optimization: check if we can use SIMD later. For now std::transform or loop.
         for (size_t i = 0; i < samples; ++i) {
-            self->temp_buffer_[i] = in[i] * current_gain;
+            self->temp_buffer_[i] = input_span[i] * current_gain;
         }
         self->ring_buffer_->write(self->temp_buffer_.data(), samples);
     } else {
         // Pass through
-        self->ring_buffer_->write(in, samples);
+        self->ring_buffer_->write(input_data, samples);
     }
 
     return paContinue;

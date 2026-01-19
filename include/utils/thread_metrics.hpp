@@ -36,7 +36,7 @@ private:
     ThreadMetrics() = default;
 
     struct ThreadInfo {
-        std::thread::native_handle_type handle;
+        std::thread::native_handle_type handle{};
         ThreadCpuStats stats;
     };
 

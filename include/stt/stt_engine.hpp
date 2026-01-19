@@ -75,12 +75,12 @@ public:
     /**
      * @brief Check if engine is ready for transcription
      */
-    auto is_ready() const -> bool;
+    [[nodiscard]] auto is_ready() const -> bool;
 
     /**
      * @brief Get the configured language
      */
-    auto language() const -> const std::string&;
+    [[nodiscard]] auto language() const -> const std::string&;
 
 private:
     // Private constructor - use create() factory

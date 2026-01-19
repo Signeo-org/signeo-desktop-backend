@@ -19,6 +19,22 @@
 
 namespace ui {
 
+// Constants for UI defaults
+namespace detail {
+constexpr float kDefaultVadThreshold = 0.5F;
+constexpr int kDefaultSampleRate = 16000;
+constexpr float kDefaultEnergyThreshold = 0.001F;
+constexpr int kDefaultVadHangover = 20;
+constexpr float kDefaultVadSmoothing = 0.3F;
+constexpr float kDefaultVadAdaptiveMin = 0.35F;
+constexpr float kDefaultVadAdaptiveMax = 0.6F;
+constexpr float kDefaultVadAdaptiveAlpha = 0.95F;
+constexpr int kDefaultSttMinRepetition = 10;
+constexpr int kDefaultSttHallucinationLen = 2;
+constexpr int kDefaultSttStepMs = 2000;
+constexpr int kDefaultSttKeepMs = 500;
+}  // namespace detail
+
 struct SubtitleItem {
     std::string text;
     float confidence;
@@ -45,7 +61,7 @@ struct AppState {
     float vad_energy = 0.0F;
     float vad_probability = 0.0F;
     bool is_speech = false;
-    float vad_threshold = 0.5F;
+    float vad_threshold = detail::kDefaultVadThreshold;
 
     // STT Output
     std::vector<SubtitleItem> subtitles;
@@ -71,17 +87,17 @@ struct SettingsState {
     // Audio
     int current_device_id = -1;
     float input_gain = 1.0F;
-    int sample_rate = 16000;
+    int sample_rate = detail::kDefaultSampleRate;
 
     // VAD
-    float vad_threshold = 0.5F;
-    float vad_energy_thresh = 0.001F;
-    int vad_hangover = 20;
-    float vad_smoothing = 0.3F;
+    float vad_threshold = detail::kDefaultVadThreshold;
+    float vad_energy_thresh = detail::kDefaultEnergyThreshold;
+    int vad_hangover = detail::kDefaultVadHangover;
+    float vad_smoothing = detail::kDefaultVadSmoothing;
     bool vad_adaptive = true;
-    float vad_adaptive_min = 0.35F;
-    float vad_adaptive_max = 0.6F;
-    float vad_adaptive_alpha = 0.95F;
+    float vad_adaptive_min = detail::kDefaultVadAdaptiveMin;
+    float vad_adaptive_max = detail::kDefaultVadAdaptiveMax;
+    float vad_adaptive_alpha = detail::kDefaultVadAdaptiveAlpha;
 
     // STT
     int stt_threads = 4;
@@ -90,10 +106,10 @@ struct SettingsState {
     std::string stt_language = "en";
     bool stt_use_gpu = true;
     bool stt_flash_attn = true;
-    int stt_min_repetition = 10;
-    int stt_hallucination_len = 2;
-    int stt_step_ms = 2000;
-    int stt_keep_ms = 500;
+    int stt_min_repetition = detail::kDefaultSttMinRepetition;
+    int stt_hallucination_len = detail::kDefaultSttHallucinationLen;
+    int stt_step_ms = detail::kDefaultSttStepMs;
+    int stt_keep_ms = detail::kDefaultSttKeepMs;
     // DecodingStrategy decoding_strategy = DecodingStrategy::Greedy; // TODO
 
     // String Buffers for UI Inputs
@@ -115,6 +131,12 @@ class TuiRenderer {
 public:
     TuiRenderer();
     ~TuiRenderer();
+
+    // Non-copyable/movable
+    TuiRenderer(const TuiRenderer&) = delete;
+    auto operator=(const TuiRenderer&) -> TuiRenderer& = delete;
+    TuiRenderer(TuiRenderer&&) = delete;
+    auto operator=(TuiRenderer&&) -> TuiRenderer& = delete;
 
     /**
      * @brief Build the main component layout

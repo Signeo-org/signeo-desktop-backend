@@ -37,7 +37,7 @@ public:
     // ─────────────────────────────────────────────────────────────
 
     /// @brief Create a labeled slider for float values
-    static auto create_slider(const std::string& label, float* value, float min, float max, float step,
+    static auto create_slider(const std::string& label, const float* value, float min, float max, float step,
                               const std::function<void()>& on_change) -> ftxui::Component;
 
     /// @brief Create a labeled checkbox for boolean values

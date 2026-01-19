@@ -38,6 +38,8 @@ public:
     // Non-copyable
     RingBuffer(const RingBuffer&) = delete;
     auto operator=(const RingBuffer&) -> RingBuffer& = delete;
+    RingBuffer(RingBuffer&&) = delete;
+    auto operator=(RingBuffer&&) -> RingBuffer& = delete;
     ~RingBuffer() = default;
 
     /**

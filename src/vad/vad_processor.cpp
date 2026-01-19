@@ -20,6 +20,13 @@
 
 namespace vad {
 
+namespace {
+constexpr int kMillisecondsPerSecond = 1000;
+constexpr int kStateBufferSize = 128;
+constexpr int kPreRollBufferMultiplier = 128;
+constexpr float kAdaptiveOffset = 0.25F;
+}  // namespace
+
 // Factory Method
 auto VadProcessor::create(const std::string& model_path, int sample_rate, int frame_size, const VadConfig& config)
     -> core::Result<std::unique_ptr<VadProcessor>> {
@@ -37,7 +44,7 @@ auto VadProcessor::create(const std::string& model_path, int sample_rate, int fr
     processor->reset_states();
 
     spdlog::info("VadProcessor initialized [ADVANCED MODE]");
-    spdlog::info("  Rate: {}, Frame: {} samples ({}ms)", sample_rate, frame_size, frame_size * 1000 / sample_rate);
+    spdlog::info("  Rate: {}, Frame: {} samples ({}ms)", sample_rate, frame_size, frame_size * kMillisecondsPerSecond / sample_rate);
     spdlog::info("  Threshold: {:.2f}, Energy: {:.4f}", config.threshold, config.energy_threshold);
     spdlog::info("  Smoothing α: {:.2f}, Hangover: {} frames, Pre-roll: {} frames", config.smoothing_alpha,
                  config.hangover_frames, config.pre_roll_frames);
@@ -47,18 +54,19 @@ auto VadProcessor::create(const std::string& model_path, int sample_rate, int fr
 }
 
 // Private Constructor
+// NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 VadProcessor::VadProcessor(int sample_rate, int frame_size, const VadConfig& config)
     : sample_rate_(sample_rate)
     , window_size_samples_(frame_size)
+    , effective_window_size_(frame_size + kContextSamples)
     , config_(config)
     , adaptive_threshold_(config.threshold) {
-    effective_window_size_ = window_size_samples_ + context_samples_;
 
     input_node_dims_[0] = 1;
     input_node_dims_[1] = effective_window_size_;
 
-    state_.resize(2 * 1 * 128);
-    context_.assign(context_samples_, 0.0F);
+    state_.resize(static_cast<size_t>(2) * kStateBufferSize);
+    context_.assign(static_cast<size_t>(kContextSamples), 0.0F);
     sr_.resize(1);
     sr_[0] = sample_rate;
 
@@ -106,7 +114,7 @@ void VadProcessor::reset_states() {
     std::ranges::fill(state_, 0.0F);
     std::ranges::fill(context_, 0.0F);
     smoothed_prob_ = 0.0F;
-    noise_floor_ = 0.1F;
+    noise_floor_ = detail::kDefaultNoiseFloor;
     adaptive_threshold_ = config_.threshold;
     hangover_counter_ = 0;
     is_speaking_ = false;
@@ -123,8 +131,8 @@ auto VadProcessor::calculate_rms(const std::vector<float>& frame) -> float {
         return 0.0F;
     }
     float sum_squares = 0.0F;
-    for (float x : frame) {
-        sum_squares += x * x;
+    for (float sample : frame) {
+        sum_squares += sample * sample;
     }
     return std::sqrt(sum_squares / static_cast<float>(frame.size()));
 }
@@ -132,14 +140,15 @@ auto VadProcessor::calculate_rms(const std::vector<float>& frame) -> float {
 auto VadProcessor::run_inference(const std::vector<float>& frame) -> float {
     // Prepare input with context (using pre-allocated buffer)
     std::ranges::copy(context_, input_buffer_.begin());
-    std::ranges::copy(frame, input_buffer_.begin() + context_samples_);
+    std::ranges::copy(frame, input_buffer_.begin() + kContextSamples);
 
-    // Create tensors
+    // NOLINTBEGIN(cppcoreguidelines-pro-bounds-array-to-pointer-decay)
     Ort::Value input_ort =
-        Ort::Value::CreateTensor<float>(memory_info_, input_buffer_.data(), input_buffer_.size(), input_node_dims_, 2);
+        Ort::Value::CreateTensor<float>(memory_info_, input_buffer_.data(), input_buffer_.size(), input_node_dims_.data(), 2);
     Ort::Value state_ort =
-        Ort::Value::CreateTensor<float>(memory_info_, state_.data(), state_.size(), state_node_dims_, 3);
-    Ort::Value sr_ort = Ort::Value::CreateTensor<int64_t>(memory_info_, sr_.data(), sr_.size(), sr_node_dims_, 1);
+        Ort::Value::CreateTensor<float>(memory_info_, state_.data(), state_.size(), kStateNodeDims.data(), 3);
+    Ort::Value sr_ort = Ort::Value::CreateTensor<int64_t>(memory_info_, sr_.data(), sr_.size(), kSrNodeDims.data(), 1);
+    // NOLINTEND(cppcoreguidelines-pro-bounds-array-to-pointer-decay)
 
     std::vector<Ort::Value> ort_inputs;
     ort_inputs.push_back(std::move(input_ort));
@@ -150,12 +159,14 @@ auto VadProcessor::run_inference(const std::vector<float>& frame) -> float {
     auto ort_outputs = session_->Run(Ort::RunOptions{nullptr}, input_node_names_.data(), ort_inputs.data(),
                                      ort_inputs.size(), output_node_names_.data(), output_node_names_.size());
 
+    // NOLINTBEGIN(cppcoreguidelines-pro-bounds-pointer-arithmetic)
     float speech_prob = ort_outputs[0].GetTensorMutableData<float>()[0];
 
     // Update state for next frame
     auto* state_n = ort_outputs[1].GetTensorMutableData<float>();
     std::copy(state_n, state_n + state_.size(), state_.begin());
-    std::copy(input_buffer_.end() - context_samples_, input_buffer_.end(), context_.begin());
+    std::copy(input_buffer_.end() - kContextSamples, input_buffer_.end(), context_.begin());
+    // NOLINTEND(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 
     return speech_prob;
 }
@@ -246,7 +257,7 @@ auto VadProcessor::update_adaptive_threshold(float raw_probability) -> float {
         noise_floor_ = config_.adaptive_alpha * noise_floor_ + (1.0F - config_.adaptive_alpha) * raw_probability;
 
         // Clamp threshold between min/max config
-        return std::max(config_.adaptive_min_threshold, std::min(config_.adaptive_max_threshold, noise_floor_ + 0.25F));
+        return std::max(config_.adaptive_min_threshold, std::min(config_.adaptive_max_threshold, noise_floor_ + kAdaptiveOffset));
     }
     return adaptive_threshold_;  // Keep existing if speaking
 }
@@ -280,6 +291,7 @@ void VadProcessor::set_adaptive_enabled(bool enabled) {
     config_.adaptive_enabled = enabled;
 }
 
+// NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 void VadProcessor::set_adaptive_params(float min_th, float max_th, float alpha) {
     config_.adaptive_min_threshold = min_th;
     config_.adaptive_max_threshold = max_th;

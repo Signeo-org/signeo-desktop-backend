@@ -1,7 +1,9 @@
 #include <gtest/gtest.h>
-#include <fstream>
-#include <filesystem>
+
 #include <chrono>
+#include <filesystem>
+#include <fstream>
+
 #include "utils/config_file.hpp"
 
 class ConfigFileTest : public ::testing::Test {
@@ -50,7 +52,7 @@ TEST_F(ConfigFileTest, LoadAndParseBasic) {
     // Int
     EXPECT_EQ(cfg.get_int("threads", 4), 8);
     EXPECT_EQ(cfg.get_int("missing_int", 10), 10);
-    EXPECT_EQ(cfg.get_int("invalid_int", 99), 99); // Should fallback
+    EXPECT_EQ(cfg.get_int("invalid_int", 99), 99);  // Should fallback
 
     // Bool
     EXPECT_TRUE(cfg.get_bool("use_gpu", false));
@@ -73,8 +75,5 @@ TEST_F(ConfigFileTest, EmptyLinesAndComments) {
     config::ConfigFile cfg;
     ASSERT_TRUE(cfg.load(test_file));
     EXPECT_EQ(cfg.get_int("val", 0), 1);
-    EXPECT_EQ(cfg.get("key"), "value"); // Trimming check
+    EXPECT_EQ(cfg.get("key"), "value");  // Trimming check
 }
-
-
-

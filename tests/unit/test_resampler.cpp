@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+
 #include "audio/resampler.hpp"
 #include "output/logging.hpp"
 
@@ -19,54 +20,52 @@ protected:
 
 TEST_F(ResamplerTest, Initialization) {
     // Valid
-    auto res = audio::AudioResampler::create(16000, 48000);
+    auto res = audio::AudioResampler::create({.input_rate = 16000, .output_rate = 48000});
     EXPECT_TRUE(res.has_value());
 
     // Invalid (negative rate) should return error, not throw
-    auto res_invalid = audio::AudioResampler::create(-1, 16000);
+    auto res_invalid = audio::AudioResampler::create({.input_rate = -1, .output_rate = 16000});
     EXPECT_FALSE(res_invalid.has_value());
     // Optional: check error message if needed
 }
 
 TEST_F(ResamplerTest, ProcessNormal) {
-    auto res = audio::AudioResampler::create(16000, 32000); // 1:2 ratio
+    auto res = audio::AudioResampler::create({.input_rate = 16000, .output_rate = 32000});  // 1:2 ratio
     ASSERT_TRUE(res.has_value());
     auto& resampler = *res.value();
-    
-    std::vector<float> input(160, 1.0f); // 10ms
+
+    std::vector<float> input(160, 1.0f);  // 10ms
     auto output = resampler.process(input);
-    
+
     // Output should be approx 320 samples
     EXPECT_NEAR(output.size(), 320, 1);
     EXPECT_FALSE(output.empty());
 }
 
 TEST_F(ResamplerTest, ProcessEmpty) {
-    auto res = audio::AudioResampler::create(16000, 16000);
+    auto res = audio::AudioResampler::create({.input_rate = 16000, .output_rate = 16000});
     ASSERT_TRUE(res.has_value());
     auto& resampler = *res.value();
-    
+
     std::vector<float> input;
     auto output = resampler.process(input);
     EXPECT_TRUE(output.empty());
 }
 
 TEST_F(ResamplerTest, Reset) {
-    auto res = audio::AudioResampler::create(16000, 16000);
+    auto res = audio::AudioResampler::create({.input_rate = 16000, .output_rate = 16000});
     ASSERT_TRUE(res.has_value());
     auto& resampler = *res.value();
-    
+
     // Just verify it doesn't crash
     resampler.reset();
 }
 
 TEST_F(ResamplerTest, ExpectedSize) {
-    auto res = audio::AudioResampler::create(16000, 32000);
+    auto res = audio::AudioResampler::create({.input_rate = 16000, .output_rate = 32000});
     ASSERT_TRUE(res.has_value());
     auto& resampler = *res.value();
-    
+
     size_t expected = resampler.expected_output_size(100);
     EXPECT_GE(expected, 200);
 }
-
-

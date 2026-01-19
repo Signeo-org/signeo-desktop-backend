@@ -16,26 +16,33 @@ namespace audio {
  */
 class AudioResampler {
 public:
+    static constexpr int kDefaultQuality = 5;
+
+    struct Config {
+        int input_rate = 0;
+        int output_rate = 0;
+        int quality = kDefaultQuality;
+    };
+
     /**
      * @brief Create a resampler instance
      *
-     * @param input_rate Source sample rate (e.g., 48000)
-     * @param output_rate Target sample rate (e.g., 16000)
-     * @param quality Resampling quality (0-10, higher = better quality, more CPU)
+     * @param config Configuration for the resampler
      * @return Result containing unique_ptr to Resampler or error
      */
-    static auto create(int input_rate, int output_rate, int quality = 5)
-        -> core::Result<std::unique_ptr<AudioResampler>>;
+    static auto create(const Config& config) -> core::Result<std::unique_ptr<AudioResampler>>;
 
 private:
-    AudioResampler(int input_rate, int output_rate, int quality);
+    explicit AudioResampler(const Config& config);
 
 public:
     ~AudioResampler();
 
-    // Disable copy
+    // Disable copy and move
     AudioResampler(const AudioResampler&) = delete;
     auto operator=(const AudioResampler&) -> AudioResampler& = delete;
+    AudioResampler(AudioResampler&&) = delete;
+    auto operator=(AudioResampler&&) -> AudioResampler& = delete;
 
     /**
      * @brief Resample audio data
@@ -50,17 +57,17 @@ public:
      */
     void reset();
 
-    auto input_rate() const -> int {
+    [[nodiscard]] auto input_rate() const -> int {
         return input_rate_;
     }
-    auto output_rate() const -> int {
+    [[nodiscard]] auto output_rate() const -> int {
         return output_rate_;
     }
 
     /**
      * @brief Calculate expected output size for given input size
      */
-    auto expected_output_size(size_t input_size) const -> size_t;
+    [[nodiscard]] auto expected_output_size(size_t input_size) const -> size_t;
 
 private:
     SpeexResamplerState* resampler_ = nullptr;

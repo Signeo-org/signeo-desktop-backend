@@ -11,6 +11,10 @@
 
 namespace stt {
 
+namespace {
+constexpr int kMillisecondsPerSecond = 1000;
+}  // namespace
+
 StreamingTranscriber::StreamingTranscriber(SttEngine& engine, TranscriberConfig config)
     : engine_(engine), config_(std::move(config)) {
     spdlog::info("StreamingTranscriber initialized");
@@ -27,23 +31,23 @@ void StreamingTranscriber::push_audio(const std::vector<float>& audio) {
     audio_buffer_.insert(audio_buffer_.end(), audio.begin(), audio.end());
 
     // Trim if exceeding max length
-    int max_samples = (config_.max_length_ms * WHISPER_SAMPLE_RATE) / 1000;
+    int max_samples = (config_.max_length_ms * WHISPER_SAMPLE_RATE) / kMillisecondsPerSecond;
     if (std::cmp_greater(audio_buffer_.size(), max_samples)) {
         int excess = static_cast<int>(audio_buffer_.size()) - max_samples;
         audio_buffer_.erase(audio_buffer_.begin(), audio_buffer_.begin() + excess);
-        audio_offset_ms_ += (excess * 1000) / WHISPER_SAMPLE_RATE;
+        audio_offset_ms_ += (excess * kMillisecondsPerSecond) / WHISPER_SAMPLE_RATE;
     }
 }
 
 auto StreamingTranscriber::should_transcribe() const -> bool {
-    int step_samples = (config_.step_ms * WHISPER_SAMPLE_RATE) / 1000;
+    int step_samples = (config_.step_ms * WHISPER_SAMPLE_RATE) / kMillisecondsPerSecond;
     int keep_samples = static_cast<int>(keep_buffer_.size());
     int new_samples = static_cast<int>(audio_buffer_.size()) - keep_samples;
     return new_samples >= step_samples;
 }
 
 auto StreamingTranscriber::audio_length_ms() const -> int {
-    return static_cast<int>((audio_buffer_.size() * 1000) / WHISPER_SAMPLE_RATE);
+    return static_cast<int>((audio_buffer_.size() * kMillisecondsPerSecond) / WHISPER_SAMPLE_RATE);
 }
 
 auto StreamingTranscriber::process() -> StreamingTranscriber::Segment {
@@ -58,7 +62,7 @@ auto StreamingTranscriber::get_partial() -> StreamingTranscriber::Segment {
         return Segment{};
     }
 
-    int min_samples = (config_.min_audio_ms * WHISPER_SAMPLE_RATE) / 1000;
+    int min_samples = (config_.min_audio_ms * WHISPER_SAMPLE_RATE) / kMillisecondsPerSecond;
     if (std::cmp_less(audio_buffer_.size(), min_samples)) {
         return Segment{};
     }
@@ -151,7 +155,7 @@ void StreamingTranscriber::update_state_after_transcription(const SttEngine::Tra
     previous_tokens_ = tokenize(result.text);
 
     // Keep last portion for context
-    int keep_samples = (config_.keep_ms * WHISPER_SAMPLE_RATE) / 1000;
+    int keep_samples = (config_.keep_ms * WHISPER_SAMPLE_RATE) / kMillisecondsPerSecond;
     if (std::cmp_greater(audio_buffer_.size(), keep_samples)) {
         keep_buffer_.assign(audio_buffer_.end() - keep_samples, audio_buffer_.end());
     } else {
@@ -204,9 +208,9 @@ auto StreamingTranscriber::tokenize(const std::string& text) -> std::vector<std:
     while (iss >> word) {
         // Normalize: lowercase and remove punctuation for comparison
         std::string normalized;
-        for (char c : word) {
-            if (std::isalnum(static_cast<unsigned char>(c)) != 0) {
-                normalized += static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+        for (char chr : word) {
+            if (std::isalnum(static_cast<unsigned char>(chr)) != 0) {
+                normalized += static_cast<char>(std::tolower(static_cast<unsigned char>(chr)));
             }
         }
         if (!normalized.empty()) {
@@ -282,16 +286,16 @@ auto StreamingTranscriber::remove_repetition(const std::string& text) const -> s
     bool changed = true;
     while (changed) {
         changed = false;
-        size_t n = current.length();
+        size_t len = current.length();
         // Check for repeating suffixes of length min_repetition_len to n/2
         // We use config_.min_repetition_len to avoid merging short valid repetitions like "No, no."
-        for (size_t i = config_.min_repetition_len; i <= n / 2; ++i) {
-            std::string sub = current.substr(n - i, i);
-            std::string prev = current.substr(n - (2 * i), i);
+        for (size_t idx = config_.min_repetition_len; idx <= len / 2; ++idx) {
+            std::string sub = current.substr(len - idx, idx);
+            std::string prev_sub = current.substr(len - (2 * idx), idx);
 
-            if (sub == prev) {
+            if (sub == prev_sub) {
                 // Found repetition "A A" at end, reduce to "A"
-                current = current.substr(0, n - i);
+                current = current.substr(0, len - idx);
                 // Check if we left a trailing space that should be trimmed if the original didn't have it?
                 // "Hello World. Hello World." -> "Hello World." (Correct)
                 // "Test Test" -> "Test" (Correct)
@@ -315,7 +319,7 @@ auto StreamingTranscriber::is_hallucination(const std::string& text) -> bool {
 
     // Normalize for case-insensitive check
     std::string lower = text;
-    std::ranges::transform(lower, lower.begin(), [](unsigned char c) { return std::tolower(c); });
+    std::ranges::transform(lower, lower.begin(), [](unsigned char chr) { return std::tolower(chr); });
 
     // Trim punctuation
     while (!lower.empty() && (std::ispunct(lower.back()) != 0)) {
@@ -323,13 +327,9 @@ auto StreamingTranscriber::is_hallucination(const std::string& text) -> bool {
     }
 
     // Blacklist check (using configurable list)
-    for (const auto& phrase : config_.hallucination_blacklist) {
-        if (lower == phrase) {
-            return true;
-        }
-    }
-
-    return false;
+    return std::ranges::any_of(config_.hallucination_blacklist, [&lower](const auto& phrase) {
+        return lower == phrase;
+    });
 }
 
 auto StreamingTranscriber::get_full_text() const -> const std::string& {

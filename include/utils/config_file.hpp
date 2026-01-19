@@ -35,22 +35,22 @@ public:
     /**
      * @brief Get string value
      */
-    auto get(const std::string& key, const std::string& default_value = "") const -> std::string;
+    [[nodiscard]] auto get(const std::string& key, const std::string& default_value = "") const -> std::string;
 
     /**
      * @brief Get integer value
      */
-    auto get_int(const std::string& key, int default_value = 0) const -> int;
+    [[nodiscard]] auto get_int(const std::string& key, int default_value = 0) const -> int;
 
     /**
      * @brief Get float value
      */
-    auto get_float(const std::string& key, float default_value = 0.0F) const -> float;
+    [[nodiscard]] auto get_float(const std::string& key, float default_value = 0.0F) const -> float;
 
     /**
      * @brief Get boolean value (supports: true/false, yes/no, 1/0)
      */
-    auto get_bool(const std::string& key, bool default_value = false) const -> bool;
+    [[nodiscard]] auto get_bool(const std::string& key, bool default_value = false) const -> bool;
 
     /**
      * @brief Check if a key exists
@@ -58,12 +58,12 @@ public:
     /**
      * @brief Check if a key exists
      */
-    auto has(const std::string& key) const -> bool;
+    [[nodiscard]] auto has(const std::string& key) const -> bool;
 
     /**
      * @brief Check if config was loaded
      */
-    auto is_loaded() const -> bool;
+    [[nodiscard]] auto is_loaded() const -> bool;
 
     /**
      * @brief Get default config file path

@@ -44,14 +44,33 @@ public:
      * @param file_path Optional path to WAV file for simulation/testing
      * @return Result containing unique_ptr to AudioCapture, or error message
      */
-    static auto create(int sample_rate = 16000, int frames_per_buffer = 512, const std::string& file_path = "")
-        -> core::Result<std::unique_ptr<AudioCapture>>;
+    /**
+     * @brief Default configuration constants
+     */
+    static constexpr int kDefaultSampleRate = 16000;
+    static constexpr int kDefaultFramesPerBuffer = 512;
+    static constexpr int kRingBufferDurationSeconds = 10;
+    static constexpr int kBitsPerSample = 16;
+    static constexpr float kPcmToFloat = 32768.0F;
+    static constexpr float kGainThreshold = 0.001F;
+
+    /**
+     * @brief Factory method to create an AudioCapture instance
+     * @param sample_rate Target sample rate (will use device native if different)
+     * @param frames_per_buffer Buffer size in frames
+     * @param file_path Optional path to WAV file for simulation/testing
+     * @return Result containing unique_ptr to AudioCapture, or error message
+     */
+    static auto create(int sample_rate = kDefaultSampleRate, int frames_per_buffer = kDefaultFramesPerBuffer,
+                       const std::string& file_path = "") -> core::Result<std::unique_ptr<AudioCapture>>;
 
     ~AudioCapture();
 
-    // Prevent copying
+    // Prevent copying and moving
     AudioCapture(const AudioCapture&) = delete;
     auto operator=(const AudioCapture&) -> AudioCapture& = delete;
+    AudioCapture(AudioCapture&&) = delete;
+    auto operator=(AudioCapture&&) -> AudioCapture& = delete;
 
     /**
      * @brief Start audio capture on specified device
@@ -95,8 +114,20 @@ public:
     auto try_open_stream(const PaStreamParameters& params, double sample_rate) -> core::Status;
 
 private:
+    struct Config {
+        int sample_rate;
+        int frames_per_buffer;
+        std::string file_path;
+    };
+
+    struct WavAudioFormat {
+        uint16_t channels;
+        uint32_t sample_rate;
+        uint16_t bits_per_sample;
+    };
+
     // Private constructor - use create() factory
-    AudioCapture(int sample_rate, int frames_per_buffer, const std::string& file_path = "");
+    explicit AudioCapture(const Config& config);
 
     auto init_portaudio() -> core::Status;
     auto load_wav_file() -> core::Status;
@@ -107,11 +138,10 @@ private:
 
     // Helpers
     auto open_pa_stream(const PaDeviceInfo* deviceInfo, PaStreamParameters& params) -> core::Status;
-    static auto read_wav_header(std::ifstream& file, uint16_t& channels, uint32_t& sample_rate,
-                                uint16_t& bits_per_sample) -> core::Status;
+    static auto read_wav_header(std::ifstream& file, WavAudioFormat& format) -> core::Status;
 
     // Member variables
-    int sample_rate_ = 16000;
+    int sample_rate_ = kDefaultSampleRate;
     int channels_ = 0;
     int frames_per_buffer_;
     std::atomic<float> input_gain_{1.0F};

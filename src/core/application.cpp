@@ -10,6 +10,7 @@
 #include <atomic>
 #include <functional>
 #include <iostream>
+#include <limits>
 #include <thread>
 #include <utility>
 #include <vector>
@@ -213,20 +214,20 @@ void Application::initialize_ui_state(ui::TuiRenderer* tui) const {
     if (temp_result) {
         auto devices_result = (*temp_result)->list_devices();
         if (devices_result) {
-            for (const auto& d : *devices_result) {
-                if (d.max_input_channels > 0 || d.is_loopback) {
-                    ui_devices.push_back({.id = d.index,
-                                          .name = "[" + std::to_string(d.index) + "] " + d.name,
-                                          .channels = d.max_input_channels,
-                                          .sample_rate = static_cast<int>(d.default_sample_rate)});
+            for (const auto& device : *devices_result) {
+                if (device.max_input_channels > 0 || device.is_loopback) {
+                    ui_devices.push_back({.id = device.index,
+                                          .name = "[" + std::to_string(device.index) + "] " + device.name,
+                                          .channels = device.max_input_channels,
+                                          .sample_rate = static_cast<int>(device.default_sample_rate)});
                 }
             }
         }
     }
-    tui->update_state([&](ui::AppState& s) {
-        s.is_running = true;
-        s.device_name = "Initializing...";
-        s.available_devices = ui_devices;
+    tui->update_state([&](ui::AppState& state) {
+        state.is_running = true;
+        state.device_name = "Initializing...";
+        state.available_devices = ui_devices;
     });
 
     // Push initial config to UI
@@ -260,12 +261,12 @@ void Application::setup_ui_callbacks(ui::TuiRenderer* tui) {
         return;
     }
 
-    tui->set_on_device_selected([this](int id) { pending_device_switch_ = id; });
+    tui->set_on_device_selected([this](int device_id) { pending_device_switch_ = device_id; });
 
     // VAD callbacks now update atomic config values
-    tui->set_on_threshold_changed([this](float th) {
-        spdlog::info("VAD Threshold set to {:.2f}", th);
-        vad_threshold_.store(th);
+    tui->set_on_threshold_changed([this](float threshold) {
+        spdlog::info("VAD Threshold set to {:.2f}", threshold);
+        vad_threshold_.store(threshold);
     });
     tui->set_on_gain_changed([this](float gain) { pending_gain_.store(gain); });
     tui->set_on_energy_changed([this](float val) { vad_energy_threshold_.store(val); });
@@ -299,6 +300,66 @@ void Application::setup_ui_callbacks(ui::TuiRenderer* tui) {
     });
 }
 
+void Application::perform_device_scan_and_select() {
+    std::cout << "\nScanning devices... (Audio continuing)\n";
+    auto temp_result = audio::AudioCapture::create();
+    if (!temp_result) {
+        std::cout << "Error: " << temp_result.error() << "\n";
+        return;
+    }
+
+    auto devices_result = (*temp_result)->list_devices();
+    if (!devices_result) {
+        std::cout << "Error: " << devices_result.error() << "\n";
+        return;
+    }
+
+    int idx = 1;
+    std::vector<int> map_internal{-1};
+
+    for (const auto& device : *devices_result) {
+        if (device.max_input_channels > 0 || device.is_loopback) {
+            std::cout << "[" << idx << "] " << device.name << "\n";
+            map_internal.push_back(device.index);
+            idx++;
+        }
+    }
+
+    std::cout << "Select Device Index (1-" << (idx - 1) << ") or 'q' to cancel: ";
+    std::string input_line;
+    if (std::cin >> input_line) {
+        if (input_line != "q" && input_line != "Q") {
+            try {
+                int selection = std::stoi(input_line);
+                if (selection > 0 && selection < idx) {
+                    pending_device_switch_ = map_internal[selection];
+                }
+            } catch (...) {
+                spdlog::warn("Invalid device selection input");
+            }
+        }
+    }
+    // Helper to clear stream
+    std::cin.ignore((std::numeric_limits<std::streamsize>::max)(), '\n');
+    std::cin.clear();
+}
+
+void Application::handle_cli_input(ui::TuiRenderer* tui) {
+    if (tui != nullptr || _kbhit() == 0) {
+        return;
+    }
+
+    int key = _getch();
+    if (key == 'q') {
+        running_ = false;
+        return;
+    }
+
+    if (key == 'd') {
+        perform_device_scan_and_select();
+    }
+}
+
 void Application::run_main_loop(ui::TuiRenderer* tui) {
     while (running_) {
         // TUI/Signal Check
@@ -307,53 +368,9 @@ void Application::run_main_loop(ui::TuiRenderer* tui) {
         }
 
         // CLI Input
-        if ((tui == nullptr) && (_kbhit() != 0)) {
-            int key = _getch();
-            if (key == 'q') {
-                running_ = false;
-            }
-            if (key == 'd') {
-                std::cout << "\nScanning devices... (Audio continuing)\n";
-                auto temp_result = audio::AudioCapture::create();
-                if (!temp_result) {
-                    std::cout << "Error: " << temp_result.error() << "\n";
-                } else {
-                    auto devs_result = (*temp_result)->list_devices();
-                    if (!devs_result) {
-                        std::cout << "Error: " << devs_result.error() << "\n";
-                    } else {
-                        int idx = 1;
-                        std::vector<int> map_internal{-1};
+        handle_cli_input(tui);
 
-                        for (const auto& d : *devs_result) {
-                            if (d.max_input_channels > 0 || d.is_loopback) {
-                                std::cout << "[" << idx << "] " << d.name << "\n";
-                                map_internal.push_back(d.index);
-                                idx++;
-                            }
-                        }
-
-                        std::cout << "Select Device Index (1-" << (idx - 1) << ") or 'q' to cancel: ";
-                        std::string input_line;
-                        if (std::cin >> input_line) {
-                            if (input_line != "q" && input_line != "Q") {
-                                try {
-                                    int selection = std::stoi(input_line);
-                                    if (selection > 0 && selection < idx) {
-                                        pending_device_switch_ = map_internal[selection];
-                                    }
-                                } catch (...) {
-                                }
-                            }
-                        }
-                        std::cin.ignore(10000, '\n');
-                        std::cin.clear();
-                    }
-                }
-            }
-        }
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        std::this_thread::sleep_for(std::chrono::milliseconds(kMainLoopSleepMs));
     }
 }
 
@@ -371,17 +388,19 @@ void Application::audio_loop(ui::TuiRenderer* tui) {
         handle_audio_device_switch(audio_capture, audio_processor, tui);
 
         // Apply Gain
+        // Apply Gain
         float current_gain = pending_gain_.load();
-        if (std::abs(audio_capture->get_gain() - current_gain) > 0.01F) {
+        if (std::abs(audio_capture->get_gain() - current_gain) > kGainEpsilon) {
             audio_capture->set_gain(current_gain);
         }
 
-        // Reads 32ms chunks (512 samples @ 16kHz target)
+        // Reads 32ms chunks
         // Adjust read size based on capture rate
-        auto read_samples = static_cast<size_t>(512 * (static_cast<double>(audio_capture->sample_rate()) / 16000.0) *
-                                                audio_capture->channels());
+        // We target kVadFrameSize (512) samples at 16kHz
+        double ratio = static_cast<double>(audio_capture->sample_rate()) / kAudioSampleRate;
+        auto target_samples = static_cast<size_t>(kVadFrameSize * ratio * audio_capture->channels());
 
-        auto chunk = audio_capture->read_chunk(read_samples);
+        auto chunk = audio_capture->read_chunk(target_samples);
         if (!chunk.data.empty() && audio_processor) {
             auto processed = audio_processor->process(chunk.data);  // Resample/Downmix
             if (!processed.empty()) {
@@ -390,7 +409,7 @@ void Application::audio_loop(ui::TuiRenderer* tui) {
             }
         } else {
             // Buffer underrun or wait
-            std::this_thread::sleep_for(std::chrono::milliseconds(5));
+            std::this_thread::sleep_for(std::chrono::milliseconds(kAudioWaitMs));
         }
     }
 
@@ -409,7 +428,6 @@ void Application::vad_loop(ui::TuiRenderer* tui) {
     }
 
     std::vector<float> vad_buffer;
-    const size_t vad_frame_size = 512;
     std::chrono::steady_clock::time_point buffer_start_time;
     bool has_timestamp = false;
     bool was_speech = false;
@@ -448,19 +466,19 @@ void Application::vad_loop(ui::TuiRenderer* tui) {
         // Pass-through RMS for UI immediately
         if ((tui != nullptr) && !chunk.data.empty()) {
             float sum_sq = 0.0F;
-            for (float s : chunk.data) {
-                sum_sq += s * s;
+            for (float sample : chunk.data) {
+                sum_sq += sample * sample;
             }
-            float rms = std::sqrt(sum_sq / chunk.data.size());
-            tui->update_state([rms](ui::AppState& s) { s.vad_energy = rms * 100.0F; });
+            float rms = std::sqrt(sum_sq / static_cast<float>(chunk.data.size()));
+            tui->update_state([rms](ui::AppState& state) { state.vad_energy = rms * 100.0F; });
         }
 
-        while (vad_buffer.size() >= vad_frame_size) {
-            std::vector<float> frame(vad_buffer.begin(), vad_buffer.begin() + vad_frame_size);
-            vad_buffer.erase(vad_buffer.begin(), vad_buffer.begin() + vad_frame_size);
+        while (vad_buffer.size() >= kVadFrameSize) {
+            std::vector<float> frame(vad_buffer.begin(), vad_buffer.begin() + kVadFrameSize);
+            vad_buffer.erase(vad_buffer.begin(), vad_buffer.begin() + kVadFrameSize);
 
             auto frame_time = buffer_start_time;
-            buffer_start_time += std::chrono::microseconds(32000);
+            buffer_start_time += std::chrono::milliseconds(kAudioFrameDurationMs);  // 32ms per 512 samples @ 16kHz
 
             float raw = 0.0F;
             float smoothed = 0.0F;
@@ -475,35 +493,14 @@ void Application::vad_loop(ui::TuiRenderer* tui) {
             bool is_speech = *process_result;
 
             if (tui != nullptr) {
-                tui->update_state([smoothed, is_speech](ui::AppState& s) {
-                    s.vad_probability = smoothed;
-                    s.is_speech = is_speech;
+                tui->update_state([smoothed, is_speech](ui::AppState& state) {
+                    state.vad_probability = smoothed;
+                    state.is_speech = is_speech;
                 });
             }
 
             // VAD State Machine
-            if (is_speech) {
-                if (!was_speech) {
-                    spdlog::info("Speech started...");
-                    const auto& pre_roll = vad->get_pre_roll_buffer();
-                    auto pre_roll_time = frame_time - std::chrono::milliseconds(32 * pre_roll.size());
-
-                    for (const auto& pre_frame : pre_roll) {
-                        inference_queue_.push({.data = pre_frame, .capture_time = pre_roll_time});
-                        pre_roll_time += std::chrono::milliseconds(32);
-                    }
-                }
-
-                inference_queue_.push({.data = frame, .capture_time = frame_time});
-                was_speech = true;
-
-            } else {
-                if (was_speech) {
-                    spdlog::info("Speech ended. Finalizing...");
-                    inference_queue_.push({.data = {}, .capture_time = frame_time});  // Sentinel
-                    was_speech = false;
-                }
-            }
+            handle_vad_speech_state(is_speech, was_speech, frame, frame_time, vad.get());
         }
 
         if (vad_buffer.empty()) {
@@ -517,6 +514,92 @@ void Application::vad_loop(ui::TuiRenderer* tui) {
 // Helper Implementations
 // -------------------------------------------------------------------------
 
+auto Application::resolve_device_name(const std::vector<audio::AudioDevice>& devices, int index) -> std::string {
+    if (index == -1) {
+        for (const auto& device : devices) {
+            if (device.is_default) {
+                return device.name;
+            }
+        }
+    } else {
+        for (const auto& device : devices) {
+            if (device.index == index) {
+                return device.name;
+            }
+        }
+    }
+    return "Unknown";
+}
+
+void Application::handle_vad_speech_state(bool is_speech, bool& was_speech, const std::vector<float>& frame,
+                                          std::chrono::steady_clock::time_point frame_time, vad::VadProcessor* vad) {
+    if (is_speech) {
+        if (!was_speech) {
+            spdlog::info("Speech started...");
+            const auto& pre_roll = vad->get_pre_roll_buffer();
+            auto pre_roll_time = frame_time - std::chrono::milliseconds(kAudioFrameDurationMs * pre_roll.size());
+
+            for (const auto& pre_frame : pre_roll) {
+                inference_queue_.push({.data = pre_frame, .capture_time = pre_roll_time});
+                pre_roll_time += std::chrono::milliseconds(kAudioFrameDurationMs);
+            }
+        }
+
+        inference_queue_.push({.data = frame, .capture_time = frame_time});
+        was_speech = true;
+
+    } else {
+        if (was_speech) {
+            spdlog::info("Speech ended. Finalizing...");
+            inference_queue_.push({.data = {}, .capture_time = frame_time});  // Sentinel
+            was_speech = false;
+        }
+    }
+}
+
+void Application::process_inference_chunk(const core::AudioChunk& chunk, stt::StreamingTranscriber* transcriber,
+                                          ui::TuiRenderer* tui, core::MetricsCollector& metrics) {
+    if (!chunk.data.empty()) {
+        transcriber->push_audio(chunk.data);
+
+        if (transcriber->should_transcribe()) {
+            metrics.on_inference_start();
+            auto seg = transcriber->process();
+            metrics.on_inference_end(static_cast<int>(seg.text.length()));
+
+            if (!seg.text.empty()) {
+                auto now = std::chrono::steady_clock::now();
+                std::chrono::duration<double, std::milli> latency = now - chunk.capture_time;
+                metrics.record_pipeline_latency(latency.count());
+
+                if (tui != nullptr) {
+                    tui->update_state([seg](ui::AppState& state) { state.partial_transcript = seg.text; });
+                } else {
+                    std::cout << "\r[Partial] " << seg.text << std::flush;
+                }
+            }
+        }
+    } else {
+        // Sentinel / Finalize
+        auto final_seg = transcriber->finalize();
+        if (!final_seg.text.empty()) {
+            if (tui != nullptr) {
+                tui->update_state([final_seg](ui::AppState& state) {
+                    state.partial_transcript = "";
+                    state.subtitles.push_back(
+                        {.text = final_seg.text, .confidence = 1.0F, .is_final = true, .timestamp = "Now"});
+                });
+            } else {
+                std::cout << "\n[FINAL] " << final_seg.text << "\n";
+            }
+        } else {
+            if (tui != nullptr) {
+                tui->update_state([](ui::AppState& state) { state.partial_transcript = ""; });
+            }
+        }
+    }
+}
+
 auto Application::initialize_audio_system(std::unique_ptr<audio::AudioCapture>& capture,
                                           std::unique_ptr<audio::AudioProcessor>& processor, ui::TuiRenderer* tui) const
     -> bool {
@@ -524,7 +607,7 @@ auto Application::initialize_audio_system(std::unique_ptr<audio::AudioCapture>& 
     if (!capture_result) {
         spdlog::error("Failed to create AudioCapture: {}", capture_result.error());
         if (tui != nullptr) {
-            tui->update_state([](ui::AppState& s) { s.device_name = "Error: Audio Init Failed"; });
+            tui->update_state([](ui::AppState& state) { state.device_name = "Error: Audio Init Failed"; });
         }
         return false;
     }
@@ -534,45 +617,30 @@ auto Application::initialize_audio_system(std::unique_ptr<audio::AudioCapture>& 
     if (!start_result) {
         spdlog::error("Audio Start Failed: {}", start_result.error());
         if (tui != nullptr) {
-            tui->update_state([](ui::AppState& s) { s.device_name = "Error: Audio Start Failed"; });
+            tui->update_state([](ui::AppState& state) { state.device_name = "Error: Audio Start Failed"; });
         }
         return false;
     }
 
     // Find actual device name
-    std::string device_label = "Unknown";
-    auto devs_result = capture->list_devices();
-    if (devs_result) {
-        int active_idx = config_.device_index;
-        if (active_idx == -1) {
-            for (const auto& d : *devs_result) {
-                if (d.is_default) {
-                    device_label = d.name;
-                    break;
-                }
-            }
-        } else {
-            for (const auto& d : *devs_result) {
-                if (d.index == active_idx) {
-                    device_label = d.name;
-                    break;
-                }
-            }
-        }
-    }
-
     if (tui != nullptr) {
-        tui->update_state([device_label](ui::AppState& s) {
-            s.device_name = device_label;
-            s.is_recording = true;
+        std::string device_label = "Unknown";
+        auto devs_result = capture->list_devices();
+        if (devs_result) {
+            device_label = resolve_device_name(*devs_result, config_.device_index);
+        }
+
+        tui->update_state([device_label](ui::AppState& state) {
+            state.device_name = device_label;
+            state.is_recording = true;
         });
     }
 
-    auto proc_result = audio::AudioProcessor::create(capture->sample_rate(), capture->channels(), 16000);
+    auto proc_result = audio::AudioProcessor::create(capture->sample_rate(), capture->channels(), kAudioSampleRate);
     if (!proc_result) {
         spdlog::error("Failed to create AudioProcessor: {}", proc_result.error());
         if (tui != nullptr) {
-            tui->update_state([](ui::AppState& s) { s.device_name = "Error: Processor Init Failed"; });
+            tui->update_state([](ui::AppState& state) { state.device_name = "Error: Processor Init Failed"; });
         }
         return false;
     }
@@ -594,7 +662,7 @@ void Application::handle_audio_device_switch(std::unique_ptr<audio::AudioCapture
     if (switch_result) {
         config_.device_index = new_device_id;
 
-        auto proc_result = audio::AudioProcessor::create(capture->sample_rate(), capture->channels(), 16000);
+        auto proc_result = audio::AudioProcessor::create(capture->sample_rate(), capture->channels(), kAudioSampleRate);
         if (proc_result) {
             processor = std::move(*proc_result);
         } else {
@@ -604,16 +672,16 @@ void Application::handle_audio_device_switch(std::unique_ptr<audio::AudioCapture
         std::string new_name = "Device " + std::to_string(new_device_id);
         auto devs_result = capture->list_devices();
         if (devs_result) {
-            for (const auto& d : *devs_result) {
-                if (d.index == new_device_id) {
-                    new_name = d.name;
+            for (const auto& device : *devs_result) {
+                if (device.index == new_device_id) {
+                    new_name = device.name;
                     break;
                 }
             }
         }
 
         if (tui != nullptr) {
-            tui->update_state([new_name](ui::AppState& s) { s.device_name = new_name; });
+            tui->update_state([new_name](ui::AppState& state) { state.device_name = new_name; });
         }
     } else {
         spdlog::error("Device switch failed: {}", switch_result.error());
@@ -635,7 +703,7 @@ auto Application::initialize_vad_processor(std::unique_ptr<vad::VadProcessor>& v
     vad_config.adaptive_max_threshold = config_.vad_adaptive_max_threshold;
     vad_config.adaptive_alpha = config_.vad_adaptive_alpha;
 
-    auto result = vad::VadProcessor::create(config_.vad_model_path, 16000, 512, vad_config);
+    auto result = vad::VadProcessor::create(config_.vad_model_path, kAudioSampleRate, kVadFrameSize, vad_config);
     if (!result) {
         spdlog::error("Failed to initialize VAD: {}", result.error());
         return false;
@@ -729,57 +797,16 @@ void Application::stt_loop(ui::TuiRenderer* tui) {
         auto& chunk = *chunk_opt;  // AudioChunk
 
         if (!transcriber) {
-            continue;  // Safety
+            continue;
         }
 
         // Live Config Update for Heuristics
-        // (We do this safely here as we own the transcriber in this thread)
-        stt::TranscriberConfig current_cfg = stream_config;  // Base config
+        stt::TranscriberConfig current_cfg = stream_config;
         current_cfg.min_repetition_len = stt_min_repetition_len_.load();
         current_cfg.hallucination_min_len = stt_hallucination_len_.load();
-        // blacklist is not atomic, requires reload to likely change
-
         transcriber->set_config(current_cfg);
 
-        if (!chunk.data.empty()) {
-            transcriber->push_audio(chunk.data);
-
-            if (transcriber->should_transcribe()) {
-                metrics.on_inference_start();
-                auto seg = transcriber->process();
-                metrics.on_inference_end(static_cast<int>(seg.text.length()));
-
-                if (!seg.text.empty()) {
-                    auto now = std::chrono::steady_clock::now();
-                    std::chrono::duration<double, std::milli> latency = now - chunk.capture_time;
-                    metrics.record_pipeline_latency(latency.count());
-
-                    if (tui != nullptr) {
-                        tui->update_state([seg](ui::AppState& s) { s.partial_transcript = seg.text; });
-                    } else {
-                        std::cout << "\r[Partial] " << seg.text << std::flush;
-                    }
-                }
-            }
-        } else {
-            // Sentinel / Finalize
-            auto final_seg = transcriber->finalize();
-            if (!final_seg.text.empty()) {
-                if (tui != nullptr) {
-                    tui->update_state([final_seg](ui::AppState& s) {
-                        s.partial_transcript = "";
-                        s.subtitles.push_back(
-                            {.text = final_seg.text, .confidence = 1.0F, .is_final = true, .timestamp = "Now"});
-                    });
-                } else {
-                    std::cout << "\n[FINAL] " << final_seg.text << "\n";
-                }
-            } else {
-                if (tui != nullptr) {
-                    tui->update_state([](ui::AppState& s) { s.partial_transcript = ""; });
-                }
-            }
-        }
+        process_inference_chunk(chunk, transcriber.get(), tui, metrics);
     }
     spdlog::debug("STT Worker Thread stopped.");
 }

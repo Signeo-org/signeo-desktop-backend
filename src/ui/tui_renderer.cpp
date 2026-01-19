@@ -15,10 +15,30 @@ namespace ui {
 
 using namespace ftxui;
 
+namespace {
+constexpr int kLabelMinWidth = 20;
+constexpr int kFadeThreshold1 = 3;
+constexpr int kFadeThreshold2 = 6;
+constexpr float kPercentageMultiplier = 100.0F;
+constexpr float kQueueMaxDepth = 50.0F;
+constexpr int kMinSliderStepMs = 500;
+constexpr int kMaxSliderStepMs = 5000;
+constexpr int kMaxSliderKeepMs = 1000;
+constexpr int kMinRepetitionSlider = 4;
+constexpr int kMaxRepetitionSlider = 30;
+constexpr int kMaxHallucinationSlider = 10;
+constexpr float kSliderMin = 0.01F;
+constexpr float kSliderMax = 0.99F;
+constexpr float kSliderStep = 0.01F;
+constexpr int kSubstringMaxLen = 6;
+}  // namespace
+
 // Helper for Int Sliders
-static auto int_slider_with_label(const std::string& label, int* value, int min, int max,
+static auto int_slider_with_label(const std::string& label, const int* value, int min_val, int max_val,
                                   const std::function<void()>& on_change) -> Component {
-    auto slider = Slider(label, value, min, max, 1);
+    // ftxui::Slider requires int*, but we want to simulate constness for the label provider
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-const-cast)
+    auto slider = Slider(label, const_cast<int*>(value), min_val, max_val, 1);
 
     // Wrap slider to detect value changes and fire callback
     auto wrapped_slider = slider | CatchEvent([=, last_value = *value](const Event&) mutable {
@@ -32,9 +52,9 @@ static auto int_slider_with_label(const std::string& label, int* value, int min,
                           });
 
     return Container::Vertical({
-        Renderer([=] {
+        Renderer([=] { // NOLINT(bugprone-exception-escape)
             return hbox({
-                text(label) | size(WIDTH, GREATER_THAN, 20),
+                text(label) | size(WIDTH, GREATER_THAN, kLabelMinWidth),
                 text(std::to_string(*value)) | bold | color(Color::Cyan),
             });
         }),
@@ -129,10 +149,10 @@ auto TuiRenderer::create_devices_component() -> ftxui::Component {
             std::lock_guard<std::mutex> lock(state_mutex_);
             if (device_menu_entries_.size() != state_.available_devices.size()) {
                 device_menu_entries_.clear();
-                for (const auto& d : state_.available_devices) {
-                    std::stringstream ss;
-                    ss << d.name << " (" << d.channels << "ch, " << d.sample_rate << "Hz)";
-                    device_menu_entries_.push_back(ss.str());
+                for (const auto& dev : state_.available_devices) {
+                    std::ostringstream stream;
+                    stream << dev.name << " (" << dev.channels << "ch, " << dev.sample_rate << "Hz)";
+                    device_menu_entries_.push_back(stream.str());
                 }
             }
         }
@@ -165,14 +185,15 @@ auto TuiRenderer::create_devices_component() -> ftxui::Component {
 auto TuiRenderer::create_audio_settings_component() -> ftxui::Component {
     return Container::Vertical({
         SettingsRenderer::create_input("Input Gain", &settings_state_.input_gain_str,
-                                       [this] {
+                                       [this] { // NOLINT(bugprone-exception-escape)
                                            try {
                                                float val = std::stof(settings_state_.input_gain_str);
                                                settings_state_.input_gain = val;
                                                if (on_gain_changed_) {
                                                    on_gain_changed_(val);
                                                }
-                                           } catch (...) {
+                                           } catch (const std::exception& /*ignored*/) { // NOLINT(bugprone-empty-catch)
+                                               // Invalid input, ignore
                                            }
                                        }),
         Renderer([this] {
@@ -189,45 +210,49 @@ auto TuiRenderer::create_vad_settings_component() -> ftxui::Component {
         Renderer([this] { return render_vad_metrics(); }),
         Renderer([] { return separator(); }),
         SettingsRenderer::create_input("Threshold", &settings_state_.vad_threshold_str,
-                                       [this] {
+                                       [this] { // NOLINT(bugprone-exception-escape)
                                            try {
                                                float val = std::stof(settings_state_.vad_threshold_str);
                                                settings_state_.vad_threshold = val;
                                                if (on_threshold_changed_) {
                                                    on_threshold_changed_(val);
                                                }
-                                           } catch (...) {
+                                           } catch (const std::exception& /*ignored*/) { // NOLINT(bugprone-empty-catch)
+                                               // Invalid input, ignore
                                            }
                                        }),
         SettingsRenderer::create_input("Energy Gate", &settings_state_.vad_energy_str,
-                                       [this] {
+                                       [this] { // NOLINT(bugprone-exception-escape)
                                            try {
                                                float val = std::stof(settings_state_.vad_energy_str);
                                                settings_state_.vad_energy_thresh = val;
                                                if (on_energy_changed_) {
                                                    on_energy_changed_(val);
                                                }
-                                           } catch (...) {
+                                           } catch (const std::exception& /*ignored*/) { // NOLINT(bugprone-empty-catch)
+                                               // Invalid input, ignore
                                            }
                                        }),
         SettingsRenderer::create_input("Smoothing", &settings_state_.vad_smoothing_str,
-                                       [this] {
+                                       [this] { // NOLINT(bugprone-exception-escape)
                                            try {
                                                float val = std::stof(settings_state_.vad_smoothing_str);
                                                settings_state_.vad_smoothing = val;
                                                if (on_smoothing_changed_) {
                                                    on_smoothing_changed_(val);
                                                }
-                                           } catch (...) {
+                                           } catch (const std::exception& /*ignored*/) { // NOLINT(bugprone-empty-catch)
+                                               // Invalid input, ignore
                                            }
                                        }),
         Renderer([] { return separator(); }),
         SettingsRenderer::create_input("Hangover Frames", &settings_state_.vad_hangover_str,
-                                       [this] {
+                                       [this] { // NOLINT(bugprone-exception-escape)
                                            try {
                                                settings_state_.vad_hangover =
                                                    std::stoi(settings_state_.vad_hangover_str);
-                                           } catch (...) {
+                                           } catch (const std::exception& /*ignored*/) { // NOLINT(bugprone-empty-catch)
+                                               // Invalid input, ignore
                                            }
                                        }),
         Renderer([] { return separator(); }),
@@ -240,7 +265,7 @@ auto TuiRenderer::create_vad_settings_component() -> ftxui::Component {
                                                                            settings_state_.vad_adaptive_alpha);
                                               }
                                           }),
-        SettingsRenderer::create_slider("  Min Thresh", &settings_state_.vad_adaptive_min, 0.01F, 0.99F, 0.01F,
+        SettingsRenderer::create_slider("  Min Thresh", &settings_state_.vad_adaptive_min, kSliderMin, kSliderMax, kSliderStep,
                                         [this] {
                                             if (on_vad_adaptive_changed_) {
                                                 on_vad_adaptive_changed_(settings_state_.vad_adaptive,
@@ -249,7 +274,7 @@ auto TuiRenderer::create_vad_settings_component() -> ftxui::Component {
                                                                          settings_state_.vad_adaptive_alpha);
                                             }
                                         }),
-        SettingsRenderer::create_slider("  Max Thresh", &settings_state_.vad_adaptive_max, 0.01F, 0.99F, 0.01F,
+        SettingsRenderer::create_slider("  Max Thresh", &settings_state_.vad_adaptive_max, kSliderMin, kSliderMax, kSliderStep,
                                         [this] {
                                             if (on_vad_adaptive_changed_) {
                                                 on_vad_adaptive_changed_(settings_state_.vad_adaptive,
@@ -258,7 +283,7 @@ auto TuiRenderer::create_vad_settings_component() -> ftxui::Component {
                                                                          settings_state_.vad_adaptive_alpha);
                                             }
                                         }),
-        SettingsRenderer::create_slider("  Alpha", &settings_state_.vad_adaptive_alpha, 0.01F, 0.99F, 0.01F,
+        SettingsRenderer::create_slider("  Alpha", &settings_state_.vad_adaptive_alpha, kSliderMin, kSliderMax, kSliderStep,
                                         [this] {
                                             if (on_vad_adaptive_changed_) {
                                                 on_vad_adaptive_changed_(settings_state_.vad_adaptive,
@@ -280,7 +305,8 @@ auto TuiRenderer::create_stt_settings_component() -> ftxui::Component {
                                                if (on_stt_params_changed_) {
                                                    on_stt_params_changed_(val, settings_state_.stt_language);
                                                }
-                                           } catch (...) {
+                                           } catch (const std::exception& /*ignored*/) { // NOLINT(bugprone-empty-catch)
+                                               // Invalid input, ignore
                                            }
                                        }),
         SettingsRenderer::create_input("Language", &settings_state_.stt_language,
@@ -302,17 +328,17 @@ auto TuiRenderer::create_stt_settings_component() -> ftxui::Component {
         SettingsRenderer::create_checkbox("Token Dedup", &settings_state_.stt_token_dedup, nullptr),
         SettingsRenderer::create_checkbox("No Context", &settings_state_.stt_no_context, nullptr),
         Renderer([] { return separator(); }),
-        int_slider_with_label("Step (ms)", &settings_state_.stt_step_ms, 500, 5000, nullptr),
-        int_slider_with_label("Keep (ms)", &settings_state_.stt_keep_ms, 0, 1000, nullptr),
+        int_slider_with_label("Step (ms)", &settings_state_.stt_step_ms, kMinSliderStepMs, kMaxSliderStepMs, nullptr),
+        int_slider_with_label("Keep (ms)", &settings_state_.stt_keep_ms, 0, kMaxSliderKeepMs, nullptr),
         Renderer([] { return separator(); }),
-        int_slider_with_label("Min Repet.", &settings_state_.stt_min_repetition, 4, 30,
+        int_slider_with_label("Min Repet.", &settings_state_.stt_min_repetition, kMinRepetitionSlider, kMaxRepetitionSlider,
                               [this] {
                                   if (on_stt_heuristics_changed_) {
                                       on_stt_heuristics_changed_(settings_state_.stt_min_repetition,
                                                                  settings_state_.stt_hallucination_len);
                                   }
                               }),
-        int_slider_with_label("Hallucinat.", &settings_state_.stt_hallucination_len, 0, 10,
+        int_slider_with_label("Hallucinat.", &settings_state_.stt_hallucination_len, 0, kMaxHallucinationSlider,
                               [this] {
                                   if (on_stt_heuristics_changed_) {
                                       on_stt_heuristics_changed_(settings_state_.stt_min_repetition,
@@ -431,17 +457,17 @@ auto TuiRenderer::render_subtitles() -> Element {
     int index = 0;
     for (auto it = state_.subtitles.rbegin(); it != state_.subtitles.rend(); ++it) {
         auto style = Color::White;
-        if (index >= 3) {
+        if (index >= kFadeThreshold1) {
             style = Color::GrayLight;
         }
-        if (index >= 6) {
+        if (index >= kFadeThreshold2) {
             style = Color::GrayDark;
         }
 
         list.push_back(hbox({
             text("[" + it->timestamp + "] ") | color(Color::GrayDark) | dim,
             text(it->text) | color(style) | bold,
-            text(" (" + std::to_string(int(it->confidence * 100)) + "%)") | color(Color::BlueLight) | dim,
+            text(" (" + std::to_string(static_cast<int>(it->confidence * kPercentageMultiplier)) + "%)") | color(Color::BlueLight) | dim,
         }));
         index++;
     }
@@ -472,18 +498,18 @@ auto TuiRenderer::render_metrics() -> Element {
 
 auto TuiRenderer::render_vad_metrics() -> Element {
     std::lock_guard<std::mutex> lock(state_mutex_);
-    auto make_gauge = [](const std::string& label, float val, Color c) {
+    auto make_gauge = [](const std::string& label, float val, Color col) {
         return hbox({
             text(label + ": "),
-            gauge(val) | color(c) | flex,
-            text(" " + std::to_string(int(val * 100)) + "%"),
+            gauge(val) | color(col) | flex,
+            text(" " + std::to_string(static_cast<int>(val * kPercentageMultiplier)) + "%"),
         });
     };
 
     return vbox({
                text("VAD Real-Time Metrics") | bold | hcenter | color(Color::Yellow),
                separator(),
-               make_gauge("Energy", std::min(1.0F, state_.vad_energy * 100.0F), Color::Green),
+               make_gauge("Energy", std::min(1.0F, state_.vad_energy * kPercentageMultiplier), Color::Green),
                make_gauge("Prob  ", state_.vad_probability, state_.is_speech ? Color::Red : Color::Blue),
                separator(),
                text("Stats: ") | bold,
@@ -494,22 +520,22 @@ auto TuiRenderer::render_vad_metrics() -> Element {
 
 auto TuiRenderer::render_system_metrics() -> Element {
     std::lock_guard<std::mutex> lock(state_mutex_);
-    auto make_gauge = [](const std::string& label, float val, Color c) {
+    auto make_gauge = [](const std::string& label, float val, Color col) {
         return hbox({
             text(label + ": "),
-            gauge(val) | color(c) | flex,
-            text(" " + std::to_string(int(val * 100)) + "%"),
+            gauge(val) | color(col) | flex,
+            text(" " + std::to_string(static_cast<int>(val * kPercentageMultiplier)) + "%"),
         });
     };
 
     return vbox({
                text("System Performance") | bold | hcenter | color(Color::Magenta),
                separator(),
-               make_gauge("Audio Queue", std::min(1.0F, state_.audio_queue_depth / 50.0F), Color::Yellow),
-               make_gauge("Infer Queue", std::min(1.0F, state_.inference_queue_depth / 50.0F), Color::Magenta),
+               make_gauge("Audio Queue", std::min(1.0F, static_cast<float>(state_.audio_queue_depth) / kQueueMaxDepth), Color::Yellow),
+               make_gauge("Infer Queue", std::min(1.0F, static_cast<float>(state_.inference_queue_depth) / kQueueMaxDepth), Color::Magenta),
                separator(),
                text("Latency: ") | bold,
-               text("STT Inference:  " + std::to_string(state_.inference_latency_ms).substr(0, 6) + "ms"),
+               text("STT Inference:  " + std::to_string(state_.inference_latency_ms).substr(0, kSubstringMaxLen) + "ms"),
                text("End-to-End:     " + std::to_string(state_.last_latency_ms) + "ms") | color(Color::Cyan),
                text("Overhead:       " +
                     std::to_string(std::max(0, state_.last_latency_ms - (int)state_.inference_latency_ms)) + "ms") |

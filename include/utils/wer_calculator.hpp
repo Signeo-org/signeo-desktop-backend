@@ -25,10 +25,10 @@ struct WerResult {
     int hypothesis_words = 0;  // Total words in hypothesis
 
     // Helper to get error counts
-    auto total_errors() const -> int;
+    [[nodiscard]] auto total_errors() const -> int;
 
     // WER as percentage
-    auto wer_percentage() const -> double;
+    [[nodiscard]] auto wer_percentage() const -> double;
 };
 
 /**

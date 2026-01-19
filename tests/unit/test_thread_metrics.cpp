@@ -1,8 +1,10 @@
 #include <gtest/gtest.h>
-#include <thread>
+
 #include <chrono>
-#include "utils/thread_metrics.hpp"
+#include <thread>
+
 #include "output/logging.hpp"
+#include "utils/thread_metrics.hpp"
 
 class ThreadMetricsTest : public ::testing::Test {
 protected:
@@ -26,15 +28,13 @@ TEST_F(ThreadMetricsTest, Singleton) {
 
 TEST_F(ThreadMetricsTest, RegisterAndUnregisterThread) {
     auto& metrics = utils::ThreadMetrics::get();
-    
+
     // Create a simple thread
-    std::thread worker([]() {
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    });
-    
+    std::thread worker([]() { std::this_thread::sleep_for(std::chrono::milliseconds(100)); });
+
     // Register it
     metrics.register_thread("TestWorker", worker.native_handle());
-    
+
     // Get stats (should contain our thread)
     auto stats = metrics.update_and_get();
     bool found = false;
@@ -45,13 +45,13 @@ TEST_F(ThreadMetricsTest, RegisterAndUnregisterThread) {
         }
     }
     EXPECT_TRUE(found) << "Registered thread not found in stats";
-    
+
     // Unregister
     metrics.unregister_thread("TestWorker");
-    
+
     // Join thread
     worker.join();
-    
+
     // Verify it's gone
     stats = metrics.update_and_get();
     found = false;
@@ -65,22 +65,23 @@ TEST_F(ThreadMetricsTest, RegisterAndUnregisterThread) {
 
 TEST_F(ThreadMetricsTest, CpuUsageNonNegative) {
     auto& metrics = utils::ThreadMetrics::get();
-    
+
     // Create a busy thread
     std::atomic<bool> running{true};
     std::thread worker([&running]() {
         while (running) {
             // Busy loop to generate CPU usage
             volatile int x = 0;
-            for (int i = 0; i < 10000; i++) x += i;
+            for (int i = 0; i < 10000; i++)
+                x += i;
         }
     });
-    
+
     metrics.register_thread("BusyWorker", worker.native_handle());
-    
+
     // Wait for some activity
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
-    
+
     auto stats = metrics.update_and_get();
     for (const auto& s : stats) {
         if (s.name == "BusyWorker") {
@@ -92,7 +93,7 @@ TEST_F(ThreadMetricsTest, CpuUsageNonNegative) {
 #endif
         }
     }
-    
+
     running = false;
     metrics.unregister_thread("BusyWorker");
     worker.join();
@@ -100,36 +101,33 @@ TEST_F(ThreadMetricsTest, CpuUsageNonNegative) {
 
 TEST_F(ThreadMetricsTest, ThreadSafety) {
     auto& metrics = utils::ThreadMetrics::get();
-    
+
     std::vector<std::thread> threads;
-    
+
     // Spawn multiple threads that register/unregister concurrently
     for (int i = 0; i < 4; i++) {
         threads.emplace_back([&metrics, i]() {
             std::string name = "Thread" + std::to_string(i);
-            
+
             // Create a dummy thread
-            std::thread dummy([]() {
-                std::this_thread::sleep_for(std::chrono::milliseconds(50));
-            });
-            
+            std::thread dummy([]() { std::this_thread::sleep_for(std::chrono::milliseconds(50)); });
+
             metrics.register_thread(name, dummy.native_handle());
-            
+
             for (int j = 0; j < 10; j++) {
                 metrics.update_and_get();
                 std::this_thread::sleep_for(std::chrono::milliseconds(5));
             }
-            
+
             metrics.unregister_thread(name);
             dummy.join();
         });
     }
-    
+
     for (auto& t : threads) {
         t.join();
     }
-    
+
     // Should not crash
     SUCCEED();
 }
-

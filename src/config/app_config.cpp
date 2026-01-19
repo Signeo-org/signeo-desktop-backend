@@ -2,20 +2,78 @@
 
 #include <CLI/CLI.hpp>
 #include <cstdlib>
+#include <fstream>
 #include <iostream>
+#include <sstream>
 
 #include "core/version.hpp"
 #include "utils/config_file.hpp"
 
+// Helper: Trim string
+static auto trim_str(const std::string& str) -> std::string {
+    size_t start = str.find_first_not_of(" \t\r\n");
+    if (start == std::string::npos) {
+        return "";
+    }
+    size_t end = str.find_last_not_of(" \t\r\n");
+    return str.substr(start, end - start + 1);
+}
+
+// Helper: Load .env file into environment variables
+static void load_dotenv() {
+    std::ifstream file(".env");
+    if (!file.is_open()) {
+        return;
+    }
+
+    std::string line;
+    while (std::getline(file, line)) {
+        line = trim_str(line);
+        if (line.empty() || line[0] == '#' || line[0] == ';') {
+            continue;
+        }
+
+        size_t equal_pos = line.find('=');
+        if (equal_pos == std::string::npos) {
+            continue;
+        }
+
+        std::string key = trim_str(line.substr(0, equal_pos));
+        std::string val = trim_str(line.substr(equal_pos + 1));
+
+        // Remove quotes if present
+        if (val.size() >= 2) {
+            if ((val.front() == '"' && val.back() == '"') || (val.front() == '\'' && val.back() == '\'')) {
+                val = val.substr(1, val.size() - 2);
+            }
+        }
+
+#ifdef _WIN32
+        // Check if already set
+        char* buf = nullptr;
+        size_t size = 0;
+        if (_dupenv_s(&buf, &size, key.c_str()) == 0 && buf != nullptr) {
+            std::unique_ptr<char, decltype(&std::free)> safe_buf(buf, &std::free);
+            continue;  // Already set, don't overwrite
+        }
+        _putenv_s(key.c_str(), val.c_str());
+#else
+        // setenv with overwrite=0 checks for existence automatically
+        setenv(key.c_str(), val.c_str(), 0);
+#endif
+    }
+}
+
 // Helper: Get environment variable with default
+// NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 static auto get_env(const std::string& name, const std::string& default_value = "") -> std::string {
 #ifdef _WIN32
     char* buf = nullptr;
-    size_t sz = 0;
-    if (_dupenv_s(&buf, &sz, name.c_str()) == 0 && buf != nullptr) {
-        std::string value(buf);
-        free(buf);
-        return value;
+    size_t size = 0;
+    if (_dupenv_s(&buf, &size, name.c_str()) == 0 && buf != nullptr) {
+        // Use unique_ptr for RAII cleanup of malloc'd memory from _dupenv_s
+        std::unique_ptr<char, decltype(&std::free)> safe_buf(buf, &std::free);
+        return {safe_buf.get()};
     }
     return default_value;
 #else
@@ -58,22 +116,23 @@ static auto get_env_bool(const std::string& name, bool default_val) -> bool {
 
 // Helper: Set log level from string
 static void set_log_level(const std::string& level) {
+    auto log_enum = spdlog::level::info;
     if (level == "trace") {
-        spdlog::set_level(spdlog::level::trace);
+        log_enum = spdlog::level::trace;
     } else if (level == "debug") {
-        spdlog::set_level(spdlog::level::debug);
-    } else if (level == "info") {
-        spdlog::set_level(spdlog::level::info);
+        log_enum = spdlog::level::debug;
     } else if (level == "warn") {
-        spdlog::set_level(spdlog::level::warn);
+        log_enum = spdlog::level::warn;
     } else if (level == "error") {
-        spdlog::set_level(spdlog::level::err);
-    } else {
-        spdlog::set_level(spdlog::level::info);
+        log_enum = spdlog::level::err;
     }
+    spdlog::set_level(log_enum);
 }
 
-auto AppConfig::parse(int argc, char* argv[]) -> AppConfig {
+auto AppConfig::parse(int argc, char** argv) -> AppConfig {
+    // 0. Load .env file (if present)
+    load_dotenv();
+
     AppConfig config;
 
     // 1. Load config file (lowest priority)
@@ -110,9 +169,9 @@ auto AppConfig::parse(int argc, char* argv[]) -> AppConfig {
         std::string blacklist_str = cfg_file.get("stt_blacklist", "");
         if (!blacklist_str.empty()) {
             config.stt_blacklist.clear();
-            std::stringstream ss(blacklist_str);
+            std::stringstream stream(blacklist_str);
             std::string item;
-            while (std::getline(ss, item, ',')) {
+            while (std::getline(stream, item, ',')) {
                 // Trim logic inside loop
                 size_t first = item.find_first_not_of(" \t");
                 if (std::string::npos != first) {
@@ -134,7 +193,7 @@ auto AppConfig::parse(int argc, char* argv[]) -> AppConfig {
 
     // 2. Load environment variables (medium priority)
     // Global
-    config.model_path = get_env("SUBTITLER_MODEL_PATH", config.model_path);
+    config.model_path = get_env("SUBTITLER_STT_MODEL", config.model_path);
     config.device_index = get_env_int("SUBTITLER_DEVICE", config.device_index);
     config.language = get_env("SUBTITLER_LANGUAGE", config.language);
     config.n_threads = get_env_int("SUBTITLER_THREADS", config.n_threads);
@@ -181,36 +240,41 @@ auto AppConfig::parse(int argc, char* argv[]) -> AppConfig {
 
     app.add_option("-m,--model", config.model_path, "Path to Whisper model file")->check(CLI::ExistingFile);
     app.add_option("-l,--language", config.language, "Input language code");
-    app.add_option("-t,--threads", config.n_threads, "Number of threads")->check(CLI::Range(1, 32));
+    app.add_option("-t,--threads", config.n_threads, "Number of threads")->check(CLI::Range(kMinThreads, kMaxThreads));
     app.add_flag("--gpu,!--no-gpu", config.use_gpu, "Enable/disable GPU acceleration");
 
     app.add_option("--vad-model", config.vad_model_path, "Path to Silero VAD model")->check(CLI::ExistingFile);
-    app.add_option("--vad-threshold", config.vad_threshold, "VAD speech threshold")->check(CLI::Range(0.0F, 1.0F));
+    app.add_option("--vad-threshold", config.vad_threshold, "VAD speech threshold")
+        ->check(CLI::Range(kMinVadProb, kMaxVadProb));
     app.add_option("--vad-energy-th", config.vad_energy_threshold, "VAD energy threshold (RMS)");
     app.add_option("--vad-smoothing", config.vad_smoothing_alpha, "VAD EMA smoothing (0.1-0.5)")
-        ->check(CLI::Range(0.05F, 0.9F));
-    app.add_option("--vad-hangover", config.vad_hangover_frames, "VAD hangover frames")->check(CLI::Range(0, 30));
-    app.add_option("--vad-preroll", config.vad_pre_roll_frames, "VAD pre-roll frames")->check(CLI::Range(0, 20));
+        ->check(CLI::Range(kMinVadSmoothing, kMaxVadSmoothing));
+    app.add_option("--vad-hangover", config.vad_hangover_frames, "VAD hangover frames")
+        ->check(CLI::Range(0, kMaxVadHangover));
+    app.add_option("--vad-preroll", config.vad_pre_roll_frames, "VAD pre-roll frames")
+        ->check(CLI::Range(0, kMaxVadPreroll));
     app.add_flag("--vad-adaptive,!--no-vad-adaptive", config.vad_adaptive_threshold,
                  "Enable/disable adaptive VAD threshold");
     app.add_option("--vad-adaptive-min", config.vad_adaptive_min_threshold, "VAD adaptive min threshold")
-        ->check(CLI::Range(0.0F, 1.0F));
+        ->check(CLI::Range(kMinVadProb, kMaxVadProb));
     app.add_option("--vad-adaptive-max", config.vad_adaptive_max_threshold, "VAD adaptive max threshold")
-        ->check(CLI::Range(0.0F, 1.0F));
+        ->check(CLI::Range(kMinVadProb, kMaxVadProb));
     app.add_option("--vad-adaptive-alpha", config.vad_adaptive_alpha, "VAD audio floor smoothing alpha")
-        ->check(CLI::Range(0.01F, 0.99F));
+        ->check(CLI::Range(kMinVadAdaptiveAlpha, kMaxVadAdaptiveAlpha));
 
     // Streaming transcription
-    app.add_option("--stt-step", config.stt_step_ms, "STT step size in ms")->check(CLI::Range(500, 10000));
-    app.add_option("--stt-keep", config.stt_keep_ms, "STT context keep buffer in ms")->check(CLI::Range(0, 2000));
+    app.add_option("--stt-step", config.stt_step_ms, "STT step size in ms")
+        ->check(CLI::Range(kMinSttStep, kMaxSttStep));
+    app.add_option("--stt-keep", config.stt_keep_ms, "STT context keep buffer in ms")
+        ->check(CLI::Range(0, kMaxSttKeep));
     app.add_option("--stt-max-length", config.stt_max_length_ms, "STT max audio window in ms")
-        ->check(CLI::Range(2000, 30000));
+        ->check(CLI::Range(kMinSttMaxLength, kMaxSttMaxLength));
     app.add_flag("--stt-dedup,!--no-stt-dedup", config.stt_token_dedup, "Enable/disable token deduplication");
 
     app.add_option("--stt-min-repetition", config.stt_min_repetition_len, "Min length to detect repetition")
-        ->check(CLI::Range(4, 50));
+        ->check(CLI::Range(kMinSttRepetition, kMaxSttRepetition));
     app.add_option("--stt-hallucination-len", config.stt_hallucination_min_len, "Min length for hallucination filter")
-        ->check(CLI::Range(1, 10));
+        ->check(CLI::Range(kMinSttHallucination, kMaxSttHallucination));
     app.add_option("--stt-blacklist", config.stt_blacklist, "Comma-separated list of hallucination phrases");
 
     app.add_option("--log-level", config.log_level, "Log level");
@@ -221,7 +285,7 @@ auto AppConfig::parse(int argc, char* argv[]) -> AppConfig {
         app.parse(argc, argv);
     } catch (const CLI::ParseError& e) {
         std::cerr << "[DEBUG] CLI Parse Error: " << e.what() << '\n';
-        std::exit(app.exit(e));
+        std::exit(app.exit(e));  // NOLINT(concurrency-mt-unsafe)
     }
 
     if (config.verbose) {

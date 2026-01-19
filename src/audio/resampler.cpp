@@ -10,26 +10,30 @@
 
 namespace audio {
 
-auto AudioResampler::create(int input_rate, int output_rate, int quality)
-    -> core::Result<std::unique_ptr<AudioResampler>> {
-    auto resampler = std::unique_ptr<AudioResampler>(new AudioResampler(input_rate, output_rate, quality));
+namespace {
+constexpr int kBufferMargin = 16;
+}
+
+auto AudioResampler::create(const Config& config) -> core::Result<std::unique_ptr<AudioResampler>> {
+    auto resampler = std::unique_ptr<AudioResampler>(new AudioResampler(config));
 
     int err = 0;
     resampler->resampler_ = speex_resampler_init(1,  // channels (mono)
-                                                 static_cast<spx_uint32_t>(input_rate),
-                                                 static_cast<spx_uint32_t>(output_rate), quality, &err);
+                                                 static_cast<spx_uint32_t>(config.input_rate),
+                                                 static_cast<spx_uint32_t>(config.output_rate), config.quality, &err);
 
     if (err != RESAMPLER_ERR_SUCCESS || resampler->resampler_ == nullptr) {
         return core::log_error(std::format("Failed to initialize SpeexDSP resampler: error {}", err));
     }
 
-    spdlog::info("AudioResampler initialized: {}Hz -> {}Hz (quality: {})", input_rate, output_rate, quality);
+    spdlog::info("AudioResampler initialized: {}Hz -> {}Hz (quality: {})", config.input_rate, config.output_rate,
+                 config.quality);
 
     return resampler;
 }
 
-AudioResampler::AudioResampler(int input_rate, int output_rate, int quality)
-    : input_rate_(input_rate), output_rate_(output_rate) {}
+AudioResampler::AudioResampler(const Config& config)
+    : input_rate_(config.input_rate), output_rate_(config.output_rate) {}
 
 AudioResampler::~AudioResampler() {
     if (resampler_ != nullptr) {
@@ -44,7 +48,7 @@ auto AudioResampler::process(const std::vector<float>& input) -> std::vector<flo
     }
 
     // Calculate expected output size with some margin
-    size_t out_size = expected_output_size(input.size()) + 16;
+    size_t out_size = expected_output_size(input.size()) + kBufferMargin;
     std::vector<float> output(out_size);
 
     auto in_len = static_cast<spx_uint32_t>(input.size());

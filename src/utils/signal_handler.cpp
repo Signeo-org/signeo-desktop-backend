@@ -22,13 +22,14 @@ void SignalHandler::handle_signal(int signal) {
         } else {
             spdlog::error("Force exit requested. Terminating immediately.");
             g_force_exit.store(true);
+            // NOLINTNEXTLINE(concurrency-mt-unsafe)
             std::exit(1);
         }
     }
 }
 
 #ifdef _WIN32
-static BOOL WINAPI console_handler(DWORD signal) {
+static auto WINAPI console_handler(DWORD signal) -> BOOL {
     if (signal == CTRL_C_EVENT || signal == CTRL_BREAK_EVENT) {
         SignalHandler::trigger_shutdown();  // Just trigger shutdown, let loop handle it
         // Or call handle_signal(SIGINT) directly?

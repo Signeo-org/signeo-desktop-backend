@@ -25,6 +25,8 @@ void init_logging(const std::string& log_file, bool use_console);
 // Structured Logging Macros
 // ============================================================================
 
+// NOLINTBEGIN(cppcoreguidelines-macro-usage)
+
 /**
  * @brief Log function entry with arguments
  * Usage: LOG_TRACE_ENTRY("Processing audio samples={}", count);
@@ -41,13 +43,20 @@ void init_logging(const std::string& log_file, bool use_console);
  */
 #define LOG_TRACE_EXIT_VAL(val) spdlog::trace("[EXIT] {}() -> {}", __func__, val)
 
+// NOLINTEND(cppcoreguidelines-macro-usage)
+
 /**
  * @brief RAII scoped trace for automatic entry/exit logging with timing
  */
 class ScopedTrace {
 public:
     explicit ScopedTrace(const char* func, const std::source_location& loc = std::source_location::current());
-
+    
+    // Non-copyable/movable to enforce scoping
+    ScopedTrace(const ScopedTrace&) = delete;
+    auto operator=(const ScopedTrace&) -> ScopedTrace& = delete;
+    ScopedTrace(ScopedTrace&&) = delete;
+    auto operator=(ScopedTrace&&) -> ScopedTrace& = delete;
     ~ScopedTrace();
 
 private:
@@ -60,11 +69,13 @@ private:
  * @brief Create a scoped trace for current function
  * @note Named LOG_SCOPED_TRACE to avoid conflict with Google Test's SCOPED_TRACE
  */
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define LOG_SCOPED_TRACE() ::core::ScopedTrace _trace_scope_(__func__)
 
 /**
  * @brief Log a checkpoint within a function
  */
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
 #define LOG_CHECKPOINT(msg) spdlog::trace("[CHECKPOINT] {}() | {}", __func__, msg)
 
 // ============================================================================
@@ -80,9 +91,9 @@ public:
 
     void reset();
 
-    auto elapsed_us() const -> int64_t;
+    [[nodiscard]] auto elapsed_us() const -> int64_t;
 
-    auto elapsed_ms() const -> int64_t;
+    [[nodiscard]] auto elapsed_ms() const -> int64_t;
 
 private:
     std::chrono::steady_clock::time_point start_;

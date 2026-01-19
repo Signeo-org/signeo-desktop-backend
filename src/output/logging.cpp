@@ -3,6 +3,7 @@
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 
+#include <iostream>
 #include <memory>
 #include <vector>
 
@@ -74,9 +75,8 @@ void init_logging(const std::string& log_file, bool use_console) {
 
         spdlog::debug("Logging initialized.");
     } catch (const spdlog::spdlog_ex& ex) {
-        // Can't log here if logging failed... to stderr then
-        // (Assuming standard cerr is available)
-        // fprintf(stderr, "Log init failed: %s\n", ex.what());
+        // Fallback to stderr if logger initialization fails
+        std::cerr << "Log init failed: " << ex.what() << '\n';
     }
 }
 

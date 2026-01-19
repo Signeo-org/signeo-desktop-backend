@@ -61,43 +61,44 @@ auto ConfigFile::load(const std::string& path) -> bool {
     return true;
 }
 
+// NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 auto ConfigFile::get(const std::string& key, const std::string& default_value) const -> std::string {
-    auto it = values_.find(key);
-    return it != values_.end() ? it->second : default_value;
+    auto iter = values_.find(key);
+    return iter != values_.end() ? iter->second : default_value;
 }
 
 auto ConfigFile::get_int(const std::string& key, int default_value) const -> int {
-    auto it = values_.find(key);
-    if (it == values_.end()) {
+    auto iter = values_.find(key);
+    if (iter == values_.end()) {
         return default_value;
     }
     try {
-        return std::stoi(it->second);
+        return std::stoi(iter->second);
     } catch (...) {
         return default_value;
     }
 }
 
 auto ConfigFile::get_float(const std::string& key, float default_value) const -> float {
-    auto it = values_.find(key);
-    if (it == values_.end()) {
+    auto iter = values_.find(key);
+    if (iter == values_.end()) {
         return default_value;
     }
     try {
-        return std::stof(it->second);
+        return std::stof(iter->second);
     } catch (...) {
         return default_value;
     }
 }
 
 auto ConfigFile::get_bool(const std::string& key, bool default_value) const -> bool {
-    auto it = values_.find(key);
-    if (it == values_.end()) {
+    auto iter = values_.find(key);
+    if (iter == values_.end()) {
         return default_value;
     }
 
-    std::string val = it->second;
-    std::ranges::transform(val, val.begin(), [](unsigned char c) { return std::tolower(c); });
+    std::string val = iter->second;
+    std::ranges::transform(val, val.begin(), [](unsigned char chr) { return std::tolower(chr); });
 
     return val == "true" || val == "yes" || val == "1" || val == "on";
 }
@@ -118,9 +119,10 @@ auto ConfigFile::trim(const std::string& str) -> std::string {
 auto ConfigFile::get_home_dir() -> std::string {
 #ifdef _WIN32
     char* buf = nullptr;
-    size_t sz = 0;
-    if (_dupenv_s(&buf, &sz, "USERPROFILE") == 0 && buf != nullptr) {
+    size_t buf_size = 0;
+    if (_dupenv_s(&buf, &buf_size, "USERPROFILE") == 0 && buf != nullptr) {
         std::string home(buf);
+        // NOLINTNEXTLINE(cppcoreguidelines-no-malloc,cppcoreguidelines-owning-memory)
         free(buf);
         return home;
     }
