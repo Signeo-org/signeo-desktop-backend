@@ -411,6 +411,7 @@ add_library(realtime-subtitler-core STATIC
     src/ui/tui_renderer.cpp
     src/ui/tui_settings.cpp
     src/output/logging.cpp
+    src/output/json_output.cpp
     src/config/app_config.cpp
     src/core/application.cpp
     src/core/metrics_collector.cpp

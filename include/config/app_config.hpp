@@ -50,7 +50,7 @@ struct AppConfig {
     int device_index = kDefaultDeviceIndex;  // -1 = default device
 
     // STT
-    std::string model_path = "models/ggml-base.bin";
+    std::string stt_model_path = "models/ggml-base.bin";
     std::string language = "en";
     int n_threads = kDefaultThreadCount;
     bool use_gpu = true;
@@ -92,6 +92,7 @@ struct AppConfig {
 
     // Actions
     bool list_devices_requested = false;
+    bool json_output = false; // Enable JSON output mode
     bool use_ui = false;  // Enable TUI mode
 
     // Helper to load all configuration sources

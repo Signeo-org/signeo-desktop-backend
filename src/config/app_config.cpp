@@ -140,8 +140,9 @@ auto AppConfig::parse(int argc, char** argv) -> AppConfig {
     config::ConfigFile cfg_file;
 
     if (cfg_file.load(default_config)) {
+        config.json_output = cfg_file.get_bool("json_output", config.json_output);
         config.device_index = cfg_file.get_int("device", config.device_index);
-        config.model_path = cfg_file.get("model", config.model_path);
+        config.stt_model_path = cfg_file.get("model", config.stt_model_path);
         config.language = cfg_file.get("language", config.language);
         config.n_threads = cfg_file.get_int("n_threads", config.n_threads);
         config.use_gpu = cfg_file.get_bool("use_gpu", config.use_gpu);
@@ -193,7 +194,8 @@ auto AppConfig::parse(int argc, char** argv) -> AppConfig {
 
     // 2. Load environment variables (medium priority)
     // Global
-    config.model_path = get_env("SUBTITLER_STT_MODEL", config.model_path);
+    config.json_output = get_env_bool("SUBTITLER_JSON_OUTPUT", config.json_output);
+    config.stt_model_path = get_env("SUBTITLER_STT_MODEL", config.stt_model_path);
     config.device_index = get_env_int("SUBTITLER_DEVICE", config.device_index);
     config.language = get_env("SUBTITLER_LANGUAGE", config.language);
     config.n_threads = get_env_int("SUBTITLER_THREADS", config.n_threads);
@@ -236,9 +238,10 @@ auto AppConfig::parse(int argc, char** argv) -> AppConfig {
     app.add_option("-d,--device", config.device_index, "Audio device index (-1 for default)");
 
     app.add_flag("--list-devices", config.list_devices_requested, "List available audio devices and exit");
+    app.add_flag("--json", config.json_output, "Enable JSON output for IPC");
     app.add_flag("--ui,!--no-ui", config.use_ui, "Enable TUI mode (Terminal User Interface)");
 
-    app.add_option("-m,--model", config.model_path, "Path to Whisper model file")->check(CLI::ExistingFile);
+    app.add_option("-m,--model", config.stt_model_path, "Path to Whisper model file")->check(CLI::ExistingFile);
     app.add_option("-l,--language", config.language, "Input language code");
     app.add_option("-t,--threads", config.n_threads, "Number of threads")->check(CLI::Range(kMinThreads, kMaxThreads));
     app.add_flag("--gpu,!--no-gpu", config.use_gpu, "Enable/disable GPU acceleration");

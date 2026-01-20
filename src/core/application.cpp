@@ -26,6 +26,7 @@
 #include "utils/signal_handler.hpp"
 #include "utils/thread_metrics.hpp"
 #include "vad/vad_processor.hpp"
+#include "output/json_output.hpp"
 #ifdef _WIN32
     #include <conio.h>  // For _kbhit, _getch
 #else
@@ -176,12 +177,12 @@ void Application::print_startup_banner() {
         spdlog::info("Real-Time Audio-to-Subtitles {} (Multi-Threaded)", core::kVersionString);
         spdlog::info("Git Commit: {}", core::kGitDescribe);
         spdlog::info("Press Ctrl+C to stop gracefully.");
-        spdlog::info("Config: Model={}, Threads={}, GPU={}", config_.model_path, config_.n_threads,
+        spdlog::info("Config: VAD Model={}, STT Model={}, Threads={}, GPU={}", config_.vad_model_path, config_.stt_model_path, config_.n_threads,
                      config_.use_gpu ? "ON" : "OFF");
     }
 }
 
-void Application::handle_cli_device_selection() {
+void Application::handle_cli_device_selection() const {
     auto capture_result = audio::AudioCapture::create();
     if (!capture_result) {
         std::cerr << "Error creating AudioCapture: " << capture_result.error() << "\n";
@@ -194,6 +195,12 @@ void Application::handle_cli_device_selection() {
         return;
     }
     auto& devices = *devices_result;
+
+    if (config_.json_output) {
+        output::JsonOutput::print_devices(devices);
+        return;
+    }
+
     std::cout << "\nAvailable Audio Devices:\n-------------------------\n";
     for (const auto& device : devices) {
         std::cout << "  [" << device.index << "] " << device.name << " (Channels: " << device.max_input_channels
@@ -557,48 +564,7 @@ void Application::handle_vad_speech_state(bool is_speech, bool& was_speech, cons
     }
 }
 
-void Application::process_inference_chunk(const core::AudioChunk& chunk, stt::StreamingTranscriber* transcriber,
-                                          ui::TuiRenderer* tui, core::MetricsCollector& metrics) {
-    if (!chunk.data.empty()) {
-        transcriber->push_audio(chunk.data);
 
-        if (transcriber->should_transcribe()) {
-            metrics.on_inference_start();
-            auto seg = transcriber->process();
-            metrics.on_inference_end(static_cast<int>(seg.text.length()));
-
-            if (!seg.text.empty()) {
-                auto now = std::chrono::steady_clock::now();
-                std::chrono::duration<double, std::milli> latency = now - chunk.capture_time;
-                metrics.record_pipeline_latency(latency.count());
-
-                if (tui != nullptr) {
-                    tui->update_state([seg](ui::AppState& state) { state.partial_transcript = seg.text; });
-                } else {
-                    std::cout << "\r[Partial] " << seg.text << std::flush;
-                }
-            }
-        }
-    } else {
-        // Sentinel / Finalize
-        auto final_seg = transcriber->finalize();
-        if (!final_seg.text.empty()) {
-            if (tui != nullptr) {
-                tui->update_state([final_seg](ui::AppState& state) {
-                    state.partial_transcript = "";
-                    state.subtitles.push_back(
-                        {.text = final_seg.text, .confidence = 1.0F, .is_final = true, .timestamp = "Now"});
-                });
-            } else {
-                std::cout << "\n[FINAL] " << final_seg.text << "\n";
-            }
-        } else {
-            if (tui != nullptr) {
-                tui->update_state([](ui::AppState& state) { state.partial_transcript = ""; });
-            }
-        }
-    }
-}
 
 auto Application::initialize_audio_system(std::unique_ptr<audio::AudioCapture>& capture,
                                           std::unique_ptr<audio::AudioProcessor>& processor, ui::TuiRenderer* tui) const
@@ -740,7 +706,7 @@ void Application::stt_loop(ui::TuiRenderer* tui) {
         stt::SttConfig stt_config;
         {
             std::lock_guard<std::mutex> lock(config_mutex_);
-            stt_config.model_path = config_.model_path;
+            stt_config.model_path = config_.stt_model_path;
             stt_config.language = config_.language;
             stt_config.n_threads = config_.n_threads;
             stt_config.use_gpu = config_.use_gpu;
@@ -806,7 +772,54 @@ void Application::stt_loop(ui::TuiRenderer* tui) {
         current_cfg.hallucination_min_len = stt_hallucination_len_.load();
         transcriber->set_config(current_cfg);
 
-        process_inference_chunk(chunk, transcriber.get(), tui, metrics);
+        process_inference_chunk(chunk, transcriber.get(), tui, metrics, config_.json_output);
     }
     spdlog::debug("STT Worker Thread stopped.");
+}
+
+void Application::process_inference_chunk(const core::AudioChunk& chunk, stt::StreamingTranscriber* transcriber,
+                                          ui::TuiRenderer* tui, core::MetricsCollector& metrics, bool json_output) {
+    if (chunk.data.empty()) {
+        // Finalize
+        auto final_seg = transcriber->finalize();
+        if (!final_seg.text.empty()) {
+            if (tui != nullptr) {
+                tui->update_state([final_seg](ui::AppState& state) {
+                    state.partial_transcript = "";
+                    state.subtitles.push_back({.text = final_seg.text, .confidence = 1.0F, .is_final = true, .timestamp = "Now"});
+                });
+            } else if (json_output) {
+                output::JsonOutput::print_final(final_seg.text);
+            } else {
+                std::cout << "\n[FINAL] " << final_seg.text << "\n";
+            }
+        } else {
+            if (tui != nullptr) {
+                tui->update_state([](ui::AppState& state) { state.partial_transcript = ""; });
+            }
+        }
+        return;
+    }
+
+    transcriber->push_audio(chunk.data);
+
+    if (transcriber->should_transcribe()) {
+        metrics.on_inference_start();
+        auto seg = transcriber->process();
+        metrics.on_inference_end(static_cast<int>(seg.text.length()));
+
+        if (!seg.text.empty()) {
+            auto now = std::chrono::steady_clock::now();
+            std::chrono::duration<double, std::milli> latency = now - chunk.capture_time;
+            metrics.record_pipeline_latency(latency.count());
+
+            if (tui != nullptr) {
+                tui->update_state([seg](ui::AppState& state) { state.partial_transcript = seg.text; });
+            } else if (json_output) {
+                output::JsonOutput::print_partial(seg.text);
+            } else {
+                std::cout << "\r[Partial] " << seg.text << std::flush;
+            }
+        }
+    }
 }

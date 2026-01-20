@@ -17,6 +17,7 @@
 #include "../audio/audio_capture.hpp"
 #include "common_types.hpp"
 #include "metrics_collector.hpp"
+#include "../output/json_output.hpp"
 
 // Forward declarations
 namespace ui {
@@ -82,7 +83,7 @@ private:
 
     // Helpers
     void print_startup_banner();
-    static void handle_cli_device_selection();
+    void handle_cli_device_selection() const;
     // Extracted CLI input handler to reduce complexity
     void handle_cli_input(ui::TuiRenderer* tui);
     void perform_device_scan_and_select();
@@ -96,7 +97,7 @@ private:
     void handle_vad_speech_state(bool is_speech, bool& was_speech, const std::vector<float>& frame,
                                  std::chrono::steady_clock::time_point frame_time, vad::VadProcessor* vad);
     static void process_inference_chunk(const core::AudioChunk& chunk, stt::StreamingTranscriber* transcriber,
-                                        ui::TuiRenderer* tui, core::MetricsCollector& metrics);
+                                        ui::TuiRenderer* tui, core::MetricsCollector& metrics, bool json_output);
 
     // Refactored Worker Helpers
     auto initialize_audio_system(std::unique_ptr<audio::AudioCapture>& capture,
