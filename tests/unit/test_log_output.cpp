@@ -5,7 +5,7 @@
 #include <filesystem>
 #include <thread>
 
-#include "output/logging.hpp"
+#include "output/log_output.hpp"
 
 // ============================================================================
 // Global Test Environment for spdlog state management

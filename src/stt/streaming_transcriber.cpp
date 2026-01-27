@@ -11,9 +11,7 @@
 
 namespace stt {
 
-namespace {
-constexpr int kMillisecondsPerSecond = 1000;
-}  // namespace
+// Local constant removed, using core::audio_constants
 
 StreamingTranscriber::StreamingTranscriber(SttEngine& engine, TranscriberConfig config)
     : engine_(engine), config_(std::move(config)) {
@@ -31,23 +29,23 @@ void StreamingTranscriber::push_audio(const std::vector<float>& audio) {
     audio_buffer_.insert(audio_buffer_.end(), audio.begin(), audio.end());
 
     // Trim if exceeding max length
-    int max_samples = (config_.max_length_ms * WHISPER_SAMPLE_RATE) / kMillisecondsPerSecond;
+    int max_samples = (config_.max_length_ms * core::audio_constants::SAMPLE_RATE) / static_cast<int>(core::audio_constants::MILLISECONDS_PER_SECOND);
     if (std::cmp_greater(audio_buffer_.size(), max_samples)) {
         int excess = static_cast<int>(audio_buffer_.size()) - max_samples;
         audio_buffer_.erase(audio_buffer_.begin(), audio_buffer_.begin() + excess);
-        audio_offset_ms_ += (excess * kMillisecondsPerSecond) / WHISPER_SAMPLE_RATE;
+        audio_offset_ms_ += static_cast<int>((excess * core::audio_constants::MILLISECONDS_PER_SECOND) / core::audio_constants::SAMPLE_RATE);
     }
 }
 
 auto StreamingTranscriber::should_transcribe() const -> bool {
-    int step_samples = (config_.step_ms * WHISPER_SAMPLE_RATE) / kMillisecondsPerSecond;
+    int step_samples = (config_.step_ms * core::audio_constants::SAMPLE_RATE) / static_cast<int>(core::audio_constants::MILLISECONDS_PER_SECOND);
     int keep_samples = static_cast<int>(keep_buffer_.size());
     int new_samples = static_cast<int>(audio_buffer_.size()) - keep_samples;
     return new_samples >= step_samples;
 }
 
 auto StreamingTranscriber::audio_length_ms() const -> int {
-    return static_cast<int>((audio_buffer_.size() * kMillisecondsPerSecond) / WHISPER_SAMPLE_RATE);
+    return static_cast<int>((audio_buffer_.size() * core::audio_constants::MILLISECONDS_PER_SECOND) / core::audio_constants::SAMPLE_RATE);
 }
 
 auto StreamingTranscriber::process() -> StreamingTranscriber::Segment {
@@ -62,7 +60,7 @@ auto StreamingTranscriber::get_partial() -> StreamingTranscriber::Segment {
         return Segment{};
     }
 
-    int min_samples = (config_.min_audio_ms * WHISPER_SAMPLE_RATE) / kMillisecondsPerSecond;
+    int min_samples = (config_.min_audio_ms * core::audio_constants::SAMPLE_RATE) / static_cast<int>(core::audio_constants::MILLISECONDS_PER_SECOND);
     if (std::cmp_less(audio_buffer_.size(), min_samples)) {
         return Segment{};
     }
@@ -155,7 +153,7 @@ void StreamingTranscriber::update_state_after_transcription(const SttEngine::Tra
     previous_tokens_ = tokenize(result.text);
 
     // Keep last portion for context
-    int keep_samples = (config_.keep_ms * WHISPER_SAMPLE_RATE) / kMillisecondsPerSecond;
+    int keep_samples = (config_.keep_ms * core::audio_constants::SAMPLE_RATE) / static_cast<int>(core::audio_constants::MILLISECONDS_PER_SECOND);
     if (std::cmp_greater(audio_buffer_.size(), keep_samples)) {
         keep_buffer_.assign(audio_buffer_.end() - keep_samples, audio_buffer_.end());
     } else {
@@ -168,14 +166,23 @@ void StreamingTranscriber::update_state_after_transcription(const SttEngine::Tra
 }
 
 auto StreamingTranscriber::post_process_text(const std::string& raw_text) -> std::string {
+    spdlog::debug("StreamingTranscriber: Raw text: '{}'", raw_text);
+
     // Deduplicate if enabled
     std::string text = raw_text;
     if (config_.token_dedup && !previous_text_.empty()) {
         text = deduplicate_text(raw_text);
+        if (text != raw_text) {
+            spdlog::debug("StreamingTranscriber: After dedup: '{}'", text);
+        }
     }
 
     // Remove internal repetitions (loops)
+    std::string before_rep = text;
     text = remove_repetition(text);
+    if (text != before_rep) {
+        spdlog::debug("StreamingTranscriber: After rep removal: '{}'", text);
+    }
 
     // Filter out hallucinations and short noise
     if (is_hallucination(text)) {

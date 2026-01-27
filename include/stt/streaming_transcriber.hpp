@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 
+#include "core/constants.hpp"
 #include "stt_engine.hpp"
 
 namespace stt {
@@ -13,26 +14,17 @@ namespace stt {
  * @brief Configuration for Streaming Transcriber
  */
 struct TranscriberConfig {
-    // Named constants for defaults
-    static constexpr int kDefaultStepMs = 2000;
-    static constexpr int kDefaultKeepMs = 500;
-    static constexpr int kDefaultMaxLengthMs = 10000;
-    static constexpr int kDefaultMinAudioMs = 200;
-    static constexpr int kDefaultMinRepetitionLen = 10;
-    static constexpr int kDefaultHallucinationMinLen = 2;
-
-    int step_ms = kDefaultStepMs;           // Transcribe every N ms of new audio
-    int keep_ms = kDefaultKeepMs;           // Keep N ms of audio for context
-    int max_length_ms = kDefaultMaxLengthMs;    // Maximum audio window size
-    bool token_dedup = true;      // Enable token-based deduplication
-    bool timestamp_merge = true;  // Enable timestamp-based merging
-    int min_audio_ms = kDefaultMinAudioMs;       // Minimum audio length to transcribe (reduced for short words)
+    int step_ms = core::stt_constants::DEFAULT_STEP_MS;           // Transcribe every N ms of new audio
+    int keep_ms = core::stt_constants::DEFAULT_KEEP_MS;           // Keep N ms of audio for context
+    int max_length_ms = core::stt_constants::MAX_WINDOW_MS;    // Maximum audio window size
+    bool token_dedup = core::stt_constants::DEFAULT_DEDUP;      // Enable token-based deduplication
+    bool timestamp_merge = core::stt_constants::DEFAULT_TIMESTAMP_MERGE;  // Enable timestamp-based merging
+    int min_audio_ms = core::audio_constants::MIN_AUDIO_LENGTH_MS;       // Minimum audio length to transcribe (reduced for short words)
 
     // Quality / Filter
-    int min_repetition_len = kDefaultMinRepetitionLen;
-    int hallucination_min_len = kDefaultHallucinationMinLen;
-    std::vector<std::string> hallucination_blacklist = {"thank you", "thank you very much", "you", "bye",
-                                                        "the following is a transcription"};
+    int min_repetition_len = core::stt_constants::DEFAULT_MIN_REPETITION;
+    int hallucination_min_len = core::stt_constants::DEFAULT_HALLUCINATION_LEN;
+    std::vector<std::string> hallucination_blacklist = {};  // Empty - don't filter real words
 };
 
 /**

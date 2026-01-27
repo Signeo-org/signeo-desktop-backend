@@ -26,7 +26,7 @@
 #include "audio/audio_processor.hpp"
 #include "audio/resampler.hpp"
 #include "core/metrics_collector.hpp"
-#include "output/logging.hpp"
+#include "output/log_output.hpp"
 #include "utils/thread_safe_queue.hpp"
 #include "utils/wer_calculator.hpp"
 

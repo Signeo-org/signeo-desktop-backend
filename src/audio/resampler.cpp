@@ -10,9 +10,7 @@
 
 namespace audio {
 
-namespace {
-constexpr int kBufferMargin = 16;
-}
+// kBufferMargin removed, using core::audio_constants
 
 auto AudioResampler::create(const Config& config) -> core::Result<std::unique_ptr<AudioResampler>> {
     auto resampler = std::unique_ptr<AudioResampler>(new AudioResampler(config));
@@ -48,7 +46,7 @@ auto AudioResampler::process(const std::vector<float>& input) -> std::vector<flo
     }
 
     // Calculate expected output size with some margin
-    size_t out_size = expected_output_size(input.size()) + kBufferMargin;
+    size_t out_size = expected_output_size(input.size()) + core::audio_constants::RESAMPLER_BUFFER_MARGIN;
     std::vector<float> output(out_size);
 
     auto in_len = static_cast<spx_uint32_t>(input.size());

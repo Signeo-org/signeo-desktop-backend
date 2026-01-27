@@ -226,7 +226,7 @@ Configuration is loaded in this order (later overrides earlier):
 | `--stt-keep <MS>` | int | 500 | Audio context keep buffer |
 | `--stt-max <MS>` | int | 10000 | Maximum audio window |
 | `--log-level <LEVEL>` | string | `info` | Log level: trace/debug/info/warn/error |
-| `--log-file <PATH>` | string | `logs/realtime-subtitler.log` | Log file path |
+| `--log-file <PATH>` | string | `logs/signeo-core.log` | Log file path |
 | `--verbose` | flag | false | Enable verbose output |
 | `--config <PATH>` | string | `config.ini` | Config file path |
 | `--version` | flag | - | Show version and exit |
@@ -305,7 +305,7 @@ stt_max_length_ms = 10000       # Maximum sliding window size
 # Logging
 # -----------------------------------------------------------------------------
 log_level = info                # trace, debug, info, warn, error
-log_file = logs/realtime-subtitler.log
+log_file = logs/signeo-core.log
 verbose = false
 ```
 
@@ -426,8 +426,8 @@ cmake --build build --config Release
 
 | Target | Description |
 |--------|-------------|
-| `realtime-subtitler` | Main application executable |
-| `realtime-subtitler-core` | Core static library |
+| `signeo-core` | Main application executable |
+| `signeo-core-core` | Core static library |
 | `unit_tests` | Unit test executable |
 | `integration_tests` | Integration test executable |
 | `benchmarks` | Benchmark executable |

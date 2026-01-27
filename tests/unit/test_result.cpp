@@ -3,7 +3,7 @@
 #include <string>
 
 #include "core/result.hpp"
-#include "output/logging.hpp"
+#include "output/log_output.hpp"
 
 using namespace core;
 

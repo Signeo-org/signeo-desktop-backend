@@ -8,8 +8,8 @@ namespace audio {
 
 auto AudioProcessor::create(int input_rate, int input_channels, int output_rate)
     -> core::Result<std::unique_ptr<AudioProcessor>> {
-    if (input_channels < 1 || input_channels > kMaxInputChannels) {
-        return core::log_error(std::format("Invalid channel count (must be 1-{})", kMaxInputChannels));
+    if (input_channels < 1 || input_channels > core::audio_constants::MAX_INPUT_CHANNELS) {
+        return core::log_error(std::format("Invalid channel count (must be 1-{})", core::audio_constants::MAX_INPUT_CHANNELS));
     }
 
     Config config{
@@ -24,11 +24,11 @@ auto AudioProcessor::create(int input_rate, int input_channels, int output_rate)
 
     // Only create resampler if rate conversion is needed
     if (input_rate != output_rate) {
-        auto res_result = AudioResampler::create(AudioResampler::Config{
-            .input_rate = input_rate,
-            .output_rate = output_rate,
-            .quality = kResamplerQuality,
-        });
+        auto res_result = AudioResampler::create(AudioResampler::Config(
+            input_rate,
+            output_rate,
+            core::audio_constants::RESAMPLER_QUALITY
+        ));
         if (!res_result) {
             return std::unexpected(res_result.error());
         }

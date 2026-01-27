@@ -11,15 +11,15 @@ Thank you for your interest in contributing! This project aims to provide a high
 
 2. **Clone & Configure**:
    ```bash
-   git clone --recursive https://github.com/your-repo/realtime-subtitler.git
-   cd realtime-subtitler
+   git clone --recursive https://github.com/your-repo/signeo-core.git
+   cd signeo-core
    cmake -B build
    ```
 
 3. **Build & Run**:
    ```bash
    cmake --build build
-   ./build/Debug/realtime-subtitler --ui
+   ./build/Debug/signeo-core --ui
    ```
 
 ## 🧪 Testing

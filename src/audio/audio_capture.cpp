@@ -11,7 +11,7 @@
 #include <vector>
 
 #include "core/result.hpp"
-#include "output/logging.hpp"
+#include "output/log_output.hpp"
 
 #ifdef _WIN32
     #include <pa_win_wasapi.h>
@@ -106,7 +106,7 @@ auto AudioCapture::load_wav_file() -> core::Status {
     this->channels_ = format.channels;
     this->sample_rate_ = static_cast<int>(format.sample_rate);
 
-    if (format.bits_per_sample != kBitsPerSample) {
+    if (format.bits_per_sample != core::audio_constants::BITS_PER_SAMPLE) {
         return core::log_error("Unsupported bit depth (only 16-bit supported currently)");
     }
 
@@ -143,7 +143,7 @@ auto AudioCapture::load_wav_file() -> core::Status {
     // Convert to float [-1.0, 1.0]
     wav_data_.resize(num_samples);
     for (size_t i = 0; i < num_samples; ++i) {
-        wav_data_[i] = static_cast<float>(pcm_data[i]) / kPcmToFloat;
+        wav_data_[i] = static_cast<float>(pcm_data[i]) / core::audio_constants::PCM_TO_FLOAT_SCALE;
     }
 
     spdlog::info("Loaded WAV: {} Hz, {} ch, {} samples", sample_rate_, channels_, num_samples);
@@ -259,7 +259,7 @@ auto AudioCapture::start(int device_index) -> core::Status {
     spdlog::info("Opening input device: {} (Rate: {}, Channels: {})", device_info->name, sample_rate_, channels_);
 
     // Allocate ring buffer: 10 seconds of interleaved audio
-    ring_buffer_ = std::make_unique<RingBuffer>(sample_rate_ * channels_ * kRingBufferDurationSeconds);
+    ring_buffer_ = std::make_unique<RingBuffer>(sample_rate_ * channels_ * core::audio_constants::RING_BUFFER_DURATION_SEC);
 
     PaError err = Pa_StartStream(stream_.get());
     if (err != paNoError) {
@@ -268,6 +268,7 @@ auto AudioCapture::start(int device_index) -> core::Status {
 
     active_ = true;
     spdlog::info("Audio stream started successfully.");
+    spdlog::info("Now listening on: {}", device_info->name);
     return {};
 }
 
@@ -297,6 +298,9 @@ auto AudioCapture::open_pa_stream(const PaDeviceInfo* deviceInfo, PaStreamParame
         auto status = try_open_stream(params, sample_rate_);
         if (status) {
             return {};  // Success
+        } else {
+            spdlog::warn("Failed to open stream (Ch={}, Rate={}, Latency={}): {}", 
+                         channels_, sample_rate_, params.suggestedLatency, status.error());
         }
 
         // If failed, adjust strategy
@@ -480,7 +484,7 @@ auto AudioCapture::pa_callback(const void* inputBuffer, void* outputBuffer, unsi
     // Safety check for input buffer access
     std::span<const float> input_span(input_data, samples);
 
-    if (std::abs(current_gain - 1.0F) > kGainThreshold) {
+    if (std::abs(current_gain - 1.0F) > core::audio_constants::GAIN_THRESHOLD) {
         // Apply gain
         if (self->temp_buffer_.size() < samples) {
             self->temp_buffer_.resize(samples);

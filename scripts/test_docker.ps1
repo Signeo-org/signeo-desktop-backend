@@ -38,7 +38,7 @@
 param (
     [switch]$Cuda,
     [switch]$Serve,
-    [string]$Name = "realtime-subtitler-test",
+    [string]$Name = "signeo-core-test",
     [int]$Port = 8080,
     [switch]$Clean
 )
@@ -242,3 +242,4 @@ if ($Serve) {
         Write-Warning "Detailed Error: $_"
     }
 }
+

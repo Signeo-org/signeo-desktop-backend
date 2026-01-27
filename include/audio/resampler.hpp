@@ -5,6 +5,7 @@
 #include <memory>
 #include <vector>
 
+#include "../core/constants.hpp"
 #include "../core/result.hpp"
 
 namespace audio {
@@ -16,12 +17,15 @@ namespace audio {
  */
 class AudioResampler {
 public:
-    static constexpr int kDefaultQuality = 5;
+    static constexpr int kDefaultQuality = core::audio_constants::RESAMPLER_QUALITY;
 
     struct Config {
         int input_rate = 0;
         int output_rate = 0;
         int quality = kDefaultQuality;
+        
+        // Constructor for easier usage
+        Config(int in, int out, int q = kDefaultQuality) : input_rate(in), output_rate(out), quality(q) {}
     };
 
     /**

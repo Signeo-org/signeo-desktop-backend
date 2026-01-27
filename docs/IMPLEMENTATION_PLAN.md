@@ -18,7 +18,7 @@
 - [ ] Set up version control (Git) and CI/CD pipeline (GitHub Actions)
 - [ ] Define directory structure:
     ```text
-    realtime-subtitler/
+    signeo-core/
     ├── CMakeLists.txt
     ├── src/
     │   ├── main.cpp
@@ -133,7 +133,7 @@
 
 **Deliverables:**
 - AudioCapture class fully functional on all platforms
-- CLI utility: `./realtime-subtitler --list-devices`
+- CLI utility: `./signeo-core --list-devices`
 - Audio capture test that streams 10 seconds of audio to file for inspection
 
 ### 2.2 Audio Preprocessing
@@ -234,7 +234,7 @@
 
 **Deliverables:**
 - WhisperEngine class with streaming support
-- Model download utility: `./realtime-subtitler --download-models`
+- Model download utility: `./signeo-core --download-models`
 - Benchmark: latency and accuracy metrics for base/small models
 
 ---
@@ -330,7 +330,7 @@
 - [ ] Shutdown test: Ctrl+C during active transcription
 
 **Deliverables:**
-- Full application executable: `./realtime-subtitler [options]`
+- Full application executable: `./signeo-core [options]`
 - Help menu with all CLI options
 
 ---
@@ -390,7 +390,7 @@
 **Tasks:**
 - [ ] **CLI Options:**
     ```bash
-    ./realtime-subtitler \
+    ./signeo-core \
       --device "Microphone" \
       --model base \
       --language auto \
@@ -404,7 +404,7 @@
     ```
 - [ ] **Config File Support (optional):**
     - YAML or INI format
-    - `~/.realtime-subtitler/config.yaml`
+    - `~/.signeo-core/config.yaml`
 - [ ] **Environment Variables:**
     - `SUBTITLER_MODEL_PATH`, `SUBTITLER_DEVICE`, `SUBTITLER_ENABLE_METRICS`, etc.
 
@@ -518,7 +518,7 @@
     - Reference Transcripts: Hand-corrected ground truth for WER calculation
     - Expected Metrics: WER <10%, latency <400ms p95, RTF <1.0
 - [ ] **Automated Benchmark Harness:**
-    - `./realtime-subtitler --benchmark --benchmark-output=report.json`
+    - `./signeo-core --benchmark --benchmark-output=report.json`
     - Output JSON structure:
         ```json
         {
@@ -543,7 +543,7 @@
 - WerCalculator for transcription accuracy measurement
 - Test audio fixtures (5–10 samples covering various scenarios)
 - Benchmark JSON report schema
-- Automated harness: `./realtime-subtitler --benchmark`
+- Automated harness: `./signeo-core --benchmark`
 - HTML/Markdown benchmark report generator
 - Target metrics documented and validated
 
@@ -725,7 +725,7 @@
 - **Error cascading** — Proper exit codes and error logging
 - **CLI11 integration** — Full command-line argument parsing (`--device`, `--model`, `--language`, `--threads`, `--gpu`, `--vad-threshold`, `--log-level`, `--verbose`, `--list-devices`, `--version`)
 - **Environment variables** — `SUBTITLER_MODEL_PATH`, `SUBTITLER_DEVICE`, `SUBTITLER_LANGUAGE`, `SUBTITLER_THREADS`, `SUBTITLER_USE_GPU`
-- **Config file support** — Auto-creates/loads `~/.realtime-subtitler/config.ini` with INI format
+- **Config file support** — Auto-creates/loads `~/.signeo-core/config.ini` with INI format
 
 #### 🔮 Future Enhancements
 - [ ] **GitHub Actions CI/CD** — Automated cross-platform builds

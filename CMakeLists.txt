@@ -8,14 +8,18 @@ endif()
 # Suppress deprecation warnings from older CMakeLists in dependencies
 set(CMAKE_WARN_DEPRECATED OFF CACHE BOOL "" FORCE)
 
-project(realtime-subtitler VERSION 0.1.0 LANGUAGES CXX C)
+project(signeo-core VERSION 2.0.0 LANGUAGES CXX C)
+
+if(WIN32)
+    add_compile_definitions(WINVER=0x0A00 _WIN32_WINNT=0x0A00)
+endif()
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # --- Static Analysis (Clang-Tidy) ---
-option(ENABLE_CLANG_TIDY "Enable static analysis with clang-tidy" ON)
+option(ENABLE_CLANG_TIDY "Enable static analysis with clang-tidy" OFF)
 
 if(ENABLE_CLANG_TIDY)
     find_program(CLANG_TIDY_EXE NAMES "clang-tidy")
@@ -27,7 +31,7 @@ if(ENABLE_CLANG_TIDY)
 endif()
 
 # --- Code Formatting (Clang-Format) ---
-option(ENABLE_CLANG_FORMAT "Enable code formatting with clang-format" ON)
+option(ENABLE_CLANG_FORMAT "Enable code formatting with clang-format" OFF)
 
 if(ENABLE_CLANG_FORMAT)
     find_program(CLANG_FORMAT_EXE NAMES "clang-format")
@@ -62,22 +66,19 @@ if(ENABLE_CLANG_FORMAT)
 endif()
 
 # --- Versioning ---
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
-include(GitVersion)
-get_version_from_git()
+set(GIT_COMMIT_HASH "release") # Static for release builds
 
 configure_file(
     ${CMAKE_SOURCE_DIR}/src/core/version.hpp.in
     ${CMAKE_BINARY_DIR}/include/core/version.hpp
 )
 
-message(STATUS "Project Version: ${PROJECT_VERSION}")
-message(STATUS "Git Describe: ${GIT_COMMIT_HASH}")
+message(STATUS "Version: ${PROJECT_VERSION}")
 
 # --- Dependencies ---
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "Force static libraries" FORCE)
 include(FetchContent)
-set(FETCHCONTENT_QUIET OFF)
+set(FETCHCONTENT_QUIET ON)
 
 # 1. spdlog (Logging)
 message(STATUS "Fetching spdlog...")
@@ -377,16 +378,17 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(silero_vad)
 
-# 8. Whisper Model (ggml-base.bin)
-set(WHISPER_MODEL_NAME "ggml-base.bin")
-set(WHISPER_MODEL_URL "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/${WHISPER_MODEL_NAME}")
-set(WHISPER_MODEL_PATH "${CMAKE_SOURCE_DIR}/models/${WHISPER_MODEL_NAME}")
+# 8. Whisper Models
+# Base model (default, good for CPU)
+set(WHISPER_MODEL_BASE "ggml-small.en.bin")
+set(WHISPER_MODEL_BASE_URL "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/${WHISPER_MODEL_BASE}")
+set(WHISPER_MODEL_BASE_PATH "${CMAKE_SOURCE_DIR}/models/${WHISPER_MODEL_BASE}")
 
-if(NOT EXISTS "${WHISPER_MODEL_PATH}")
-    message(STATUS "Downloading Whisper model: ${WHISPER_MODEL_NAME}...")
+if(NOT EXISTS "${WHISPER_MODEL_BASE_PATH}")
+    message(STATUS "Downloading Whisper model: ${WHISPER_MODEL_BASE}...")
     file(DOWNLOAD 
-        "${WHISPER_MODEL_URL}" 
-        "${WHISPER_MODEL_PATH}"
+        "${WHISPER_MODEL_BASE_URL}" 
+        "${WHISPER_MODEL_BASE_PATH}"
         SHOW_PROGRESS
         STATUS WHISPER_DOWNLOAD_STATUS
     )
@@ -394,13 +396,15 @@ if(NOT EXISTS "${WHISPER_MODEL_PATH}")
     if(WHISPER_DOWNLOAD_ERROR)
         message(FATAL_ERROR "Failed to download Whisper model: ${WHISPER_DOWNLOAD_STATUS}")
     endif()
-    message(STATUS "Whisper model downloaded: ${WHISPER_MODEL_PATH}")
+    message(STATUS "Whisper model downloaded: ${WHISPER_MODEL_BASE_PATH}")
 else()
-    message(STATUS "Whisper model already exists: ${WHISPER_MODEL_PATH}")
+    message(STATUS "Whisper model already exists: ${WHISPER_MODEL_BASE_PATH}")
 endif()
 
+# Note: Large-v3-turbo model (~1.6GB) removed - ggml-small.en.bin is sufficient for real-time STT
+
 # --- Core Library (shared code between executable and tests) ---
-add_library(realtime-subtitler-core STATIC
+add_library(signeo-core-lib STATIC
     src/audio/audio_capture.cpp
     src/audio/audio_processor.cpp
     src/audio/ringbuffer.cpp
@@ -410,7 +414,7 @@ add_library(realtime-subtitler-core STATIC
     src/stt/streaming_transcriber.cpp
     src/ui/tui_renderer.cpp
     src/ui/tui_settings.cpp
-    src/output/logging.cpp
+    src/output/log_output.cpp
     src/output/json_output.cpp
     src/config/app_config.cpp
     src/core/application.cpp
@@ -419,14 +423,15 @@ add_library(realtime-subtitler-core STATIC
     src/utils/thread_metrics.cpp
     src/utils/wer_calculator.cpp
     src/utils/config_file.cpp
+    src/ipc/ipc_handler.cpp
 )
 
-target_include_directories(realtime-subtitler-core PUBLIC
+target_include_directories(signeo-core-lib PUBLIC
     ${CMAKE_SOURCE_DIR}/include
     ${CMAKE_BINARY_DIR}/include
 )
 
-target_link_libraries(realtime-subtitler-core PUBLIC
+target_link_libraries(signeo-core-lib PUBLIC
     spdlog::spdlog
     CLI11::CLI11
     ftxui::screen
@@ -440,41 +445,41 @@ target_link_libraries(realtime-subtitler-core PUBLIC
 
 if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
     if(MSVC)
-        set_target_properties(realtime-subtitler-core PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE};--extra-arg=/EHsc")
+        set_target_properties(signeo-core-lib PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE};--extra-arg=/EHsc")
     else()
-        set_target_properties(realtime-subtitler-core PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
+        set_target_properties(signeo-core-lib PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
     endif()
 endif()
 
 # --- Main Executable ---
-add_executable(realtime-subtitler
+add_executable(signeo-core
     src/main.cpp
 )
 
 # Include directories
-target_include_directories(realtime-subtitler PRIVATE
+target_include_directories(signeo-core PRIVATE
     src
     ${CMAKE_BINARY_DIR}/src
 )
 
 # Link Libraries (core library brings in all other dependencies)
-target_link_libraries(realtime-subtitler PRIVATE
-    realtime-subtitler-core
+target_link_libraries(signeo-core PRIVATE
+    signeo-core-lib
 )
 
 if(ENABLE_CLANG_TIDY AND CLANG_TIDY_EXE)
     if(MSVC)
-        set_target_properties(realtime-subtitler PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE};--extra-arg=/EHsc")
+        set_target_properties(signeo-core PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE};--extra-arg=/EHsc")
     else()
-        set_target_properties(realtime-subtitler PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
+        set_target_properties(signeo-core PROPERTIES CXX_CLANG_TIDY "${CLANG_TIDY_EXE}")
     endif()
 endif()
 
 # Compiler warnings
 if(MSVC)
-    target_compile_options(realtime-subtitler PRIVATE /W4)
+    target_compile_options(signeo-core PRIVATE /W4)
 else()
-    target_compile_options(realtime-subtitler PRIVATE -Wall -Wextra)
+    target_compile_options(signeo-core PRIVATE -Wall -Wextra)
 endif()
 
 # --- Post-Build Operations ---
@@ -483,10 +488,10 @@ endif()
 if(WIN32)
     # Copy main DLL
     if(EXISTS "${onnxruntime_bin_SOURCE_DIR}/${ONNX_BIN_REL_PATH}")
-        add_custom_command(TARGET realtime-subtitler POST_BUILD
+        add_custom_command(TARGET signeo-core POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "${onnxruntime_bin_SOURCE_DIR}/${ONNX_BIN_REL_PATH}"
-            $<TARGET_FILE_DIR:realtime-subtitler>
+            $<TARGET_FILE_DIR:signeo-core>
             COMMENT "Copying onnxruntime.dll to executable directory"
         )
     endif()
@@ -494,18 +499,18 @@ if(WIN32)
     # Copy CUDA Provider DLLs if GPU enabled
     if(ENABLE_GPU)
         if(EXISTS "${onnxruntime_bin_SOURCE_DIR}/${ONNX_PROVIDERS_CUDA_BIN_REL_PATH}")
-            add_custom_command(TARGET realtime-subtitler POST_BUILD
+            add_custom_command(TARGET signeo-core POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E copy_if_different
                 "${onnxruntime_bin_SOURCE_DIR}/${ONNX_PROVIDERS_CUDA_BIN_REL_PATH}"
-                $<TARGET_FILE_DIR:realtime-subtitler>
+                $<TARGET_FILE_DIR:signeo-core>
                 COMMENT "Copying onnxruntime_providers_cuda.dll"
             )
         endif()
         if(EXISTS "${onnxruntime_bin_SOURCE_DIR}/${ONNX_PROVIDERS_SHARED_BIN_REL_PATH}")
-            add_custom_command(TARGET realtime-subtitler POST_BUILD
+            add_custom_command(TARGET signeo-core POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E copy_if_different
                 "${onnxruntime_bin_SOURCE_DIR}/${ONNX_PROVIDERS_SHARED_BIN_REL_PATH}"
-                $<TARGET_FILE_DIR:realtime-subtitler>
+                $<TARGET_FILE_DIR:signeo-core>
                 COMMENT "Copying onnxruntime_providers_shared.dll"
             )
         endif()
@@ -514,20 +519,20 @@ if(WIN32)
 elseif(UNIX)
     # Copy .so file
     if(EXISTS "${onnxruntime_bin_SOURCE_DIR}/${ONNX_BIN_REL_PATH}")
-        add_custom_command(TARGET realtime-subtitler POST_BUILD
+        add_custom_command(TARGET signeo-core POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "${onnxruntime_bin_SOURCE_DIR}/${ONNX_BIN_REL_PATH}"
-            "$<TARGET_FILE_DIR:realtime-subtitler>/libonnxruntime.so.1.23.2"
+            "$<TARGET_FILE_DIR:signeo-core>/libonnxruntime.so.1.23.2"
             COMMAND ${CMAKE_COMMAND} -E create_symlink
             "libonnxruntime.so.1.23.2"
-            "$<TARGET_FILE_DIR:realtime-subtitler>/libonnxruntime.so"
+            "$<TARGET_FILE_DIR:signeo-core>/libonnxruntime.so"
             COMMENT "Copying libonnxruntime.so to executable directory"
         )
     endif()
 endif()
 
 # 2. Copy Silero VAD Model to source models/ directory
-add_custom_command(TARGET realtime-subtitler POST_BUILD
+add_custom_command(TARGET signeo-core POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_SOURCE_DIR}/models"
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
     "${silero_vad_SOURCE_DIR}/src/silero_vad/data/silero_vad.onnx"
@@ -536,20 +541,30 @@ add_custom_command(TARGET realtime-subtitler POST_BUILD
 )
 
 # 3. Copy models directory to executable directory (for VSCode debugging)
-add_custom_command(TARGET realtime-subtitler POST_BUILD
+add_custom_command(TARGET signeo-core POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
     "${CMAKE_SOURCE_DIR}/models"
-    "$<TARGET_FILE_DIR:realtime-subtitler>/models"
+    "$<TARGET_FILE_DIR:signeo-core>/models"
     COMMENT "Copying models to executable directory for VSCode/CMake Tools"
 )
 
 # 4. Copy default config.ini to executable directory
 if(EXISTS "${CMAKE_SOURCE_DIR}/config.ini")
-    add_custom_command(TARGET realtime-subtitler POST_BUILD
+    add_custom_command(TARGET signeo-core POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
         "${CMAKE_SOURCE_DIR}/config.ini"
-        "$<TARGET_FILE_DIR:realtime-subtitler>/config.ini"
+        "$<TARGET_FILE_DIR:signeo-core>/config.ini"
         COMMENT "Copying config.ini to executable directory"
+    )
+endif()
+
+# 5. Copy example.env to executable directory
+if(EXISTS "${CMAKE_SOURCE_DIR}/example.env")
+    add_custom_command(TARGET signeo-core POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${CMAKE_SOURCE_DIR}/example.env"
+        "$<TARGET_FILE_DIR:signeo-core>/example.env"
+        COMMENT "Copying example.env to executable directory"
     )
 endif()
 
@@ -586,7 +601,7 @@ if(BUILD_TESTS)
         tests/unit/test_app_config.cpp
         tests/unit/test_audio_processor.cpp
         tests/unit/test_config_file.cpp
-        tests/unit/test_logging.cpp
+        tests/unit/test_log_output.cpp
         tests/unit/test_metrics_collector.cpp
         tests/unit/test_resampler.cpp
         tests/unit/test_result.cpp
@@ -600,7 +615,7 @@ if(BUILD_TESTS)
     
     target_link_libraries(unit_tests PRIVATE
         gtest_main
-        realtime-subtitler-core  # Link against core library
+        signeo-core-lib  # Link against core library
     )
     
     gtest_discover_tests(unit_tests DISCOVERY_TIMEOUT 60)
@@ -614,7 +629,7 @@ if(BUILD_TESTS)
     
     target_link_libraries(integration_tests PRIVATE
         gtest_main
-        realtime-subtitler-core
+        signeo-core-lib
     )
     
     gtest_discover_tests(integration_tests DISCOVERY_TIMEOUT 60)
@@ -624,7 +639,7 @@ if(BUILD_TESTS)
     if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${BENCHMARK_SRC}")
         message(STATUS "Found benchmark source: ${BENCHMARK_SRC}")
         add_executable(benchmarks ${BENCHMARK_SRC})
-        target_link_libraries(benchmarks PRIVATE realtime-subtitler-core)
+        target_link_libraries(benchmarks PRIVATE signeo-core-lib)
     else()
         message(WARNING "Benchmark source NOT found: ${BENCHMARK_SRC}")
     endif()
@@ -641,8 +656,8 @@ if(BUILD_TESTS)
             
             # 1. Apply to Core Library (to instrument source code)
             # Use PUBLIC for link options so executables (main app, tests) inherit --coverage (links gcov)
-            target_compile_options(realtime-subtitler-core PRIVATE --coverage)
-            target_link_options(realtime-subtitler-core PUBLIC --coverage)
+            target_compile_options(signeo-core-lib PRIVATE --coverage)
+            target_link_options(signeo-core-lib PUBLIC --coverage)
             
             # 2. Apply to Tests & Benchmarks
             foreach(TEST_TARGET unit_tests integration_tests benchmarks)
@@ -661,7 +676,7 @@ endif()
 
 # Install rules
 # Install rules
-install(TARGETS realtime-subtitler
+install(TARGETS signeo-core
     DESTINATION .
     COMPONENT Application
 )
@@ -690,15 +705,26 @@ elseif(UNIX)
     # For Docker, we will handle copying manually or via install.
 endif()
 
-# Install Resources
+# Install Resources (only required models, exclude large turbo/base models)
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/models
     DESTINATION .
     COMPONENT Application
+    FILES_MATCHING
+    PATTERN "ggml-small.en.bin"
+    PATTERN "silero_vad.onnx"
+    PATTERN "ggml-large-v3-turbo*" EXCLUDE
+    PATTERN "ggml-base*" EXCLUDE
 )
 
 install(FILES ${CMAKE_SOURCE_DIR}/config.ini
     DESTINATION .
     COMPONENT Application
+)
+
+install(FILES ${CMAKE_SOURCE_DIR}/example.env
+    DESTINATION .
+    COMPONENT Application
+    OPTIONAL
 )
 
 # Install Documentation
@@ -714,7 +740,7 @@ install(FILES
 include(CPack)
 
 # Set package information
-set(CPACK_PACKAGE_NAME "realtime-subtitler")
+set(CPACK_PACKAGE_NAME "signeo-core")
 set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Real-time audio to subtitles application")
 set(CPACK_PACKAGE_VENDOR "Signeo")

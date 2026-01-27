@@ -12,7 +12,7 @@
 #include "audio/audio_capture.hpp"
 #include "config/app_config.hpp"
 #include "core/application.hpp"
-#include "output/logging.hpp"
+#include "output/log_output.hpp"
 #include "stt/streaming_transcriber.hpp"
 #include "stt/stt_engine.hpp"
 #include "utils/thread_safe_queue.hpp"
@@ -71,8 +71,11 @@ TEST_F(IntegrationTest, ConfigLoadingPriority) {
     // 1. Test Defaults (with minimal valid argc/argv)
     const char* default_argv[] = {"test_app"};
     AppConfig config = AppConfig::parse(1, const_cast<char**>(default_argv));
+    int expected_threads = std::thread::hardware_concurrency() > 0 
+                           ? static_cast<int>(std::thread::hardware_concurrency()) - 1 
+                           : core::stt_constants::DEFAULT_THREADS_FALLBACK;
     EXPECT_EQ(config.device_index, -1);
-    EXPECT_EQ(config.n_threads, 4);
+    EXPECT_EQ(config.n_threads, expected_threads);
 
     // 2. Test CLI Arguments
     const char* cli_argv[] = {"test_app", "--device", "2", "--threads", "8"};

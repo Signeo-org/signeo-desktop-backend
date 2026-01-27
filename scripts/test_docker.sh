@@ -10,7 +10,7 @@ usage() {
     echo "  -c, --cuda      Use NVIDIA CUDA base image and enable CUDA support."
     echo "  -s, --serve     Start a local Python HTTP server to view the report."
     echo "  -p, --port PORT Port for the HTTP server (default: 8080)."
-    echo "  -n, --name NAME Container name (default: realtime-subtitler-test)."
+    echo "  -n, --name NAME Container name (default: signeo-core-test)."
     echo "  -x, --clean     Remove previous coverage directory."
     echo "  -h, --help      Show this help message."
     exit 1
@@ -20,7 +20,7 @@ usage() {
 CUDA=false
 SERVE=false
 PORT=8080
-CONTAINER_NAME="realtime-subtitler-test"
+CONTAINER_NAME="signeo-core-test"
 CLEAN=false
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
@@ -179,3 +179,4 @@ if [ "$SERVE" = true ]; then
         echo "[WARNING] Python not found. Cannot serve report."
     fi
 fi
+

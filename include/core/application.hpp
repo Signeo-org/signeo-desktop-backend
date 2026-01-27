@@ -12,12 +12,14 @@
 #include <vector>
 
 #include "../config/app_config.hpp"
+#include "../core/constants.hpp"
 #include "../utils/thread_safe_queue.hpp"
 // Need full definition for AudioDevice
 #include "../audio/audio_capture.hpp"
 #include "common_types.hpp"
 #include "metrics_collector.hpp"
 #include "../output/json_output.hpp"
+#include "../ipc/ipc_handler.hpp"
 
 // Forward declarations
 namespace ui {
@@ -55,23 +57,9 @@ public:
     /// @brief Run the main application loop. Returns exit code.
     auto run() -> int;
 
-    // Constants
-    static constexpr float kDefaultVadThreshold = 0.5F;
-    static constexpr float kDefaultVadEnergyThreshold = 0.0001F;
-    static constexpr float kDefaultVadSmoothing = 0.5F;
-    static constexpr float kDefaultVadAdaptiveMin = 0.35F;
-    static constexpr float kDefaultVadAdaptiveMax = 0.6F;
-    static constexpr float kDefaultVadAdaptiveAlpha = 0.95F;
+    // Constants - Removed (See core::constants.hpp)
 
-    static constexpr int kVadFrameSize = 512;
-    static constexpr int kAudioSampleRate = 16000;
-    static constexpr int kAudioFrameDurationMs = 32;
-    static constexpr int kMainLoopSleepMs = 100;
-    static constexpr int kAudioWaitMs = 5;
-    static constexpr float kGainEpsilon = 0.01F;
 
-    static constexpr int kDefaultSttMinRepetition = 10;
-    static constexpr int kDefaultSttHallucinationLen = 2;
 
 private:
     // ─────────────────────────────────────────────────────────────
@@ -136,26 +124,34 @@ private:
     std::atomic<float> pending_gain_{1.0F};
 
     // VAD
-    std::atomic<float> vad_threshold_{kDefaultVadThreshold};
-    std::atomic<float> vad_energy_threshold_{kDefaultVadEnergyThreshold};
-    std::atomic<float> vad_smoothing_alpha_{kDefaultVadSmoothing};
+    std::atomic<float> vad_threshold_{core::vad_constants::DEFAULT_THRESHOLD};
+    std::atomic<float> vad_energy_threshold_{core::vad_constants::DEFAULT_ENERGY_THRESHOLD};
+    std::atomic<float> vad_smoothing_alpha_{core::vad_constants::DEFAULT_SMOOTHING_ALPHA};
     std::atomic<bool> vad_reload_requested_{false};
 
     // STT
     // STT
     std::atomic<bool> stt_reload_requested_{false};
-    std::atomic<int> stt_min_repetition_len_{kDefaultSttMinRepetition};
-    std::atomic<int> stt_hallucination_len_{kDefaultSttHallucinationLen};
+    std::atomic<int> stt_min_repetition_len_{core::stt_constants::DEFAULT_MIN_REPETITION};
+    std::atomic<int> stt_hallucination_len_{core::stt_constants::DEFAULT_HALLUCINATION_LEN};
     // Note: step/keep require reload so they stay in config_ + mutex
 
     // VAD Adaptive
     std::atomic<bool> vad_adaptive_enabled_{true};
-    std::atomic<float> vad_adaptive_min_{kDefaultVadAdaptiveMin};
-    std::atomic<float> vad_adaptive_max_{kDefaultVadAdaptiveMax};
-    std::atomic<float> vad_adaptive_alpha_{kDefaultVadAdaptiveAlpha};
+    std::atomic<float> vad_adaptive_min_{core::vad_constants::DEFAULT_ADAPTIVE_MIN};
+    std::atomic<float> vad_adaptive_max_{core::vad_constants::DEFAULT_ADAPTIVE_MAX};
+    std::atomic<float> vad_adaptive_alpha_{core::vad_constants::DEFAULT_ADAPTIVE_ALPHA};
 
     // ─────────────────────────────────────────────────────────────
     // Metrics
     // ─────────────────────────────────────────────────────────────
     core::MetricsCollector metrics_;
+
+    // ─────────────────────────────────────────────────────────────
+    // IPC Handler (JSON mode only)
+    // ─────────────────────────────────────────────────────────────
+    std::unique_ptr<ipc::IpcHandler> ipc_handler_;
+    void setup_ipc_handler();
+    void handle_ipc_command(const ipc::IpcCommand& cmd);
+    void emit_device_list();
 };

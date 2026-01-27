@@ -25,21 +25,21 @@ This guide covers how to deploy and configure the Real-Time Audio-to-Subtitles a
 
 1. Download the latest release from the [Releases](https://github.com/your-repo/releases) page.
 2. Extract the ZIP to your preferred location.
-3. Run `realtime-subtitler.exe --ui`
+3. Run `signeo-core.exe --ui`
 
 ### Option 2: Build from Source
 
 ```powershell
 # Clone the repository
-git clone --recursive https://github.com/your-repo/realtime-subtitler.git
-cd realtime-subtitler
+git clone --recursive https://github.com/your-repo/signeo-core.git
+cd signeo-core
 
 # Build
 cmake -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --config Release
 
 # Run
-.\build\Release\realtime-subtitler.exe --ui
+.\build\Release\signeo-core.exe --ui
 ```
 
 ## ⚙️ Configuration
@@ -94,9 +94,9 @@ All settings can be set via environment variables with the `SUBTITLER_` prefix:
 ### CLI Arguments
 
 ```powershell
-.\realtime-subtitler.exe --help
+.\signeo-core.exe --help
 
-Usage: realtime-subtitler [OPTIONS]
+Usage: signeo-core [OPTIONS]
 
 Options:
   --ui                  Enable Terminal UI (required for interactive use)
@@ -115,7 +115,7 @@ Options:
 ### List Available Devices
 
 ```powershell
-.\realtime-subtitler.exe --list-devices
+.\signeo-core.exe --list-devices
 ```
 
 Example output:
@@ -131,7 +131,7 @@ To transcribe audio from your speakers (e.g., Zoom, YouTube, etc.):
 
 ```powershell
 # Use the loopback device index from --list-devices
-.\realtime-subtitler.exe --ui --device 1
+.\signeo-core.exe --ui --device 1
 ```
 
 ## 📁 Required Files
@@ -140,7 +140,7 @@ To transcribe audio from your speakers (e.g., Zoom, YouTube, etc.):
 Ensure your deployment folder looks like this:
 ```
 Signeo-Backend/
-├── realtime-subtitler.exe  # Main Application
+├── signeo-core.exe  # Main Application
 ├── onnxruntime.dll         # Required Runtime
 ├── config.ini              # Configuration
 ├── models/                 # Models Directory
@@ -176,7 +176,7 @@ Test-Path "models/ggml-base.bin"  # Should return True
 
 Run `--list-devices` and use a valid device index:
 ```powershell
-.\realtime-subtitler.exe --list-devices
+.\signeo-core.exe --list-devices
 ```
 
 ### High CPU Usage

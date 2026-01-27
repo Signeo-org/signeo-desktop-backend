@@ -15,24 +15,24 @@
 
 #include "ftxui/component/component.hpp"
 #include "ftxui/component/screen_interactive.hpp"
-#include "ftxui/dom/elements.hpp"
+#include "core/constants.hpp"
 
 namespace ui {
 
-// Constants for UI defaults
+// Constants for UI defaults - using centralized core constants
 namespace detail {
-constexpr float kDefaultVadThreshold = 0.5F;
-constexpr int kDefaultSampleRate = 16000;
-constexpr float kDefaultEnergyThreshold = 0.001F;
-constexpr int kDefaultVadHangover = 20;
-constexpr float kDefaultVadSmoothing = 0.3F;
-constexpr float kDefaultVadAdaptiveMin = 0.35F;
-constexpr float kDefaultVadAdaptiveMax = 0.6F;
-constexpr float kDefaultVadAdaptiveAlpha = 0.95F;
-constexpr int kDefaultSttMinRepetition = 10;
-constexpr int kDefaultSttHallucinationLen = 2;
-constexpr int kDefaultSttStepMs = 2000;
-constexpr int kDefaultSttKeepMs = 500;
+constexpr float kDefaultVadThreshold = core::vad_constants::DEFAULT_THRESHOLD;
+constexpr int kDefaultSampleRate = core::audio_constants::SAMPLE_RATE;
+constexpr float kDefaultEnergyThreshold = core::vad_constants::DEFAULT_ENERGY_THRESHOLD;
+constexpr int kDefaultVadHangover = core::vad_constants::DEFAULT_HANGOVER_FRAMES;
+constexpr float kDefaultVadSmoothing = core::vad_constants::DEFAULT_SMOOTHING_ALPHA;
+constexpr float kDefaultVadAdaptiveMin = core::vad_constants::DEFAULT_ADAPTIVE_MIN;
+constexpr float kDefaultVadAdaptiveMax = core::vad_constants::DEFAULT_ADAPTIVE_MAX;
+constexpr float kDefaultVadAdaptiveAlpha = core::vad_constants::DEFAULT_ADAPTIVE_ALPHA;
+constexpr int kDefaultSttMinRepetition = core::stt_constants::DEFAULT_MIN_REPETITION;
+constexpr int kDefaultSttHallucinationLen = core::stt_constants::DEFAULT_HALLUCINATION_LEN;
+constexpr int kDefaultSttStepMs = core::stt_constants::DEFAULT_STEP_MS;
+constexpr int kDefaultSttKeepMs = core::stt_constants::DEFAULT_KEEP_MS;
 }  // namespace detail
 
 struct SubtitleItem {

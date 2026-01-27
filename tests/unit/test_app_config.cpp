@@ -25,7 +25,10 @@ TEST(AppConfigTest, ParseDefaults) {
     AppConfig config = AppConfig::parse(argc, argv.data());
 
     EXPECT_EQ(config.device_index, -1);
-    EXPECT_EQ(config.n_threads, 4);
+    int expected_threads = std::thread::hardware_concurrency() > 0 
+                           ? static_cast<int>(std::thread::hardware_concurrency()) - 1 
+                           : core::stt_constants::DEFAULT_THREADS_FALLBACK;
+    EXPECT_EQ(config.n_threads, expected_threads);
     EXPECT_FALSE(config.verbose);
 }
 

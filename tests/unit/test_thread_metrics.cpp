@@ -3,7 +3,7 @@
 #include <chrono>
 #include <thread>
 
-#include "output/logging.hpp"
+#include "output/log_output.hpp"
 #include "utils/thread_metrics.hpp"
 
 class ThreadMetricsTest : public ::testing::Test {

@@ -19,40 +19,29 @@
 #include <onnxruntime_cxx_api.h>
 #pragma warning(pop)
 
+#include "../core/constants.hpp"
+
 namespace vad {
 
-// Named constants for VadConfig defaults
-namespace detail {
-constexpr float kDefaultThreshold = 0.5F;
-constexpr float kDefaultEnergyThreshold = 0.001F;
-constexpr float kDefaultSmoothingAlpha = 0.3F;
-constexpr int kDefaultHangoverFrames = 8;
-constexpr int kDefaultPreRollFrames = 6;
-constexpr float kDefaultAdaptiveMinThreshold = 0.35F;
-constexpr float kDefaultAdaptiveMaxThreshold = 0.6F;
-constexpr float kDefaultAdaptiveAlpha = 0.95F;
-constexpr int kDefaultSampleRate = 16000;
-constexpr int kDefaultFrameSize = 512;
-constexpr float kDefaultNoiseFloor = 0.1F;
-constexpr int kContextSamples = 64;
-constexpr int kStateSize = 128;
-}  // namespace detail
+// ...
+
+// Local defaults removed - use core::vad_constants directly
 
 /**
  * @brief Configuration for Voice Activity Detection
  */
 struct VadConfig {
-    float threshold = detail::kDefaultThreshold;           ///< Base speech probability threshold
-    float energy_threshold = detail::kDefaultEnergyThreshold;  ///< RMS gate threshold
-    float smoothing_alpha = detail::kDefaultSmoothingAlpha;     ///< EMA smoothing (0.1=stable, 0.5=responsive)
-    int hangover_frames = detail::kDefaultHangoverFrames;          ///< Frames to extend after speech ends (~256ms)
-    int pre_roll_frames = detail::kDefaultPreRollFrames;          ///< Frames to include before trigger (~192ms)
-    bool adaptive_enabled = true;     ///< Enable adaptive threshold
+    float threshold = core::vad_constants::DEFAULT_THRESHOLD;           ///< Base speech probability threshold
+    float energy_threshold = core::vad_constants::DEFAULT_ENERGY_THRESHOLD;  ///< RMS gate threshold
+    float smoothing_alpha = core::vad_constants::DEFAULT_SMOOTHING_ALPHA;     ///< EMA smoothing (0.1=stable, 0.5=responsive)
+    int hangover_frames = core::vad_constants::DEFAULT_HANGOVER_FRAMES;          ///< Frames to extend after speech ends (~256ms)
+    int pre_roll_frames = core::vad_constants::DEFAULT_PRE_ROLL_FRAMES;          ///< Frames to include before trigger (~192ms)
+    bool adaptive_enabled = core::vad_constants::DEFAULT_ADAPTIVE;     ///< Enable adaptive threshold
 
     // Adaptive Parameters
-    float adaptive_min_threshold = detail::kDefaultAdaptiveMinThreshold;
-    float adaptive_max_threshold = detail::kDefaultAdaptiveMaxThreshold;
-    float adaptive_alpha = detail::kDefaultAdaptiveAlpha;  // Noise floor update rate
+    float adaptive_min_threshold = core::vad_constants::DEFAULT_ADAPTIVE_MIN;
+    float adaptive_max_threshold = core::vad_constants::DEFAULT_ADAPTIVE_MAX;
+    float adaptive_alpha = core::vad_constants::DEFAULT_ADAPTIVE_ALPHA;  // Noise floor update rate
 };
 
 class VadProcessor {
@@ -65,7 +54,7 @@ public:
      * @param config Advanced VAD configuration
      * @return Result containing unique_ptr to VadProcessor, or error message
      */
-    static auto create(const std::string& model_path, int sample_rate = detail::kDefaultSampleRate, int frame_size = detail::kDefaultFrameSize,
+    static auto create(const std::string& model_path, int sample_rate = core::audio_constants::SAMPLE_RATE, int frame_size = core::audio_constants::FRAME_SIZE,
                        const VadConfig& config = VadConfig{}) -> core::Result<std::unique_ptr<VadProcessor>>;
 
     ~VadProcessor();
@@ -145,12 +134,12 @@ private:
     int sample_rate_;
     int window_size_samples_;
     int effective_window_size_;
-    static constexpr int kContextSamples = detail::kContextSamples;
+    static constexpr int kContextSamples = core::vad_constants::INTERNAL_CONTEXT_SAMPLES;
     VadConfig config_;
 
     // Advanced State
     float smoothed_prob_ = 0.0F;
-    float noise_floor_ = detail::kDefaultNoiseFloor;
+    float noise_floor_ = core::vad_constants::INTERNAL_NOISE_FLOOR;
     float adaptive_threshold_;
     int hangover_counter_ = 0;
     bool is_speaking_ = false;
@@ -158,7 +147,7 @@ private:
 
     // Tensor Shapes (using std::array instead of C-style arrays)
     std::array<int64_t, 2> input_node_dims_{};
-    static constexpr std::array<int64_t, 3> kStateNodeDims = {2, 1, detail::kStateSize};
+    static constexpr std::array<int64_t, 3> kStateNodeDims = {2, 1, core::vad_constants::INTERNAL_STATE_SIZE};
     static constexpr std::array<int64_t, 1> kSrNodeDims = {1};
 
     // Reusable buffers

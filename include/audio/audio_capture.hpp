@@ -13,6 +13,7 @@
 
 #include "../core/common_types.hpp"
 #include "../core/result.hpp"
+#include "../core/constants.hpp"
 #include "ringbuffer.hpp"
 
 namespace audio {
@@ -47,12 +48,7 @@ public:
     /**
      * @brief Default configuration constants
      */
-    static constexpr int kDefaultSampleRate = 16000;
-    static constexpr int kDefaultFramesPerBuffer = 512;
-    static constexpr int kRingBufferDurationSeconds = 10;
-    static constexpr int kBitsPerSample = 16;
-    static constexpr float kPcmToFloat = 32768.0F;
-    static constexpr float kGainThreshold = 0.001F;
+    // Local constants removed (See core::audio_constants)
 
     /**
      * @brief Factory method to create an AudioCapture instance
@@ -61,7 +57,7 @@ public:
      * @param file_path Optional path to WAV file for simulation/testing
      * @return Result containing unique_ptr to AudioCapture, or error message
      */
-    static auto create(int sample_rate = kDefaultSampleRate, int frames_per_buffer = kDefaultFramesPerBuffer,
+    static auto create(int sample_rate = core::audio_constants::SAMPLE_RATE, int frames_per_buffer = core::audio_constants::FRAME_SIZE,
                        const std::string& file_path = "") -> core::Result<std::unique_ptr<AudioCapture>>;
 
     ~AudioCapture();
@@ -141,7 +137,7 @@ private:
     static auto read_wav_header(std::ifstream& file, WavAudioFormat& format) -> core::Status;
 
     // Member variables
-    int sample_rate_ = kDefaultSampleRate;
+    int sample_rate_ = core::audio_constants::SAMPLE_RATE;
     int channels_ = 0;
     int frames_per_buffer_;
     std::atomic<float> input_gain_{1.0F};

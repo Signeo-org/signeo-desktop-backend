@@ -7,17 +7,14 @@
 #include <format>
 #include <utility>
 
-#include "output/logging.hpp"
+#include "output/log_output.hpp"
 #include "whisper.h"
+
+#include "core/constants.hpp"
 
 namespace stt {
 
-namespace {
-constexpr float kNoSpeechThreshold = 0.6F;
-constexpr float kEntropyThreshold = 2.4F;
-constexpr float kSampleRateFloat = 16000.0F;
-constexpr float kMillisecondsPerSecondFloat = 1000.0F;
-}  // namespace
+// Local constants removed (See core::audio_constants)
 
 // Factory Method
 auto SttEngine::create(const SttConfig& config) -> core::Result<std::unique_ptr<SttEngine>> {
@@ -96,9 +93,18 @@ auto SttEngine::transcribe(const std::vector<float>& audio) -> core::Result<SttE
 
     const auto t_start = std::chrono::high_resolution_clock::now();
 
-    // Configure inference parameters
-    struct whisper_full_params wparams = whisper_full_default_params(WHISPER_SAMPLING_GREEDY);
+    // Configure inference parameters based on beam_size
+    struct whisper_full_params wparams;
+    if (config_.beam_size > 1) {
+        wparams = whisper_full_default_params(WHISPER_SAMPLING_BEAM_SEARCH);
+        wparams.beam_search.beam_size = config_.beam_size;
+        spdlog::debug("SttEngine: Using beam search with beam_size={}", config_.beam_size);
+    } else {
+        wparams = whisper_full_default_params(WHISPER_SAMPLING_GREEDY);
+        wparams.greedy.best_of = 1;
+    }
 
+    // Basic settings
     wparams.print_progress = config_.print_progress;
     wparams.print_special = false;
     wparams.print_realtime = false;
@@ -109,42 +115,75 @@ auto SttEngine::transcribe(const std::vector<float>& audio) -> core::Result<SttE
     wparams.language = config_.language.c_str();
     wparams.n_threads = config_.n_threads;
 
-    // Real-time Optimization: Use Greedy (faster) instead of Beam Search
-    wparams.strategy = WHISPER_SAMPLING_GREEDY;
-    wparams.greedy.best_of = 1;
+    // Configurable quality parameters
+    wparams.max_tokens = config_.max_tokens;
+    wparams.audio_ctx = config_.audio_ctx;
+    wparams.no_speech_thold = config_.no_speech_threshold;
+    wparams.entropy_thold = config_.entropy_threshold;
+    wparams.logprob_thold = config_.logprob_threshold;
 
-    // Initial Prompt to stabilize output
-    wparams.initial_prompt = "The following is a transcription.";
+    // Temperature fallback
+    wparams.temperature = config_.temperature;
+    wparams.temperature_inc = config_.no_fallback ? 0.0F : config_.temperature_inc;
 
     // Anti-hallucination settings
-    wparams.suppress_blank = true;
-    wparams.suppress_nst = true;
-    wparams.no_speech_thold = kNoSpeechThreshold;
-    wparams.entropy_thold = kEntropyThreshold;
-    wparams.logprob_thold = -1.0F;
+    wparams.suppress_blank = config_.suppress_blank;
+    wparams.suppress_nst = config_.suppress_nst;
 
-    // Run inference
-    if (whisper_full(ctx_, wparams, audio.data(), static_cast<int>(audio.size())) != 0) {
-        return core::log_error("SttEngine: Inference failed");
+    // Initial prompt (text-based)
+    if (!config_.initial_prompt.empty()) {
+        wparams.initial_prompt = config_.initial_prompt.c_str();
     }
 
-    // Extract transcription
+    // Prompt tokens from previous transcription for context continuity
+    // This is crucial for maintaining coherence across segments
+    if (!config_.no_context && !prompt_tokens_.empty()) {
+        wparams.prompt_tokens = prompt_tokens_.data();
+        wparams.prompt_n_tokens = static_cast<int>(prompt_tokens_.size());
+        spdlog::debug("SttEngine: Using {} prompt tokens from previous transcription", prompt_tokens_.size());
+    } else {
+        wparams.prompt_tokens = nullptr;
+        wparams.prompt_n_tokens = 0;
+        spdlog::debug("SttEngine: No prompt tokens used (no_context={} or empty)", config_.no_context);
+    }
+
+    spdlog::debug("SttEngine: Running inference on {} samples...", audio.size());
+
+    // Run inference
+    int ret = whisper_full(ctx_, wparams, audio.data(), static_cast<int>(audio.size()));
+    if (ret != 0) {
+        return core::log_error(std::format("SttEngine: Inference failed with code {}", ret));
+    }
+
+    // Extract transcription and calculate probability
     const int n_segments = whisper_full_n_segments(ctx_);
     std::string full_text;
     float prob_sum = 0.0F;
     int token_count = 0;
 
+    // Also extract tokens for next transcription (prompt token reuse)
+    prompt_tokens_.clear();
+
+    spdlog::debug("SttEngine: Found {} segments", n_segments);
+
     for (int i = 0; i < n_segments; ++i) {
         const char* segment_text = whisper_full_get_segment_text(ctx_, i);
         if (segment_text != nullptr) {
-            full_text += segment_text;
+            std::string text_seg = segment_text;
+            spdlog::debug("SttEngine: Segment {}: '{}'", i, text_seg);
+            full_text += text_seg;
         }
 
-        // Calculate average probability
+        // Extract tokens and calculate probability
         const int n_tokens = whisper_full_n_tokens(ctx_, i);
         for (int j = 0; j < n_tokens; ++j) {
             prob_sum += whisper_full_get_token_p(ctx_, i, j);
             token_count++;
+
+            // Store token for next transcription
+            if (!config_.no_context) {
+                prompt_tokens_.push_back(whisper_full_get_token_id(ctx_, i, j));
+            }
         }
     }
 
@@ -156,11 +195,11 @@ auto SttEngine::transcribe(const std::vector<float>& audio) -> core::Result<SttE
     result.avg_probability = token_count > 0 ? prob_sum / static_cast<float>(token_count) : 0.0F;
 
     // Log audio duration vs processing time
-    float audio_duration_s = static_cast<float>(audio.size()) / kSampleRateFloat;
-    float rtf = static_cast<float>(result.duration_ms) / kMillisecondsPerSecondFloat / audio_duration_s;
+    float audio_duration_s = static_cast<float>(audio.size()) / static_cast<float>(core::audio_constants::SAMPLE_RATE);
+    float rtf = static_cast<float>(result.duration_ms) / core::audio_constants::MILLISECONDS_PER_SECOND / audio_duration_s;
 
-    spdlog::debug("SttEngine: Transcribed {:.2f}s audio in {}ms (RTF: {:.2f})", audio_duration_s, result.duration_ms,
-                  rtf);
+    spdlog::debug("SttEngine: Transcribed {:.2f}s audio in {}ms (RTF: {:.2f}, tokens: {})", 
+                  audio_duration_s, result.duration_ms, rtf, prompt_tokens_.size());
 
     return result;
 }

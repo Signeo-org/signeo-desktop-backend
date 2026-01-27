@@ -15,23 +15,49 @@
 struct whisper_context;
 struct WhisperFullParams;
 
+#include "core/constants.hpp"
+
+// ... (Result include)
+
 namespace stt {
 
 /**
  * @brief Configuration for STT Engine
  */
 struct SttConfig {
-    std::string model_path = "models/ggml-base.bin";
-    std::string language = "en";
-    int n_threads = 4;
+    std::string model_path = core::stt_constants::DEFAULT_MODEL_PATH;
+    std::string language = core::stt_constants::DEFAULT_LANGUAGE;
+    int n_threads = core::stt_constants::DEFAULT_THREADS_FALLBACK;
     bool use_gpu = true;
     bool flash_attn = true;
 
     // Quality settings
-    bool print_progress = false;
-    bool print_timestamps = false;
-    bool single_segment = true;  ///< For VAD-gated approach
-    bool no_context = false;     ///< Keep context for accuracy
+    bool print_progress = core::stt_constants::DEFAULT_PRINT_PROGRESS;
+    bool print_timestamps = core::stt_constants::DEFAULT_PRINT_TIMESTAMPS;
+    bool single_segment = core::stt_constants::DEFAULT_SINGLE_SEGMENT;
+    bool no_context = core::stt_constants::DEFAULT_NO_CONTEXT;
+
+    // Decoding Strategy
+    int beam_size = core::stt_constants::DEFAULT_BEAM_SIZE;
+    int max_tokens = core::stt_constants::DEFAULT_MAX_TOKENS;
+    int audio_ctx = core::stt_constants::DEFAULT_AUDIO_CTX;
+
+    // Thresholds
+    float no_speech_threshold = core::stt_constants::DEFAULT_NO_SPEECH_THOLD;
+    float entropy_threshold = core::stt_constants::DEFAULT_ENTROPY_THOLD;
+    float logprob_threshold = core::stt_constants::DEFAULT_LOGPROB_THOLD;
+
+    // Temperature fallback
+    float temperature = core::stt_constants::DEFAULT_TEMPERATURE;
+    float temperature_inc = core::stt_constants::DEFAULT_TEMPERATURE_INC;
+    bool no_fallback = core::stt_constants::DEFAULT_NO_FALLBACK;
+
+    // Output Filtering
+    bool suppress_blank = core::stt_constants::DEFAULT_SUPPRESS_BLANK;
+    bool suppress_nst = core::stt_constants::DEFAULT_SUPPRESS_NST;
+
+    // Initial prompt (converted to tokens internally)
+    std::string initial_prompt = "";
 };
 
 /**
@@ -90,6 +116,21 @@ private:
 
     SttConfig config_;
     whisper_context* ctx_ = nullptr;
+
+    // Prompt tokens from previous transcription for context continuity
+    // These are automatically populated after each transcribe() call
+    std::vector<int> prompt_tokens_;
+
+public:
+    /**
+     * @brief Clear stored prompt tokens (call between unrelated utterances)
+     */
+    void clear_prompt_tokens() { prompt_tokens_.clear(); }
+
+    /**
+     * @brief Get number of stored prompt tokens
+     */
+    [[nodiscard]] auto prompt_token_count() const -> size_t { return prompt_tokens_.size(); }
 };
 
 }  // namespace stt

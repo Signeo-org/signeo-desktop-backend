@@ -55,7 +55,7 @@ RUN cmake -B build -G Ninja \
     -DENABLE_COVERAGE=${ENABLE_COVERAGE} \
     -DGGML_CUDA=${GGML_CUDA}
 
-RUN cmake --build build --target realtime-subtitler unit_tests integration_tests benchmarks
+RUN cmake --build build --target signeo-core unit_tests integration_tests benchmarks
 
 # ==========================================
 # Stage 2: Runtime
@@ -76,7 +76,7 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 
 # Copy executables from builder
-COPY --from=builder /app/build/realtime-subtitler .
+COPY --from=builder /app/build/signeo-core .
 COPY --from=builder /app/build/unit_tests .
 COPY --from=builder /app/build/integration_tests .
 COPY --from=builder /app/build/benchmarks .
@@ -92,4 +92,4 @@ COPY --from=builder /app/build/models ./models
 COPY --from=builder /app/config.ini .
 
 # Entrypoint
-CMD ["./realtime-subtitler"]
+CMD ["./signeo-core"]

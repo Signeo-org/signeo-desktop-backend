@@ -15,16 +15,13 @@
 #include <cmath>
 #include <format>
 
-#include "output/logging.hpp"
+#include "output/log_output.hpp"
 #include "vad/vad_processor.hpp"
 
 namespace vad {
 
 namespace {
-constexpr int kMillisecondsPerSecond = 1000;
-constexpr int kStateBufferSize = 128;
-constexpr int kPreRollBufferMultiplier = 128;
-constexpr float kAdaptiveOffset = 0.25F;
+// Constants moved to core::vad_constants
 }  // namespace
 
 // Factory Method
@@ -44,7 +41,8 @@ auto VadProcessor::create(const std::string& model_path, int sample_rate, int fr
     processor->reset_states();
 
     spdlog::info("VadProcessor initialized [ADVANCED MODE]");
-    spdlog::info("  Rate: {}, Frame: {} samples ({}ms)", sample_rate, frame_size, frame_size * kMillisecondsPerSecond / sample_rate);
+    spdlog::info("  Rate: {}, Frame: {} samples ({}ms)", sample_rate, frame_size, 
+                 static_cast<int>(frame_size * core::audio_constants::MILLISECONDS_PER_SECOND / sample_rate));
     spdlog::info("  Threshold: {:.2f}, Energy: {:.4f}", config.threshold, config.energy_threshold);
     spdlog::info("  Smoothing α: {:.2f}, Hangover: {} frames, Pre-roll: {} frames", config.smoothing_alpha,
                  config.hangover_frames, config.pre_roll_frames);
@@ -65,7 +63,7 @@ VadProcessor::VadProcessor(int sample_rate, int frame_size, const VadConfig& con
     input_node_dims_[0] = 1;
     input_node_dims_[1] = effective_window_size_;
 
-    state_.resize(static_cast<size_t>(2) * kStateBufferSize);
+    state_.resize(static_cast<size_t>(2) * core::vad_constants::INTERNAL_STATE_SIZE);
     context_.assign(static_cast<size_t>(kContextSamples), 0.0F);
     sr_.resize(1);
     sr_[0] = sample_rate;
@@ -114,7 +112,7 @@ void VadProcessor::reset_states() {
     std::ranges::fill(state_, 0.0F);
     std::ranges::fill(context_, 0.0F);
     smoothed_prob_ = 0.0F;
-    noise_floor_ = detail::kDefaultNoiseFloor;
+    noise_floor_ = core::vad_constants::INTERNAL_NOISE_FLOOR;
     adaptive_threshold_ = config_.threshold;
     hangover_counter_ = 0;
     is_speaking_ = false;
@@ -257,7 +255,7 @@ auto VadProcessor::update_adaptive_threshold(float raw_probability) -> float {
         noise_floor_ = config_.adaptive_alpha * noise_floor_ + (1.0F - config_.adaptive_alpha) * raw_probability;
 
         // Clamp threshold between min/max config
-        return std::max(config_.adaptive_min_threshold, std::min(config_.adaptive_max_threshold, noise_floor_ + kAdaptiveOffset));
+        return std::max(config_.adaptive_min_threshold, std::min(config_.adaptive_max_threshold, noise_floor_ + core::vad_constants::INTERNAL_ADAPTIVE_OFFSET));
     }
     return adaptive_threshold_;  // Keep existing if speaking
 }

@@ -27,7 +27,7 @@ cmake -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --config Release
 
 # Run with TUI
-.\build\Release\realtime-subtitler.exe --ui
+.\build\Release\signeo-core.exe --ui
 ```
 
 ### TUI Controls

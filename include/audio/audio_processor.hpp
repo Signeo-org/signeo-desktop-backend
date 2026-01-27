@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "../core/result.hpp"
+#include "../core/constants.hpp"
 #include "resampler.hpp"
 
 namespace audio {
@@ -16,9 +17,8 @@ namespace audio {
  */
 class AudioProcessor {
 public:
-    static constexpr int kDefaultOutputRate = 16000;
-    static constexpr int kMaxInputChannels = 8;
-    static constexpr int kResamplerQuality = 5;
+    static constexpr int kDefaultOutputRate = core::audio_constants::SAMPLE_RATE;
+    // Local constants removed (See core::audio_constants)
 
     struct Config {
         int input_rate;
