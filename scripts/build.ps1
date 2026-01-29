@@ -191,7 +191,7 @@ elseif ($Prod) {
     }
     
     # Configure (Release)
-    Write-Host "`n[1/4] Configuring (Release)..." -ForegroundColor Cyan
+    Write-Host "`n[1/3] Configuring (Release)..." -ForegroundColor Cyan
     $CMakeArgs = @("-S", $ProjectRoot, "-B", $BuildDir, "-G", "Ninja", "-DCMAKE_BUILD_TYPE=Release")
     $CMakeArgs += "-DENABLE_GPU=$(if ($Gpu) {'ON'} else {'OFF'})"
     if ($Gpu) { $CMakeArgs += "-DCMAKE_C_COMPILER=cl"; $CMakeArgs += "-DCMAKE_CXX_COMPILER=cl" }
@@ -200,19 +200,14 @@ elseif ($Prod) {
     if ($LASTEXITCODE -ne 0) { exit 1 }
     
     # Build
-    Write-Host "`n[2/4] Building..." -ForegroundColor Cyan
+    Write-Host "`n[2/3] Building..." -ForegroundColor Cyan
     cmake --build $BuildDir --config Release
     if ($LASTEXITCODE -ne 0) { exit 1 }
     
     # Install
-    Write-Host "`n[3/4] Installing..." -ForegroundColor Cyan
+    Write-Host "`n[3/3] Installing..." -ForegroundColor Cyan
     if (Test-Path $DistDir) { Remove-Item -Recurse -Force $DistDir }
     cmake --install $BuildDir --config Release --prefix $InstallPrefix --component Application
     
-    # Zip
-    Write-Host "`n[4/4] Packaging..." -ForegroundColor Cyan
-    $ZipPath = "$DistDir\$PackageName.zip"
-    Compress-Archive -Path "$InstallPrefix\*" -DestinationPath $ZipPath -Force
-    
-    Write-Host "`n✅ Package: $ZipPath" -ForegroundColor Green
+    Write-Host "`n✅ Build complete: $InstallPrefix" -ForegroundColor Green
 }
