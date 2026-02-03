@@ -781,7 +781,13 @@ void Application::stt_loop(ui::TuiRenderer* tui) {
             stream_config.timestamp_merge = config_.transcriber_timestamp_merge; // New field
             stream_config.min_repetition_len = config_.stt_min_repetition_len;
             stream_config.hallucination_min_len = config_.stt_hallucination_min_len;
+            stream_config.hallucination_min_len = config_.stt_hallucination_min_len;
             stream_config.hallucination_blacklist = config_.stt_blacklist;
+            
+            // Smart Filter
+            stream_config.suspicious_phrases = config_.stt_suspicious_phrases;
+            stream_config.suspicious_no_speech_threshold = config_.stt_suspicious_no_speech_threshold;
+            stream_config.suspicious_confidence_threshold = config_.stt_suspicious_confidence_threshold;
         }
 
         auto engine_result = stt::SttEngine::create(stt_config);

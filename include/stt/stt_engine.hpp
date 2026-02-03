@@ -72,6 +72,8 @@ public:
         std::string text;
         int64_t duration_ms = 0;  ///< Processing time
         float avg_probability = 0.0F;
+        float min_probability = 0.0F;     ///< Minimum token probability (confidence lower bound)
+        float max_no_speech_prob = 0.0F;  ///< Maximum probability that segment is silence
     };
 
     /**

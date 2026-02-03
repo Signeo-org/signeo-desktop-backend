@@ -194,12 +194,34 @@ auto SttEngine::transcribe(const std::vector<float>& audio) -> core::Result<SttE
     result.duration_ms = std::chrono::duration_cast<std::chrono::milliseconds>(t_end - t_start).count();
     result.avg_probability = token_count > 0 ? prob_sum / static_cast<float>(token_count) : 0.0F;
 
+    // Calculate min/max metrics
+    float min_prob = 1.0F;
+    float max_ns = 0.0F;
+
+    for (int i = 0; i < n_segments; ++i) {
+        float ns_prob = whisper_full_get_segment_no_speech_prob(ctx_, i);
+        if (ns_prob > max_ns) {
+            max_ns = ns_prob;
+        }
+
+        int n_tok = whisper_full_n_tokens(ctx_, i);
+        for (int j = 0; j < n_tok; ++j) {
+            float p = whisper_full_get_token_p(ctx_, i, j);
+            if (p < min_prob) {
+                min_prob = p;
+            }
+        }
+    }
+    // If no tokens, min_prob is 0 (or technically undefined, but 0 is safe for "low confidence")
+    result.min_probability = (token_count > 0) ? min_prob : 0.0F;
+    result.max_no_speech_prob = max_ns;
+
     // Log audio duration vs processing time
     float audio_duration_s = static_cast<float>(audio.size()) / static_cast<float>(core::audio_constants::SAMPLE_RATE);
     float rtf = static_cast<float>(result.duration_ms) / core::audio_constants::MILLISECONDS_PER_SECOND / audio_duration_s;
 
-    spdlog::debug("SttEngine: Transcribed {:.2f}s audio in {}ms (RTF: {:.2f}, tokens: {})", 
-                  audio_duration_s, result.duration_ms, rtf, prompt_tokens_.size());
+    spdlog::debug("SttEngine: Transcribed {:.2f}s audio in {}ms (RTF: {:.2f}, tokens: {}, no_speech: {:.2f})", 
+                  audio_duration_s, result.duration_ms, rtf, prompt_tokens_.size(), max_ns);
 
     return result;
 }

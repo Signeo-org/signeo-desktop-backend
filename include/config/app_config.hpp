@@ -85,7 +85,13 @@ struct AppConfig {
     // STT Quality / Filter
     int stt_min_repetition_len = core::stt_constants::DEFAULT_MIN_REPETITION;
     int stt_hallucination_min_len = core::stt_constants::DEFAULT_HALLUCINATION_LEN;
-    std::vector<std::string> stt_blacklist = {};
+
+    std::vector<std::string> stt_blacklist = core::stt_constants::DEFAULT_BLACKLIST;
+
+    // Smart Hallucination Filter
+    std::vector<std::string> stt_suspicious_phrases = core::stt_constants::DEFAULT_SUSPICIOUS_PHRASES;
+    float stt_suspicious_no_speech_threshold = core::stt_constants::DEFAULT_SUSPICIOUS_NO_SPEECH_THRESHOLD; 
+    float stt_suspicious_confidence_threshold = core::stt_constants::DEFAULT_SUSPICIOUS_CONFIDENCE_THRESHOLD;
 
     // STT Inference Quality
     int stt_beam_size = core::stt_constants::DEFAULT_BEAM_SIZE;

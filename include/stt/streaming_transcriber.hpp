@@ -24,7 +24,12 @@ struct TranscriberConfig {
     // Quality / Filter
     int min_repetition_len = core::stt_constants::DEFAULT_MIN_REPETITION;
     int hallucination_min_len = core::stt_constants::DEFAULT_HALLUCINATION_LEN;
-    std::vector<std::string> hallucination_blacklist = {};  // Empty - don't filter real words
+    std::vector<std::string> hallucination_blacklist = core::stt_constants::DEFAULT_BLACKLIST;  // Hard filtering
+
+    // Smart Filter
+    std::vector<std::string> suspicious_phrases = {};
+    float suspicious_no_speech_threshold = core::stt_constants::DEFAULT_SUSPICIOUS_NO_SPEECH_THRESHOLD; 
+    float suspicious_confidence_threshold = core::stt_constants::DEFAULT_SUSPICIOUS_CONFIDENCE_THRESHOLD;
 };
 
 /**
@@ -107,11 +112,14 @@ private:
     // Helper methods
     [[nodiscard]] auto remove_repetition(const std::string& text) const -> std::string;
     static auto find_overlap(const std::vector<std::string>& prev, const std::vector<std::string>& curr) -> int;
-    auto is_hallucination(const std::string& text) -> bool;
+    
+    // Updated filtering signature
+    auto is_hallucination(const std::string& text, const SttEngine::TranscriptionResult& result) -> bool;
+    
     static auto tokenize(const std::string& text) -> std::vector<std::string>;
 
     // Helper methods
-    auto post_process_text(const std::string& raw_text) -> std::string;
+    auto post_process_text(const SttEngine::TranscriptionResult& result) -> std::string;
 
     // Refactoring helpers
     auto prepare_combined_buffer() -> std::vector<float>;

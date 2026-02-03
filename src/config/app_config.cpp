@@ -220,6 +220,32 @@ auto AppConfig::parse(int argc, char** argv) -> AppConfig {
         config.vad_pre_roll_frames = cfg_file.get_int("vad_preroll", config.vad_pre_roll_frames);
         config.vad_adaptive_threshold = cfg_file.get_bool("vad_adaptive", config.vad_adaptive_threshold);
         
+        // Smart Filter
+        config.stt_suspicious_no_speech_threshold = cfg_file.get_float("smart_no_speech", config.stt_suspicious_no_speech_threshold);
+        config.stt_suspicious_confidence_threshold = cfg_file.get_float("smart_confidence", config.stt_suspicious_confidence_threshold);
+
+        // Lists (Comma-separated)
+        std::string suspicious_str = cfg_file.get("smart_phrases", "");
+        if (!suspicious_str.empty()) {
+             // Basic CSV parser
+             config.stt_suspicious_phrases.clear();
+             std::stringstream ss(suspicious_str);
+             std::string item;
+             while (std::getline(ss, item, ',')) {
+                 config.stt_suspicious_phrases.push_back(trim_str(item));
+             }
+        }
+
+        std::string blacklist_str = cfg_file.get("blacklist", "");
+        if (!blacklist_str.empty()) {
+             config.stt_blacklist.clear();
+             std::stringstream ss(blacklist_str);
+             std::string item;
+             while (std::getline(ss, item, ',')) {
+                 config.stt_blacklist.push_back(trim_str(item));
+             }
+        }
+        
         // Logging
         config.log_level = cfg_file.get("log_level", config.log_level);
         config.verbose = cfg_file.get_bool("verbose", config.verbose);
@@ -232,6 +258,27 @@ auto AppConfig::parse(int argc, char** argv) -> AppConfig {
     config.stt_beam_size = get_env_int("SUBTITLER_STT_BEAM_SIZE", config.stt_beam_size);
     config.transcriber_timestamp_merge = get_env_bool("SUBTITLER_STT_TS_MERGE", config.transcriber_timestamp_merge);
     config.input_env = static_cast<InputEnvironment>(get_env_int("SUBTITLER_INPUT_ENV", static_cast<int>(config.input_env)));
+
+    // Lists via Env (SUBTITLER_SMART_PHRASES="thanks,thank you")
+    std::string env_smart = get_env("SUBTITLER_SMART_PHRASES");
+    if (!env_smart.empty()) {
+        config.stt_suspicious_phrases.clear();
+        std::stringstream ss(env_smart);
+        std::string item;
+        while (std::getline(ss, item, ',')) {
+             config.stt_suspicious_phrases.push_back(trim_str(item));
+        }
+    }
+
+    std::string env_blacklist = get_env("SUBTITLER_BLACKLIST");
+    if (!env_blacklist.empty()) {
+        config.stt_blacklist.clear();
+        std::stringstream ss(env_blacklist);
+        std::string item;
+        while (std::getline(ss, item, ',')) {
+             config.stt_blacklist.push_back(trim_str(item));
+        }
+    }
 
     // 4. CLI Arguments (Highest Priority Determination)
     CLI::App app{"Signeo - AI Live Captions"};

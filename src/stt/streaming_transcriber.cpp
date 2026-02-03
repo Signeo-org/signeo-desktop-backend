@@ -110,7 +110,7 @@ auto StreamingTranscriber::finalize() -> StreamingTranscriber::Segment {
     }
 
     // 3. Post-process Text
-    std::string final_text = post_process_text(result->text);
+    std::string final_text = post_process_text(*result);
 
     // 4. Update Full Text
     append_to_full_text(final_text);
@@ -165,7 +165,8 @@ void StreamingTranscriber::update_state_after_transcription(const SttEngine::Tra
     audio_buffer_.clear();
 }
 
-auto StreamingTranscriber::post_process_text(const std::string& raw_text) -> std::string {
+auto StreamingTranscriber::post_process_text(const SttEngine::TranscriptionResult& result) -> std::string {
+    std::string raw_text = result.text;
     spdlog::debug("StreamingTranscriber: Raw text: '{}'", raw_text);
 
     // Deduplicate if enabled
@@ -185,8 +186,9 @@ auto StreamingTranscriber::post_process_text(const std::string& raw_text) -> std
     }
 
     // Filter out hallucinations and short noise
-    if (is_hallucination(text)) {
-        spdlog::debug("StreamingTranscriber: Filtered hallucination: '{}'", text);
+    if (is_hallucination(text, result)) {
+        spdlog::debug("StreamingTranscriber: Filtered hallucination: '{}' (min_p={:.2f}, no_speech={:.2f})", 
+                      text, result.min_probability, result.max_no_speech_prob);
         return "";
     }
 
@@ -241,7 +243,6 @@ auto StreamingTranscriber::find_overlap(const std::vector<std::string>& prev, co
         for (size_t i = 0; i < overlap; ++i) {
             if (prev[prev.size() - overlap + i] != curr[i]) {
                 match = false;
-                break;
             }
         }
         if (match) {
@@ -314,7 +315,7 @@ auto StreamingTranscriber::remove_repetition(const std::string& text) const -> s
     return current;
 }
 
-auto StreamingTranscriber::is_hallucination(const std::string& text) -> bool {
+auto StreamingTranscriber::is_hallucination(const std::string& text, const SttEngine::TranscriptionResult& result) -> bool {
     if (text.empty()) {
         return true;
     }
@@ -333,10 +334,32 @@ auto StreamingTranscriber::is_hallucination(const std::string& text) -> bool {
         lower.pop_back();
     }
 
-    // Blacklist check (using configurable list)
-    return std::ranges::any_of(config_.hallucination_blacklist, [&lower](const auto& phrase) {
+    // 1. Blacklist check (Always Reject)
+    bool blacklisted = std::ranges::any_of(config_.hallucination_blacklist, [&lower](const auto& phrase) {
         return lower == phrase;
     });
+    if (blacklisted) return true;
+
+    // 2. Smart Filter (Suspicious Phrases)
+    bool is_suspicious = std::ranges::any_of(config_.suspicious_phrases, [&lower](const auto& phrase) {
+        return lower == phrase;
+    });
+
+    if (is_suspicious) {
+        // Only reject if model is unsure or thinks it's silence
+        bool looks_like_silence = result.max_no_speech_prob > config_.suspicious_no_speech_threshold;
+        bool low_confidence = result.min_probability < config_.suspicious_confidence_threshold;
+
+        if (looks_like_silence || low_confidence) {
+            spdlog::debug("Smart Filter: Rejected '{}' (no_speech={:.2f} > {:.2f} || min_prob={:.2f} < {:.2f})",
+                          text, result.max_no_speech_prob, config_.suspicious_no_speech_threshold,
+                          result.min_probability, config_.suspicious_confidence_threshold);
+            return true;
+        }
+        spdlog::debug("Smart Filter: Allowed '{}' (High confidence)", text);
+    }
+
+    return false;
 }
 
 auto StreamingTranscriber::get_full_text() const -> const std::string& {

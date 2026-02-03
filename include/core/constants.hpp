@@ -9,6 +9,8 @@
  */
 
 #include <cstdint>
+#include <string>
+#include <vector>
 
 namespace core {
 
@@ -112,6 +114,11 @@ inline constexpr float DEFAULT_LOGPROB_THOLD = -1.0f;
 inline constexpr bool DEFAULT_SUPPRESS_BLANK = true;
 inline constexpr bool DEFAULT_SUPPRESS_NST = true;
 inline constexpr bool DEFAULT_TIMESTAMP_MERGE = true;
+inline constexpr float DEFAULT_SUSPICIOUS_NO_SPEECH_THRESHOLD = 0.4f;
+inline constexpr float DEFAULT_SUSPICIOUS_CONFIDENCE_THRESHOLD = 0.7f;
+
+inline const std::vector<std::string> DEFAULT_SUSPICIOUS_PHRASES = { "thank you", "thanks", "you" };
+inline const std::vector<std::string> DEFAULT_BLACKLIST = {};
 
 // Output settings
 inline constexpr bool DEFAULT_PRINT_PROGRESS = false;
