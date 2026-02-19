@@ -40,3 +40,5 @@ models/*.wav
 # Logs
 *.log
 logs/
+build_*/
+build*/
